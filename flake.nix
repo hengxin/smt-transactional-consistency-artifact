@@ -5,7 +5,7 @@
   in
   {
     devShell.x86_64-linux = with pkgs; mkShell {
-      packages = [ meson ninja cmake clang-tools gcc ];
+      packages = [ meson ninja clang-tools cmake gcc boost.dev argparse ];
     };
   };
 }
