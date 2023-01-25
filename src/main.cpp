@@ -6,6 +6,12 @@
 #include <stdexcept>
 
 #include "history/history.h"
+#include "history/dependencygraph.h"
+#include "history/constraint.h"
+
+namespace history = checker::history;
+
+using std::cout;
 
 int main(int argc, char** argv) {
   z3::context c;
@@ -36,8 +42,20 @@ int main(int argc, char** argv) {
   }
 
   std::ifstream history_file{args.get("history")};
-  auto history = checker::history::History::parse_dbcop_history(history_file);
-  std::cout << history;
+  auto history = history::parse_dbcop_history(history_file);
+  auto dependency_graph = history::known_graph_of(history);
+  auto constraints = history::constraints_of(history, dependency_graph.wr);
+
+  cout << history;
+
+  cout << "RW:\n" << dependency_graph.rw;
+  cout << "WW:\n" << dependency_graph.ww;
+  cout << "SO:\n" << dependency_graph.so;
+  cout << "WR:\n" << dependency_graph.wr;
+
+  for (const auto &c : constraints) {
+    cout << c;
+  }
 
   return 0;
 }

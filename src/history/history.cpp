@@ -11,6 +11,8 @@
 #include <unordered_set>
 #include <utility>
 
+#include "utils/to_vector.h"
+
 using std::ssize;
 using std::ranges::views::iota;
 using std::ranges::views::transform;
@@ -33,7 +35,7 @@ static bool read_bool(std::istream &in) { return in.get() != 0; }
 
 namespace checker::history {
 
-History History::parse_dbcop_history(std::istream &is) {
+History parse_dbcop_history(std::istream &is) {
   constexpr int64_t init_session_id = 0;
   constexpr int64_t init_txn_id = 0;
 
@@ -54,12 +56,16 @@ History History::parse_dbcop_history(std::istream &is) {
           .key = key,
           .value = value,
           .type = is_write ? EventType::WRITE : EventType::READ,
+          .transaction_id = txn.id,
       });
     }
   };
 
   auto parse_txn = [&](Session &session) {
-    Transaction txn;
+    auto &txn = session.transactions.emplace_back(Transaction{
+        .id = current_txn_id++,
+        .session_id = session.id,
+    });
 
     auto size = read_int64(is);
     for ([[maybe_unused]] auto i : iota(0, size)) {
@@ -67,9 +73,8 @@ History History::parse_dbcop_history(std::istream &is) {
     }
 
     auto success = read_bool(is);
-    if (success) {
-      txn.id = current_txn_id++;
-      session.transactions.emplace_back(std::move(txn));
+    if (!success) {
+      session.transactions.pop_back();
     }
   };
 
@@ -97,18 +102,21 @@ History History::parse_dbcop_history(std::istream &is) {
     parse_session();
   }
 
-  auto init_events = keys | transform([](auto key) {
-                       return Event{
-                           .key = key,
-                           .value = 0,
-                           .type = EventType::WRITE,
-                       };
-                     });
   history.sessions.emplace_back(Session{
       .id = init_session_id,
       .transactions = std::vector{Transaction{
           .id = init_txn_id,
-          .events = std::vector(init_events.begin(), init_events.end()),
+          .events = keys  //
+                    | transform([](auto key) {
+                        return Event{
+                            .key = key,
+                            .value = 0,
+                            .type = EventType::WRITE,
+                            .transaction_id = init_txn_id,
+                        };
+                      })  //
+                    | utils::to_vector,
+          .session_id = init_session_id,
       }},
   });
 

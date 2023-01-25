@@ -36,5 +36,6 @@ executable(
   'checker',
   checker_srcs,
   dependencies: [z3_dep, argparse_dep, boost_dep],
-  override_options: ['cpp_std=c++20']
+  override_options: ['cpp_std=c++20', 'b_sanitize=address'],
+  include_directories: ['src'],
 )
