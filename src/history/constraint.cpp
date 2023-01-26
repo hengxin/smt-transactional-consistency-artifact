@@ -36,17 +36,17 @@ static constexpr auto hash_txns_pair = [](const pair<int64_t, int64_t> &p) {
 };
 
 namespace checker::history {
-vector<Constraint> constraints_of(const History &history,
-                                  const DependencyGraph::SubGraph &wr) {
-  unordered_map<int64_t, unordered_set<int64_t>> write_txns_per_key;
+auto constraints_of(const History &history, const DependencyGraph::SubGraph &wr)
+    -> vector<Constraint> {
+  auto write_txns_per_key = unordered_map<int64_t, unordered_set<int64_t>>{};
   for (const auto &event : history.events() | filter_read_event) {
     write_txns_per_key[event.key].emplace(event.transaction_id);
   }
 
-  unordered_map<pair<int64_t, int64_t>,
-                unordered_map<EdgeType, vector<int64_t>>,
-                decltype(hash_txns_pair)>
-      edges_per_txn_pair;
+  auto edges_per_txn_pair =
+      unordered_map<pair<int64_t, int64_t>,
+                    unordered_map<EdgeType, vector<int64_t>>,
+                    decltype(hash_txns_pair)>{};
   for (const auto &[key, txns] : write_txns_per_key) {
     for (auto it = txns.begin(); it != txns.end(); it++) {
       for (const auto &txn2 : subrange(std::next(it), txns.end())) {
@@ -75,8 +75,9 @@ vector<Constraint> constraints_of(const History &history,
     }
   }
 
-  vector<Constraint> constraints;
-  unordered_set<pair<int64_t, int64_t>, decltype(hash_txns_pair)> added_pairs;
+  auto constraints = vector<Constraint>{};
+  auto added_pairs =
+      unordered_set<pair<int64_t, int64_t>, decltype(hash_txns_pair)>{};
   for (const auto &[p, v] : edges_per_txn_pair) {
     auto [txn1, txn2] = p;
 
@@ -110,8 +111,9 @@ vector<Constraint> constraints_of(const History &history,
   return constraints;
 }
 
-std::ostream &operator<<(std::ostream &os, const Constraint &constraint) {
-  std::osyncstream out{os};
+auto operator<<(std::ostream &os, const Constraint &constraint)
+    -> std::ostream & {
+  auto out = std::osyncstream{os};
   auto print_cond = [&](const char *tag, int64_t first_id, int64_t second_id,
                         const vector<Constraint::Edge> &edges) {
     out << tag << ": " << first_id << "->" << second_id << ' ';
@@ -124,8 +126,10 @@ std::ostream &operator<<(std::ostream &os, const Constraint &constraint) {
     out << "; ";
   };
 
-  print_cond("either", constraint.either_txn_id, constraint.or_txn_id, constraint.either_edges);
-  print_cond("or", constraint.or_txn_id, constraint.either_txn_id, constraint.or_edges);
+  print_cond("either", constraint.either_txn_id, constraint.or_txn_id,
+             constraint.either_edges);
+  print_cond("or", constraint.or_txn_id, constraint.either_txn_id,
+             constraint.or_edges);
   out << '\n';
 
   return os;

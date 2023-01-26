@@ -8,11 +8,12 @@ namespace checker::utils {
 
 struct ToVector {};
 
-inline constexpr auto operator|(std::ranges::range auto r, ToVector) {
+inline constexpr auto operator|(std::ranges::range auto r, ToVector)
+    -> std::vector<std::ranges::range_value_t<decltype(r)>> {
   return std::vector(std::ranges::begin(r), std::ranges::end(r));
 }
 
-inline constexpr ToVector to_vector;
+inline constexpr auto to_vector = ToVector{};
 
 }  // namespace checker::utils
 

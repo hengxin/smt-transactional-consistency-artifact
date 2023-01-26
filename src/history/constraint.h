@@ -2,9 +2,9 @@
 #define CHECKER_HISTORY_CONSTRAINT_H
 
 #include <cstdint>
+#include <iosfwd>
 #include <tuple>
 #include <vector>
-#include <iosfwd>
 
 #include "dependencygraph.h"
 #include "history.h"
@@ -19,11 +19,12 @@ struct Constraint {
   std::vector<Edge> either_edges;
   std::vector<Edge> or_edges;
 
-  friend std::ostream &operator<<(std::ostream &os, const Constraint &constraint);
+  friend auto operator<<(std::ostream &os, const Constraint &constraint)
+      -> std::ostream &;
 };
 
-std::vector<Constraint> constraints_of(const History &history,
-                                       const DependencyGraph::SubGraph &wr);
+auto constraints_of(const History &history, const DependencyGraph::SubGraph &wr)
+    -> std::vector<Constraint>;
 
 }  // namespace checker::history
 

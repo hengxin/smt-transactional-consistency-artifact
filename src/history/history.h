@@ -33,38 +33,41 @@ struct Session {
 struct History {
   std::vector<Session> sessions;
 
-  friend std::ostream &operator<<(std::ostream &os, const History &history);
+  friend auto operator<<(std::ostream &os, const History &history)
+      -> std::ostream &;
 
-  auto transactions() const {
+  std::ranges::range auto transactions() const {
     return sessions  //
-           | std::ranges::views::transform(
-                 [](const auto &s) { return std::ranges::views::all(s.transactions); })  //
+           | std::ranges::views::transform([](const auto &s) {
+               return std::ranges::views::all(s.transactions);
+             })  //
            | std::ranges::views::join;
   }
 
-  auto events() const {
+  std::ranges::range auto events() const {
     return transactions()  //
-           | std::ranges::views::transform(
-                 [](const auto &txn) { return std::ranges::views::all(txn.events); })  //
+           | std::ranges::views::transform([](const auto &txn) {
+               return std::ranges::views::all(txn.events);
+             })  //
            | std::ranges::views::join;
   }
 };
 
-History parse_dbcop_history(std::istream &is);
+auto parse_dbcop_history(std::istream &is) -> History;
 
 }  // namespace checker::history
 
 namespace std {
 template <>
 struct hash<checker::history::Session> {
-  size_t operator()(const checker::history::Session &session) {
+  auto operator()(const checker::history::Session &session) const {
     return hash<int64_t>{}(session.id);
   }
 };
 
 template <>
 struct hash<checker::history::Transaction> {
-  size_t operator()(const checker::history::Transaction &txn) {
+  auto operator()(const checker::history::Transaction &txn) const {
     return hash<int64_t>{}(txn.id);
   }
 };

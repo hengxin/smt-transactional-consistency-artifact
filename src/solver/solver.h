@@ -20,7 +20,7 @@ struct Solver {
   Solver(const history::DependencyGraph &known_graph,
          const std::vector<history::Constraint> &constraints);
 
-  bool solve();
+  auto solve() -> bool;
 
   ~Solver();
 };

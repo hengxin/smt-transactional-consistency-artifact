@@ -19,9 +19,9 @@ using std::ranges::views::filter;
 
 namespace checker::history {
 
-DependencyGraph known_graph_of(const History &history) {
-  DependencyGraph graph;
-  unordered_map<int64_t, const Transaction *> transactions;
+auto known_graph_of(const History &history) -> DependencyGraph {
+  auto graph = DependencyGraph{};
+  auto transactions = unordered_map<int64_t, const Transaction *>{};
 
   for (const auto &txn : history.transactions()) {
     transactions.emplace(txn.id, &txn);
@@ -33,7 +33,7 @@ DependencyGraph known_graph_of(const History &history) {
 
   // add SO edges
   for (const auto &sess : history.sessions) {
-    const Transaction *prev_txn = nullptr;
+    auto prev_txn = (const Transaction *){};
     for (const auto &txn : sess.transactions) {
       if (prev_txn) {
         graph.so.add_edge(prev_txn->id, txn.id, EdgeInfo{.type = EdgeType::SO});
@@ -47,9 +47,8 @@ DependencyGraph known_graph_of(const History &history) {
   auto hash_pair = [](const pair<int64_t, int64_t> &p) {
     return std::hash<int64_t>{}(p.first) ^ std::hash<int64_t>{}(p.second);
   };
-  std::unordered_map<pair<int64_t, int64_t>, const Transaction *,
-                     decltype(hash_pair)>
-      writes;
+  auto writes = std::unordered_map<pair<int64_t, int64_t>, const Transaction *,
+                                   decltype(hash_pair)>{};
   auto filter_by_type = [](EventType t) {
     return filter([=](const auto &ev) { return ev.type == t; });
   };
@@ -78,9 +77,9 @@ DependencyGraph known_graph_of(const History &history) {
   return graph;
 }
 
-std::ostream &operator<<(std::ostream &os,
-                         const DependencyGraph::SubGraph &graph) {
-  std::osyncstream out{os};
+auto operator<<(std::ostream &os, const DependencyGraph::SubGraph &graph)
+    -> std::ostream & {
+  auto out = std::osyncstream{os};
 
   for (auto [from, to, info] : graph.edges()) {
     out << from << "->" << to << ' ' << *info << '\n';
@@ -89,8 +88,8 @@ std::ostream &operator<<(std::ostream &os,
   return os;
 }
 
-std::ostream &operator<<(std::ostream &os, const EdgeInfo &edge_info) {
-  std::osyncstream out{os};
+auto operator<<(std::ostream &os, const EdgeInfo &edge_info) -> std::ostream & {
+  auto out = std::osyncstream{os};
   auto print_keys = [&] {
     out << '(';
     for (auto key : edge_info.keys) {

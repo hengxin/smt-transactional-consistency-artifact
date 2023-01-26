@@ -29,7 +29,7 @@ using std::ranges::views::transform;
 using z3::expr;
 
 static constexpr auto hash_txn_pair = [](const pair<int64_t, int64_t> &p) {
-  std::hash<int64_t> h;
+  auto h = std::hash<int64_t>{};
   return h(p.first) ^ h(p.second);
 };
 
@@ -37,13 +37,15 @@ static constexpr auto hash_z3_expr = [](const expr &e) { return e.hash(); };
 
 using EdgeVarMap =
     unordered_map<pair<int64_t, int64_t>, expr, decltype(hash_txn_pair)>;
+using VarEdgeMap =
+    unordered_map<expr, pair<int64_t, int64_t>, decltype(hash_z3_expr)>;
 
 namespace checker::solver {
 
 Solver::Solver(const history::DependencyGraph &known_graph,
                const std::vector<history::Constraint> &constraints)
     : solver{context} {
-  EdgeVarMap edge_vars;
+  auto edge_vars = EdgeVarMap{};
 
   auto get_var = [&, n = 0]() mutable {
     return context.bool_const(std::to_string(n++).c_str());
@@ -82,13 +84,12 @@ Solver::Solver(const history::DependencyGraph &known_graph,
       std::make_unique<DependencyGraphHasNoCycle>(solver, edge_vars);
 }
 
-bool Solver::solve() { return solver.check() == z3::sat; }
+auto Solver::solve() -> bool { return solver.check() == z3::sat; }
 
 Solver::~Solver() = default;
 
 struct DependencyGraphHasNoCycle : z3::user_propagator_base {
-  unordered_map<z3::expr, pair<int64_t, int64_t>, decltype(hash_z3_expr)>
-      var_edge;
+  VarEdgeMap var_edge;
   vector<size_t> fixed_vars_num_at_scope{0};
   vector<pair<z3::expr, bool>> fixed_vars;
 
@@ -99,23 +100,25 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     }
   }
 
-  void push() override {
+  auto push() -> void override {
     fixed_vars_num_at_scope.emplace_back(fixed_vars.size());
   }
 
-  void pop(unsigned int num_scopes) override {
+  auto pop(unsigned int num_scopes) -> void override {
     fixed_vars_num_at_scope.resize(fixed_vars_num_at_scope.size() - num_scopes);
     fixed_vars.erase(fixed_vars.begin() + fixed_vars_num_at_scope.back(),
                      fixed_vars.end());
   }
 
-  void fixed(const expr &var, const expr &value) override {
+  auto fixed(const expr &var, const expr &value) -> void override {
     fixed_vars.emplace_back(var, value.bool_value());
   }
 
-  z3::user_propagator_base *fresh(z3::context &ctx) override { return this; }
+  auto fresh(z3::context &ctx) -> z3::user_propagator_base * override {
+    return this;
+  }
 
-  void final() override { throw std::runtime_error{"unimplemented"}; }
+  auto final() -> void override { throw std::runtime_error{"unimplemented"}; }
 };
 
 }  // namespace checker::solver

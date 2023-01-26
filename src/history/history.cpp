@@ -17,32 +17,32 @@ using std::ssize;
 using std::ranges::views::iota;
 using std::ranges::views::transform;
 
-static int64_t read_int64(std::istream &in) {
+static auto read_int64(std::istream &in) -> int64_t {
   int64_t n;
   in.read(reinterpret_cast<char *>(&n), sizeof(n));
   boost::endian::little_to_native_inplace(n);
   return n;
 }
 
-static std::string read_str(std::istream &in) {
+static auto read_str(std::istream &in) -> std::string {
   auto size = read_int64(in);
-  std::string s(size, '\0');
+  auto s = std::string(size, '\0');
   in.read(s.data(), size);
   return s;
 }
 
-static bool read_bool(std::istream &in) { return in.get() != 0; }
+static auto read_bool(std::istream &in) -> bool { return in.get() != 0; }
 
 namespace checker::history {
 
-History parse_dbcop_history(std::istream &is) {
+auto parse_dbcop_history(std::istream &is) -> History {
   constexpr int64_t init_session_id = 0;
   constexpr int64_t init_txn_id = 0;
 
-  History history;
+  auto history = History{};
   int64_t current_session_id = 1;
   int64_t current_txn_id = 1;
-  std::unordered_set<int64_t> keys;
+  auto keys = std::unordered_set<int64_t>{};
 
   auto parse_event = [&](Transaction &txn) {
     auto is_write = read_bool(is);
@@ -123,7 +123,7 @@ History parse_dbcop_history(std::istream &is) {
   return history;
 }
 
-std::ostream &operator<<(std::ostream &os, const History &history) {
+auto operator<<(std::ostream &os, const History &history) -> std::ostream & {
   auto out = std::osyncstream{os};
 
   for (const auto &session : history.sessions) {

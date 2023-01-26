@@ -21,7 +21,8 @@ struct EdgeInfo {
   EdgeType type;
   std::vector<int64_t> keys;
 
-  friend std::ostream &operator<<(std::ostream &os, const EdgeInfo &edge_info);
+  friend auto operator<<(std::ostream &os, const EdgeInfo &edge_info)
+      -> std::ostream &;
 };
 
 struct DependencyGraph {
@@ -33,17 +34,17 @@ struct DependencyGraph {
     GraphStorage graph;
     std::unordered_map<int64_t, GraphStorage::vertex_descriptor> vertex_map;
 
-    void add_vertex(int64_t v) {
+    auto add_vertex(int64_t v) -> void {
       auto desc = boost::add_vertex(v, graph);
       vertex_map.emplace(v, desc);
     }
 
-    void add_edge(int64_t from, int64_t to, EdgeInfo &&info) {
+    auto add_edge(int64_t from, int64_t to, EdgeInfo &&info) -> void {
       boost::add_edge(vertex_map.at(from), vertex_map.at(to), std::move(info),
                       graph);
     }
 
-    std::optional<EdgeInfo *> edge(int64_t from, int64_t to) {
+    auto edge(int64_t from, int64_t to) -> std::optional<EdgeInfo *> {
       if (auto r = std::as_const(*this).edge(from, to); r) {
         return std::optional{const_cast<EdgeInfo *>(r.value())};
       } else {
@@ -51,7 +52,8 @@ struct DependencyGraph {
       }
     }
 
-    std::optional<const EdgeInfo *> edge(int64_t from, int64_t to) const {
+    auto edge(int64_t from, int64_t to) const
+        -> std::optional<const EdgeInfo *> {
       auto result = boost::edge(vertex_map.at(from), vertex_map.at(to), graph);
 
       if (result.second) {
@@ -61,7 +63,7 @@ struct DependencyGraph {
       }
     }
 
-    auto successors(int64_t vertex) const {
+    std::ranges::range auto successors(int64_t vertex) const {
       auto [begin, end] = boost::out_edges(vertex_map.at(vertex), graph);
       return std::ranges::subrange(begin, end)  //
              | std::ranges::views::transform([&](auto desc) {
@@ -69,14 +71,14 @@ struct DependencyGraph {
                });
     }
 
-    auto vertices() const {
+    std::ranges::range auto vertices() const {
       auto [begin, end] = boost::vertices(graph);
       return std::ranges::subrange(begin, end)  //
              | std::ranges::views::transform(
                    [&](auto desc) { return graph[desc]; });
     }
 
-    auto edges() const {
+    std::ranges::range auto edges() const {
       auto [begin, end] = boost::edges(graph);
       return std::ranges::subrange(begin, end)  //
              | std::ranges::views::transform([&](auto desc) {
@@ -88,7 +90,8 @@ struct DependencyGraph {
                });
     }
 
-    friend std::ostream &operator<<(std::ostream &os, const SubGraph &graph);
+    friend auto operator<<(std::ostream &os, const SubGraph &graph)
+        -> std::ostream &;
   };
 
   SubGraph so;
@@ -96,13 +99,13 @@ struct DependencyGraph {
   SubGraph wr;
   SubGraph ww;
 
-  auto edges() const {
+  std::ranges::range auto edges() const {
     return std::array{so.edges(), rw.edges(), wr.edges(), ww.edges()}  //
            | std::ranges::views::join;
   }
 };
 
-DependencyGraph known_graph_of(const History &history);
+auto known_graph_of(const History &history) -> DependencyGraph;
 
 }  // namespace checker::history
 
