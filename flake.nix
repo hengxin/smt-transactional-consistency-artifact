@@ -2,10 +2,10 @@
   outputs = { nixpkgs, ... }:
   let
     pkgs = nixpkgs.legacyPackages.x86_64-linux;
-    # mkShell = pkgs.mkShell.override {
-    #   stdenv = pkgs.llvmPackages_latest.libcxxStdenv;
-    # };
-    mkShell = pkgs.mkShell;
+    mkShell = pkgs.mkShell.override {
+      # stdenv = pkgs.llvmPackages_latest.libcxxStdenv;
+      stdenv = pkgs.gcc12Stdenv;
+    };
   in
   {
     devShell.x86_64-linux = mkShell {

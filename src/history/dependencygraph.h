@@ -1,6 +1,7 @@
 #ifndef CHECKER_HISTORY_DEPENDENCYGRAPH_H
 #define CHECKER_HISTORY_DEPENDENCYGRAPH_H
 
+#include <array>
 #include <boost/graph/adjacency_list.hpp>
 #include <cstdint>
 #include <iosfwd>
@@ -9,7 +10,6 @@
 #include <tuple>
 #include <unordered_map>
 #include <utility>
-#include <vector>
 
 #include "history.h"
 
@@ -95,6 +95,11 @@ struct DependencyGraph {
   SubGraph rw;
   SubGraph wr;
   SubGraph ww;
+
+  auto edges() const {
+    return std::array{so.edges(), rw.edges(), wr.edges(), ww.edges()}  //
+           | std::ranges::views::join;
+  }
 };
 
 DependencyGraph known_graph_of(const History &history);
