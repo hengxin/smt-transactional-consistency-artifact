@@ -25,10 +25,10 @@ auto known_graph_of(const History &history) -> DependencyGraph {
 
   for (const auto &txn : history.transactions()) {
     transactions.emplace(txn.id, &txn);
-    graph.rw.add_vertex(txn.id);
-    graph.so.add_vertex(txn.id);
-    graph.wr.add_vertex(txn.id);
-    graph.ww.add_vertex(txn.id);
+
+    for (auto subgraph : {&graph.rw, &graph.so, &graph.wr, &graph.ww}) {
+      subgraph->add_vertex(txn.id);
+    }
   }
 
   // add SO edges
