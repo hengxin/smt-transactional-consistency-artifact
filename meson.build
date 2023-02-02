@@ -12,6 +12,12 @@ if not z3_dep.found()
     'Z3_BUILD_EXECUTABLE': 'OFF',
     'Z3_BUILD_TEST_EXECUTABLES': 'OFF'
   })
+  if get_option('buildtype') == 'debug'
+    z3_opts.add_cmake_defines({
+      'CMAKE_BUILD_TYPE': 'Debug'
+    })
+  endif
+
   z3_pro = cmake.subproject('z3', options: z3_opts)
   z3_dep = declare_dependency(
     include_directories: include_directories('subprojects/z3/src/api/c++'),
@@ -32,10 +38,36 @@ boost_dep = dependency('boost')
 
 subdir('src')
 
+checker_deps = [z3_dep, argparse_dep, boost_dep]
+checker_opts = ['cpp_std=c++20', 'b_sanitize=address']
+checker_incs = ['src']
+
+checker_common_deps = declare_dependency(
+  dependencies: checker_deps,
+  include_directories: checker_incs,
+  link_with: [
+    static_library(
+      'checker_lib',
+      checker_srcs,
+      dependencies: checker_deps,
+      override_options: checker_opts,
+      include_directories: checker_incs,
+    )
+  ],
+)
+
 executable(
   'checker',
-  checker_srcs,
-  dependencies: [z3_dep, argparse_dep, boost_dep],
-  override_options: ['cpp_std=c++20', 'b_sanitize=address'],
-  include_directories: ['src'],
+  files('src/main.cpp'),
+  dependencies: checker_common_deps,
+  override_options: checker_opts,
 )
+
+checker_test = executable(
+  'checker_test',
+  checker_test_srcs,
+  dependencies: checker_common_deps,
+  override_options: checker_opts,
+)
+
+test('simple', checker_test)
