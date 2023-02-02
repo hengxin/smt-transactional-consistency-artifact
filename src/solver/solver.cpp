@@ -7,11 +7,13 @@
 #include <boost/graph/visitors.hpp>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <numeric>
 #include <ranges>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -22,6 +24,7 @@
 #include "history/constraint.h"
 #include "history/dependencygraph.h"
 #include "utils/to_vector.h"
+#include "z3_api.h"
 
 using checker::history::Constraint;
 using std::get;
@@ -70,17 +73,25 @@ namespace checker::solver {
 
 Solver::Solver(const history::DependencyGraph &known_graph,
                const std::vector<history::Constraint> &constraints)
-    : solver{context} {
-  auto edge_vars = EdgeVarMap{};
+    : solver{context, z3::solver::simple{}} {
+  std::cout << "wr:\n" << known_graph.wr << "\ncons:\n";
+  for (const auto &c : constraints) {
+    std::cout << c << "\n";
+  }
 
-  auto get_var = [&, n = 0]() mutable {
-    return context.bool_const(std::to_string(n++).c_str());
-  };
+  auto edge_vars = EdgeVarMap{};
+  auto bool_true = context.bool_val(true);
+
   auto get_edge_var = [&](int64_t from, int64_t to) mutable {
     if (auto it = edge_vars.find({from, to}); it != edge_vars.end()) {
       return it->second;
     } else {
-      return edge_vars.try_emplace({from, to}, get_var()).first->second;
+      std::stringstream name;
+      name << from << "->" << to;
+
+      return edge_vars
+          .try_emplace({from, to}, context.bool_const(name.str().c_str()))
+          .first->second;
     }
   };
   auto edge_to_var = transform([&](const Constraint::Edge &e) {
@@ -91,19 +102,25 @@ Solver::Solver(const history::DependencyGraph &known_graph,
     return r | transform([](const expr &e) { return !e; });
   };
   auto and_all = [&](range auto r) {
-    return reduce(std::ranges::begin(r), std::ranges::end(r),
-                  context.bool_val(true), std::bit_and{});
+    return reduce(std::ranges::begin(r), std::ranges::end(r), bool_true,
+                  std::bit_and{});
   };
 
   for (const auto &[from, to, _] : known_graph.edges()) {
-    solver.add(get_edge_var(from, to) == context.bool_val(true));
+    auto known_var = get_edge_var(from, to);
+    std::cout << "known: " << known_var << '\n';
+
+    solver.add(known_var == bool_true);
   }
 
   for (const auto &c : constraints) {
     auto either_vars = c.either_edges | edge_to_var;
     auto or_vars = c.or_edges | edge_to_var;
-    solver.add((and_all(negate(either_vars)) & and_all(or_vars)) |
-               (and_all(either_vars) & and_all(negate(or_vars))));
+    auto cons_var = (and_all(negate(either_vars)) & and_all(or_vars)) |
+                    (and_all(either_vars) & and_all(negate(or_vars)));
+
+    std::cout << "constraint: " << cons_var.to_string() << '\n';
+    solver.add(cons_var);
   }
 
   user_propagator =
@@ -147,7 +164,7 @@ struct CycleDetector : boost::dfs_visitor<> {
 struct DependencyGraphHasNoCycle : z3::user_propagator_base {
   EdgeVarMap var_map;
   VarEdgeMap edge_map;
-  vector<size_t> fixed_vars_num_at_scope{0};
+  vector<size_t> fixed_edges_num;
   vector<pair<int64_t, int64_t>> fixed_edges;
   z3::context *context;
 
@@ -164,17 +181,33 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
   }
 
   auto push() -> void override {
-    fixed_vars_num_at_scope.emplace_back(fixed_edges.size());
+    std::cout << "push\n";
+    fixed_edges_num.emplace_back(fixed_edges.size());
   }
 
   auto pop(unsigned int num_scopes) -> void override {
-    fixed_vars_num_at_scope.resize(fixed_vars_num_at_scope.size() - num_scopes);
-    fixed_edges.resize(fixed_vars_num_at_scope.back());
+    std::cout << "pop " << num_scopes << "\n";
+
+    auto remains = fixed_edges_num[fixed_edges_num.size() - num_scopes];
+    fixed_edges_num.resize(fixed_edges_num.size() - num_scopes);
+
+    std::cout << "unfix: ";
+    for (auto i = remains; i < fixed_edges.size(); i++) {
+      auto e = fixed_edges[i];
+      std::cout << var_map.at(e).id() << "(" << e.first << "->" << e.second
+                << ") ";
+    }
+    std::cout << "\n";
+
+    fixed_edges.resize(remains);
   }
 
   auto fixed(const expr &var, const expr &value) -> void override {
-    if (value.bool_value()) {
-      fixed_edges.emplace_back(edge_map.at(var));
+    if (value.bool_value() == Z3_L_TRUE) {
+      auto e = edge_map.at(var);
+      std::cout << "fixed: " << var.id() << "(" << e.first << "->" << e.second
+                << ")\n";
+      fixed_edges.emplace_back(e);
     }
   }
 
@@ -203,6 +236,13 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     }
 
     if (!cycle.empty()) {
+      std::cout << "conflict: ";
+      for (auto p : cycle) {
+        std::cout << var_map.at(p).id() << "(" << p.first << "->" << p.second
+                  << ") ";
+      }
+      std::cout << '\n';
+
       auto cycle_vec = z3::expr_vector{*context};
       for (auto p : cycle) {
         cycle_vec.push_back(var_map.at(p));

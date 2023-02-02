@@ -3,7 +3,7 @@
   let
     pkgs = nixpkgs.legacyPackages.x86_64-linux;
     mkShell = pkgs.mkShell.override {
-      # stdenv = pkgs.llvmPackages_latest.libcxxStdenv;
+      # stdenv = pkgs.llvmPackages_15.libcxxStdenv;
       stdenv = pkgs.gcc12Stdenv;
     };
   in
