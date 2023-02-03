@@ -1,0 +1,34 @@
+#+title: SI Progress Report
+#+author: czg
+#+date: <2022-03-10 09:18>
+#+reveal_theme: white
+#+reveal_trans: slide
+#+options: toc:nil reveal_width:1920 reveal_height:1080
+
+* 实现最简单的 solver
+
+- z3 的接口
+  - push(), pop(): cdcl 中尝试赋值、回溯
+  - fixed(var, val): 确定某个变量的值
+  - final(): 确定所有变量值之后，theory solver 最终进行检查
+
+- 目前版本的使用方式
+  - 提前编码已知边和所有的约束 (either...or...)
+  - fixed: 添加变量对应的边，pop 中删边
+  - final: dfs 检查图无环
+    - 发现环时，把环上所有边对应的变量作为 conflict 返回给 cdcl
+
+* 运行结果
+
+session=20, #events/txn=15, keys=10000, read=50%, uniform
+
+| #txn/sess | time   | PolySI |
+|-----------+--------+--------|
+|        10 | 0.78s  | 0.43s  |
+|        20 | 8.20s  | 0.58s  |
+|        30 | 34.66s | 0.78s  |
+
+* 下一步
+
+- incrementally 找环，从 final 移到 fixed
+- rw 边从提前编码变成由 solver 生成 (pldi 2021)
