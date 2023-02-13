@@ -66,7 +66,7 @@ auto known_graph_of(const History &history) -> DependencyGraph {
     }
 
     if (auto edge = graph.wr.edge(write_txn->id, txn->id); edge) {
-      edge.value()->keys.emplace_back(ev.key);
+      edge.value().get().keys.emplace_back(ev.key);
     } else {
       graph.wr.add_edge(
           write_txn->id, txn->id,
@@ -75,17 +75,6 @@ auto known_graph_of(const History &history) -> DependencyGraph {
   }
 
   return graph;
-}
-
-auto operator<<(std::ostream &os, const DependencyGraph::SubGraph &graph)
-    -> std::ostream & {
-  auto out = std::osyncstream{os};
-
-  for (auto [from, to, info] : graph.edges()) {
-    out << from << "->" << to << ' ' << *info << '\n';
-  }
-
-  return os;
 }
 
 auto operator<<(std::ostream &os, const EdgeInfo &edge_info) -> std::ostream & {

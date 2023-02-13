@@ -34,7 +34,7 @@ if not argparse_dep.found()
 endif
 
 # boost
-boost_dep = dependency('boost')
+boost_dep = dependency('boost', modules: ['log'])
 
 subdir('src')
 

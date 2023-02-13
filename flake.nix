@@ -19,6 +19,11 @@
         boost.dev
         argparse
       ];
+
+      shellHook = with pkgs; ''
+        export BOOST_INCLUDEDIR="${boost.dev}/include"
+        export BOOST_LIBRARYDIR="${boost}/lib"
+      '';
     };
   };
 }

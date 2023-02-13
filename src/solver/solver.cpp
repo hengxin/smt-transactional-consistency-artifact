@@ -5,6 +5,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/visitors.hpp>
+#include <boost/log/trivial.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -12,6 +13,7 @@
 #include <iostream>
 #include <memory>
 #include <numeric>
+#include <optional>
 #include <ranges>
 #include <sstream>
 #include <stdexcept>
@@ -23,11 +25,16 @@
 
 #include "history/constraint.h"
 #include "history/dependencygraph.h"
+#include "utils/graph.h"
 #include "utils/to_vector.h"
 #include "z3_api.h"
 
+using boost::adjacency_list;
+using boost::directedS;
+using boost::vecS;
 using checker::history::Constraint;
 using std::get;
+using std::optional;
 using std::pair;
 using std::reduce;
 using std::unordered_map;
@@ -38,60 +45,73 @@ using std::ranges::views::all;
 using std::ranges::views::transform;
 using z3::expr;
 
-static constexpr auto hash_txn_pair = [](const pair<int64_t, int64_t> &p) {
-  auto h = std::hash<int64_t>{};
-  return h(p.first) ^ h(p.second);
+template <>
+struct std::hash<expr> {
+  auto operator()(const expr &e) const -> size_t { return e.hash(); }
 };
 
-static constexpr auto hash_z3_expr = [](const expr &e) { return e.hash(); };
+template <>
+struct std::equal_to<expr> {
+  auto operator()(const expr &left, const expr &right) const -> bool {
+    return left.id() == right.id();
+  }
+};
 
-using EdgeVarMap =
-    unordered_map<pair<int64_t, int64_t>, expr, decltype(hash_txn_pair)>;
-using VarEdgeMap =
-    unordered_map<expr, pair<int64_t, int64_t>, decltype(hash_z3_expr)>;
+using Graph = checker::utils::Graph<int64_t, expr>;
 
-static auto create_graph_from_edges(range auto edges) {
-  auto graph = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS,
-                                     int64_t>{};
-  auto vertex_map =
-      unordered_map<int64_t, decltype(graph)::vertex_descriptor>{};
+static Graph dependency_graph_of(const Graph &polygraph, range auto edges) {
+  auto graph = Graph{};
 
-  for (const auto &[from, to] : edges) {
-    for (auto v : {from, to}) {
-      if (!vertex_map.contains(v)) {
-        vertex_map.try_emplace(v, boost::add_vertex(v, graph));
-      }
+  auto get_or_insert_vertex = [&](auto desc) {
+    if (auto v = graph.vertex(desc); v) {
+      return v.value().get();
+    } else {
+      return graph.add_vertex(desc);
     }
+  };
 
-    boost::add_edge(vertex_map.at(from), vertex_map.at(to), graph);
+  for (auto edge : edges) {
+    auto from = get_or_insert_vertex(polygraph.source(edge));
+    auto to = get_or_insert_vertex(polygraph.target(edge));
+
+    graph.add_edge(from, to, edge);
   }
 
-  return pair{graph, vertex_map};
+  return graph;
 }
 
 namespace checker::solver {
 
 Solver::Solver(const history::DependencyGraph &known_graph,
-               const std::vector<history::Constraint> &constraints)
+               const vector<history::Constraint> &constraints)
     : solver{context, z3::solver::simple{}} {
-  std::cout << "wr:\n" << known_graph.wr << "\ncons:\n";
+  BOOST_LOG_TRIVIAL(trace) << "wr:\n" << known_graph.wr << "\ncons:\n";
   for (const auto &c : constraints) {
-    std::cout << c << "\n";
+    BOOST_LOG_TRIVIAL(trace) << c << "\n";
   }
 
-  auto edge_vars = EdgeVarMap{};
+  auto polygraph = Graph{};
   auto bool_true = context.bool_val(true);
 
-  auto get_edge_var = [&](int64_t from, int64_t to) mutable {
-    if (auto it = edge_vars.find({from, to}); it != edge_vars.end()) {
-      return it->second;
+  auto get_vertex = [&](int64_t id) {
+    if (auto v = polygraph.vertex(id); v) {
+      return v.value().get();
+    } else {
+      return polygraph.add_vertex(id);
+    }
+  };
+  auto get_edge_var = [&](int64_t from, int64_t to) {
+    auto from_desc = get_vertex(from);
+    auto to_desc = get_vertex(to);
+
+    if (auto e = polygraph.edge(from, to); e) {
+      return e.value().get();
     } else {
       std::stringstream name;
       name << from << "->" << to;
 
-      return edge_vars
-          .try_emplace({from, to}, context.bool_const(name.str().c_str()))
-          .first->second;
+      auto edge_var = context.bool_const(name.str().c_str());
+      return polygraph.add_edge(from_desc, to_desc, edge_var);
     }
   };
   auto edge_to_var = transform([&](const Constraint::Edge &e) {
@@ -108,7 +128,7 @@ Solver::Solver(const history::DependencyGraph &known_graph,
 
   for (const auto &[from, to, _] : known_graph.edges()) {
     auto known_var = get_edge_var(from, to);
-    std::cout << "known: " << known_var << '\n';
+    BOOST_LOG_TRIVIAL(trace) << "known: " << known_var.to_string() << '\n';
 
     solver.add(known_var == bool_true);
   }
@@ -119,12 +139,12 @@ Solver::Solver(const history::DependencyGraph &known_graph,
     auto cons_var = (and_all(negate(either_vars)) & and_all(or_vars)) |
                     (and_all(either_vars) & and_all(negate(or_vars)));
 
-    std::cout << "constraint: " << cons_var.to_string() << '\n';
+    BOOST_LOG_TRIVIAL(trace) << "constraint: " << cons_var.to_string() << '\n';
     solver.add(cons_var);
   }
 
   user_propagator =
-      std::make_unique<DependencyGraphHasNoCycle>(context, solver, edge_vars);
+      std::make_unique<DependencyGraphHasNoCycle>(solver, polygraph);
 }
 
 auto Solver::solve() -> bool { return solver.check() == z3::sat; }
@@ -136,20 +156,20 @@ struct CycleDetector : boost::dfs_visitor<> {
   using Vertex = typename Graph::vertex_descriptor;
   using Edge = typename Graph::edge_descriptor;
 
-  vector<pair<int64_t, int64_t>> *cycle;
-  unordered_map<Vertex, Vertex> predecessor;
+  std::reference_wrapper<vector<Edge>> cycle;
+  unordered_map<Vertex, Vertex> pred_edge;
 
   auto back_edge(const Edge &e, const Graph &g) -> void {
-    if (!cycle->empty()) {
+    if (!cycle.get().empty()) {
       return;
     }
 
     auto top = boost::target(e, g);
     auto bottom = boost::source(e, g);
 
-    cycle->push_back({g[bottom], g[top]});
-    for (auto v = bottom; v != top; v = predecessor.at(v)) {
-      cycle->push_back({g[predecessor.at(v)], g[v]});
+    cycle.get().push_back(e);
+    for (auto v = bottom; v != top; v = pred_edge.at(v)) {
+      cycle.get().push_back(boost::edge(pred_edge[v], v, g).first);
     }
   }
 
@@ -157,99 +177,84 @@ struct CycleDetector : boost::dfs_visitor<> {
     auto from = boost::source(e, g);
     auto to = boost::target(e, g);
 
-    predecessor[to] = from;
+    pred_edge[to] = from;
   }
 };
 
 struct DependencyGraphHasNoCycle : z3::user_propagator_base {
-  EdgeVarMap var_map;
-  VarEdgeMap edge_map;
   vector<size_t> fixed_edges_num;
-  vector<pair<int64_t, int64_t>> fixed_edges;
-  z3::context *context;
+  vector<expr> fixed_edges;
 
-  DependencyGraphHasNoCycle(z3::context &context, z3::solver &solver,
-                            const EdgeVarMap &var_map)
-      : z3::user_propagator_base(&solver), var_map{var_map}, context(&context) {
-    for (const auto &[p, e] : var_map) {
-      edge_map.try_emplace(e, p);
-      add(e);
+  Graph polygraph;
+
+  DependencyGraphHasNoCycle(z3::solver &solver, const Graph &polygraph)
+      : z3::user_propagator_base{&solver}, polygraph{polygraph} {
+    for (auto [_, __, edge] : polygraph.edges()) {
+      add(edge.get());
     }
 
     register_fixed();
-    register_final();
   }
 
   auto push() -> void override {
-    std::cout << "push\n";
+    BOOST_LOG_TRIVIAL(trace) << "push\n";
     fixed_edges_num.emplace_back(fixed_edges.size());
   }
 
   auto pop(unsigned int num_scopes) -> void override {
-    std::cout << "pop " << num_scopes << "\n";
+    BOOST_LOG_TRIVIAL(trace) << "pop " << num_scopes << "\n";
 
-    auto remains = fixed_edges_num[fixed_edges_num.size() - num_scopes];
+    auto remains_num = fixed_edges_num[fixed_edges_num.size() - num_scopes];
     fixed_edges_num.resize(fixed_edges_num.size() - num_scopes);
 
-    std::cout << "unfix: ";
-    for (auto i = remains; i < fixed_edges.size(); i++) {
+    BOOST_LOG_TRIVIAL(trace) << "unfix: ";
+    for (auto i = remains_num; i < fixed_edges.size(); i++) {
       auto e = fixed_edges[i];
-      std::cout << var_map.at(e).id() << "(" << e.first << "->" << e.second
-                << ") ";
+      BOOST_LOG_TRIVIAL(trace) << e.to_string();
     }
-    std::cout << "\n";
+    BOOST_LOG_TRIVIAL(trace) << "\n";
 
-    fixed_edges.resize(remains);
+    fixed_edges.erase(fixed_edges.begin() + remains_num, fixed_edges.end());
   }
 
   auto fixed(const expr &var, const expr &value) -> void override {
-    if (value.bool_value() == Z3_L_TRUE) {
-      auto e = edge_map.at(var);
-      std::cout << "fixed: " << var.id() << "(" << e.first << "->" << e.second
-                << ")\n";
-      fixed_edges.emplace_back(e);
+    if (value.bool_value() != Z3_L_TRUE) {
+      return;
+    }
+
+    BOOST_LOG_TRIVIAL(trace) << "fixed: " << var.to_string() << "\n";
+    fixed_edges.emplace_back(var);
+
+    auto graph = dependency_graph_of(polygraph, fixed_edges);
+    auto cycle = vector<boost::adjacency_list<>::edge_descriptor>{};
+    auto cycle_detector =
+        CycleDetector<boost::adjacency_list<>>{.cycle = std::ref(cycle)};
+    auto visited = vector<boost::default_color_type>(graph.num_vertices());
+    auto visited_map = boost::make_iterator_property_map(
+        visited.begin(), get(boost::vertex_index, graph.graph));
+
+    boost::depth_first_search(
+        graph.graph, cycle_detector, visited_map,
+        boost::target(graph.edge_map.left.at(var), graph.graph));
+
+    if (!cycle.empty()) {
+      BOOST_LOG_TRIVIAL(trace) << "conflict: ";
+      for (auto p : cycle) {
+        BOOST_LOG_TRIVIAL(trace) << graph.edge_map.right.at(p).to_string();
+      }
+      BOOST_LOG_TRIVIAL(trace) << '\n';
+
+      auto cycle_vec = z3::expr_vector{ctx()};
+      for (auto p : cycle) {
+        cycle_vec.push_back(graph.edge_map.right.at(p));
+      }
+
+      conflict(cycle_vec);
     }
   }
 
   auto fresh(z3::context &ctx) -> z3::user_propagator_base * override {
     return this;
-  }
-
-  auto final() -> void override {
-    auto [graph, _] = create_graph_from_edges(all(fixed_edges));
-    auto cycle = vector<pair<int64_t, int64_t>>{};
-    auto cycle_detector = CycleDetector<decltype(graph)>{.cycle = &cycle};
-    auto visited =
-        vector<boost::default_color_type>(boost::num_vertices(graph));
-    auto visited_map = boost::make_iterator_property_map(
-        visited.begin(), get(boost::vertex_index, graph));
-
-    auto [begin, end] = boost::vertices(graph);
-    for (auto v : subrange(begin, end)) {
-      if (!get(visited_map, v)) {
-        boost::depth_first_search(graph, cycle_detector, visited_map, v);
-
-        if (!cycle.empty()) {
-          break;
-        }
-      }
-    }
-
-    if (!cycle.empty()) {
-      std::cout << "conflict: ";
-      for (auto p : cycle) {
-        std::cout << var_map.at(p).id() << "(" << p.first << "->" << p.second
-                  << ") ";
-      }
-      std::cout << '\n';
-
-      auto cycle_vec = z3::expr_vector{*context};
-      for (auto p : cycle) {
-        cycle_vec.push_back(var_map.at(p));
-      }
-
-      conflict(cycle_vec);
-    }
   }
 };
 

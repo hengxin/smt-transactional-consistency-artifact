@@ -1,7 +1,9 @@
 #include <z3++.h>
 
 #include <argparse/argparse.hpp>
+#include <boost/log/trivial.hpp>
 #include <fstream>
+#include <ios>
 #include <iostream>
 #include <stdexcept>
 
@@ -33,17 +35,21 @@ auto main(int argc, char **argv) -> int {
 
   cout << history;
 
-  cout << "RW:\n" << dependency_graph.rw;
-  cout << "WW:\n" << dependency_graph.ww;
-  cout << "SO:\n" << dependency_graph.so;
-  cout << "WR:\n" << dependency_graph.wr;
+  BOOST_LOG_TRIVIAL(trace) << "RW:\n"
+                           << dependency_graph.rw << '\n'
+                           << "WW:\n"
+                           << dependency_graph.ww << '\n'
+                           << "SO:\n"
+                           << dependency_graph.so << '\n'
+                           << "WR:\n"
+                           << dependency_graph.wr;
 
   for (const auto &c : constraints) {
-    cout << c;
+    BOOST_LOG_TRIVIAL(trace) << c;
   }
 
   auto solver = solver::Solver{dependency_graph, constraints};
-  cout << solver.solve() << '\n';
+  cout << std::ios::boolalpha << solver.solve() << '\n';
 
   return 0;
 }

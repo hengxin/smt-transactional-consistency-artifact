@@ -1,5 +1,6 @@
 #include "constraint.h"
 
+#include <boost/log/trivial.hpp>
 #include <cstdint>
 #include <functional>
 #include <iostream>
@@ -71,14 +72,14 @@ auto constraints_of(const History &history, const DependencyGraph::SubGraph &wr)
 
   for (const auto &a : history.transactions()) {
     for (auto b_id : wr.successors(a.id)) {
-      const auto &keys = wr.edge(a.id, b_id).value()->keys;
+      const auto &keys = wr.edge(a.id, b_id).value().get().keys;
       for (const auto &key : keys) {
         for (auto c_id : write_txns_per_key.at(key)) {
           if (a.id == c_id || b_id == c_id) {
             continue;
           }
 
-          std::cout << b_id << "-RW>" << c_id << '\n';
+          BOOST_LOG_TRIVIAL(trace) << b_id << "-RW>" << c_id << '\n';
           edges_per_txn_pair[{a.id, c_id}][{b_id, c_id, EdgeType::RW}]
               .emplace_back(key);
         }
