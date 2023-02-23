@@ -4,6 +4,7 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/depth_first_search.hpp>
+#include <boost/graph/filtered_graph.hpp>
 #include <boost/graph/visitors.hpp>
 #include <boost/log/trivial.hpp>
 #include <cstddef>
@@ -11,6 +12,7 @@
 #include <cstdio>
 #include <functional>
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <numeric>
 #include <optional>
@@ -20,6 +22,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -27,12 +30,16 @@
 #include "history/dependencygraph.h"
 #include "utils/graph.h"
 #include "utils/to_vector.h"
-#include "z3_api.h"
+#include "utils/toposort.h"
 
 using boost::adjacency_list;
 using boost::directedS;
 using boost::vecS;
 using checker::history::Constraint;
+using checker::utils::to;
+using checker::utils::to_unordered_map;
+using checker::utils::to_unordered_set;
+using checker::utils::to_vector;
 using std::get;
 using std::optional;
 using std::pair;
@@ -42,6 +49,8 @@ using std::vector;
 using std::ranges::range;
 using std::ranges::subrange;
 using std::ranges::views::all;
+using std::ranges::views::iota;
+using std::ranges::views::reverse;
 using std::ranges::views::transform;
 using z3::expr;
 
@@ -59,25 +68,19 @@ struct std::equal_to<expr> {
 
 using Graph = checker::utils::Graph<int64_t, expr>;
 
-static Graph dependency_graph_of(const Graph &polygraph, range auto edges) {
-  auto graph = Graph{};
+template <typename Graph>
+static auto dependency_graph_of(const Graph &polygraph, range auto edges) {
+  using edge_descriptor = typename Graph::edge_descriptor;
 
-  auto get_or_insert_vertex = [&](auto desc) {
-    if (auto v = graph.vertex(desc); v) {
-      return v.value().get();
-    } else {
-      return graph.add_vertex(desc);
-    }
+  auto filter_edges =
+      [edgeset = edges | to<std::unordered_set<edge_descriptor,
+                                               boost::hash<edge_descriptor>>>](
+          edge_descriptor e) { return edgeset.contains(e); };
+
+  return boost::filtered_graph{
+      polygraph,
+      std::function{filter_edges},
   };
-
-  for (auto edge : edges) {
-    auto from = get_or_insert_vertex(polygraph.source(edge));
-    auto to = get_or_insert_vertex(polygraph.target(edge));
-
-    graph.add_edge(from, to, edge);
-  }
-
-  return graph;
 }
 
 namespace checker::solver {
@@ -144,7 +147,7 @@ Solver::Solver(const history::DependencyGraph &known_graph,
   }
 
   user_propagator =
-      std::make_unique<DependencyGraphHasNoCycle>(solver, polygraph);
+      std::make_unique<DependencyGraphHasNoCycle>(solver, std::move(polygraph));
 }
 
 auto Solver::solve() -> bool { return solver.check() == z3::sat; }
@@ -182,15 +185,21 @@ struct CycleDetector : boost::dfs_visitor<> {
 };
 
 struct DependencyGraphHasNoCycle : z3::user_propagator_base {
-  vector<size_t> fixed_edges_num;
-  vector<expr> fixed_edges;
-
   Graph polygraph;
 
-  DependencyGraphHasNoCycle(z3::solver &solver, const Graph &polygraph)
-      : z3::user_propagator_base{&solver}, polygraph{polygraph} {
+  vector<size_t> fixed_edges_num;
+  vector<adjacency_list<>::edge_descriptor> fixed_edges;
+
+  vector<adjacency_list<>::vertex_descriptor> topo_order;
+
+  DependencyGraphHasNoCycle(z3::solver &solver, Graph &&_polygraph)
+      : z3::user_propagator_base{&solver}, polygraph{std::move(_polygraph)} {
     for (auto [_, __, edge] : polygraph.edges()) {
       add(edge.get());
+    }
+
+    for (auto v : polygraph.vertices()) {
+      topo_order.push_back(polygraph.vertex_map.left.at(v));
     }
 
     register_fixed();
@@ -210,7 +219,7 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     BOOST_LOG_TRIVIAL(trace) << "unfix: ";
     for (auto i = remains_num; i < fixed_edges.size(); i++) {
       auto e = fixed_edges[i];
-      BOOST_LOG_TRIVIAL(trace) << e.to_string();
+      BOOST_LOG_TRIVIAL(trace) << polygraph.edge_map.right.at(e).to_string();
     }
     BOOST_LOG_TRIVIAL(trace) << "\n";
 
@@ -223,33 +232,38 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     }
 
     BOOST_LOG_TRIVIAL(trace) << "fixed: " << var.to_string() << "\n";
-    fixed_edges.emplace_back(var);
 
-    auto graph = dependency_graph_of(polygraph, fixed_edges);
-    auto cycle = vector<boost::adjacency_list<>::edge_descriptor>{};
+    auto edge_desc = polygraph.edge_map.left.at(var);
+    fixed_edges.emplace_back(edge_desc);
+
+    auto graph = dependency_graph_of(*polygraph.graph, fixed_edges);
+    if (checker::utils::toposort_add_edge(graph, topo_order, edge_desc)) {
+      return;
+    }
+
+    auto cycle = vector<decltype(graph)::edge_descriptor>{};
     auto cycle_detector =
-        CycleDetector<boost::adjacency_list<>>{.cycle = std::ref(cycle)};
-    auto visited = vector<boost::default_color_type>(graph.num_vertices());
+        CycleDetector<decltype(graph)>{.cycle = std::ref(cycle)};
+    auto visited =
+        vector<boost::default_color_type>(boost::num_vertices(graph));
     auto visited_map = boost::make_iterator_property_map(
-        visited.begin(), get(boost::vertex_index, graph.graph));
+        visited.begin(), get(boost::vertex_index, graph));
 
-    boost::depth_first_search(
-        graph.graph, cycle_detector, visited_map,
-        boost::target(graph.edge_map.left.at(var), graph.graph));
+    boost::depth_first_search(graph, cycle_detector, visited_map,
+                              boost::target(edge_desc, graph));
 
     if (!cycle.empty()) {
+      auto cycle_vars = z3::expr_vector{ctx()};
+
       BOOST_LOG_TRIVIAL(trace) << "conflict: ";
-      for (auto p : cycle) {
-        BOOST_LOG_TRIVIAL(trace) << graph.edge_map.right.at(p).to_string();
+      for (auto e : cycle) {
+        auto var = polygraph.edge_map.right.at(e);
+        BOOST_LOG_TRIVIAL(trace) << var.to_string();
+        cycle_vars.push_back(var);
       }
       BOOST_LOG_TRIVIAL(trace) << '\n';
 
-      auto cycle_vec = z3::expr_vector{ctx()};
-      for (auto p : cycle) {
-        cycle_vec.push_back(graph.edge_map.right.at(p));
-      }
-
-      conflict(cycle_vec);
+      conflict(cycle_vars);
     }
   }
 

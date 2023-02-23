@@ -2,6 +2,7 @@
 
 #include <argparse/argparse.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
 #include <fstream>
 #include <ios>
 #include <iostream>
@@ -20,6 +21,10 @@ using std::cout;
 auto main(int argc, char **argv) -> int {
   auto args = argparse::ArgumentParser{"checker", "0.0.1"};
   args.add_argument("history").help("History file");
+
+  boost::log::core::get()->set_filter(
+    boost::log::trivial::severity >= boost::log::trivial::info
+  );
 
   try {
     args.parse_args(argc, argv);

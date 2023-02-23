@@ -1,3 +1,10 @@
+// clang-format off
+#define BOOST_TEST_MODULE solver
+#include <boost/test/included/unit_test.hpp>
+// clang-format on
+
+#include "solver/solver.h"
+
 #include <z3++.h>
 
 #include <cstdint>
@@ -7,15 +14,10 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
-#include "z3_api.h"
-
-#define BOOST_TEST_MODULE simple
-#include <boost/test/included/unit_test.hpp>
 
 #include "history/constraint.h"
 #include "history/dependencygraph.h"
 #include "history/history.h"
-#include "solver/solver.h"
 #include "utils/to_vector.h"
 
 using checker::history::Event;

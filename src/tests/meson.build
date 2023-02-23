@@ -1,1 +1,1 @@
-checker_test_srcs = files('simple.cpp')
+checker_test_srcs = files('solver.cpp', 'toposort.cpp')

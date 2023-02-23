@@ -1,6 +1,7 @@
 project('smt-tc-checker', 'cpp', version: '0.0.1')
 
 cmake = import('cmake')
+fs = import('fs')
 
 # z3
 z3_dep = dependency('z3', required: false)
@@ -63,11 +64,18 @@ executable(
   override_options: checker_opts,
 )
 
-checker_test = executable(
-  'checker_test',
-  checker_test_srcs,
-  dependencies: checker_common_deps,
-  override_options: checker_opts,
-)
+checker_tests = {}
+foreach f : checker_test_srcs
+  checker_tests += {
+    fs.stem(f) : executable(
+      fs.stem(f) + '_test',
+      [f],
+      dependencies: checker_common_deps,
+      override_options: checker_opts,
+    )
+  }
+endforeach
 
-test('simple', checker_test)
+foreach n : ['solver', 'toposort']
+  test(n, checker_tests[n])
+endforeach

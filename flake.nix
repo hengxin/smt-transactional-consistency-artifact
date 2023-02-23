@@ -23,6 +23,10 @@
       shellHook = with pkgs; ''
         export BOOST_INCLUDEDIR="${boost.dev}/include"
         export BOOST_LIBRARYDIR="${boost}/lib"
+
+        ln -sf ${pkgs.writeText "gdbinit" ''
+          add-auto-load-safe-path ${pkgs.gcc12Stdenv.cc.cc.lib}
+        ''} .gdbinit
       '';
     };
   };
