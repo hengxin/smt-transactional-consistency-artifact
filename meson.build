@@ -11,11 +11,16 @@ if not z3_dep.found()
   z3_opts.add_cmake_defines({
     'Z3_ENABLE_EXAMPLE_TARGETS': 'OFF',
     'Z3_BUILD_EXECUTABLE': 'OFF',
-    'Z3_BUILD_TEST_EXECUTABLES': 'OFF'
+    'Z3_BUILD_TEST_EXECUTABLES': 'OFF',
   })
   if get_option('buildtype') == 'debug'
     z3_opts.add_cmake_defines({
-      'CMAKE_BUILD_TYPE': 'Debug'
+      'CMAKE_BUILD_TYPE': 'Debug',
+    })
+  elif get_option('buildtype') == 'release'
+    z3_opts.add_cmake_defines({
+      'CMAKE_BUILD_TYPE': 'Release',
+      'Z3_LINK_TIME_OPTIMIZATION': 'ON',
     })
   endif
 
