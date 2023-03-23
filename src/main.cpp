@@ -16,8 +16,6 @@
 namespace history = checker::history;
 namespace solver = checker::solver;
 
-using std::cout;
-
 auto main(int argc, char **argv) -> int {
   auto args = argparse::ArgumentParser{"checker", "0.0.1"};
   args.add_argument("history").help("History file");
@@ -38,7 +36,7 @@ auto main(int argc, char **argv) -> int {
   auto dependency_graph = history::known_graph_of(history);
   auto constraints = history::constraints_of(history, dependency_graph.wr);
 
-  cout << history;
+  BOOST_LOG_TRIVIAL(trace) << "history: " << history;
 
   BOOST_LOG_TRIVIAL(trace) << "RW:\n"
                            << dependency_graph.rw << '\n'
@@ -54,7 +52,7 @@ auto main(int argc, char **argv) -> int {
   }
 
   auto solver = solver::Solver{dependency_graph, constraints};
-  cout << std::ios::boolalpha << solver.solve() << '\n';
+  std::cout << "accept: " << std::boolalpha << solver.solve() << std::endl;
 
   return 0;
 }
