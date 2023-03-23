@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "utils/to_vector.h"
+#include "utils/literal.h"
 
 namespace checker::utils {
 
@@ -39,7 +40,7 @@ static auto toposort_add_edge(
   using std::ranges::views::iota;
   using std::ranges::views::transform;
 
-  auto vertex_pos = iota(static_cast<size_t>(0), topo_order.size())  //
+  auto vertex_pos = iota(0_uz, topo_order.size())  //
                     | transform([&](auto pos) {
                         return pair{topo_order.at(pos), pos};
                       })  //
@@ -79,7 +80,7 @@ static auto toposort_add_edge(
       | to_vector;
   sort(partial_vertex_pos);
 
-  for (auto i : iota(static_cast<size_t>(0), partial_topo_order.size())) {
+  for (auto i : iota(0_uz, partial_topo_order.size())) {
     topo_order.at(partial_vertex_pos.at(i)) = partial_topo_order.at(i);
   }
 

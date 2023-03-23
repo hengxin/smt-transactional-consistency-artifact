@@ -22,6 +22,10 @@ if not z3_dep.found()
       'CMAKE_BUILD_TYPE': 'Release',
       'Z3_LINK_TIME_OPTIMIZATION': 'ON',
     })
+  elif get_option('buildtype') == 'debugoptimized'
+    z3_opts.add_cmake_defines({
+      'CMAKE_BUILD_TYPE': 'RelWithDebInfo',
+    })
   endif
 
   z3_pro = cmake.subproject('z3', options: z3_opts)
@@ -45,8 +49,16 @@ boost_dep = dependency('boost', modules: ['log'])
 subdir('src')
 
 checker_deps = [z3_dep, argparse_dep, boost_dep]
-checker_opts = ['cpp_std=c++20', 'b_sanitize=address']
+checker_opts = ['cpp_std=c++20']
 checker_incs = ['src']
+checker_cflags = []
+checker_ldflags = []
+if get_option('buildtype') == 'debug'
+  checker_opts += ['b_sanitize=address']
+elif get_option('buildtype') == 'debugoptimized'
+  checker_cflags += ['-pg']
+  checker_ldflags += ['-pg']
+endif
 
 checker_common_deps = declare_dependency(
   dependencies: checker_deps,
@@ -58,6 +70,8 @@ checker_common_deps = declare_dependency(
       dependencies: checker_deps,
       override_options: checker_opts,
       include_directories: checker_incs,
+      cpp_args: checker_cflags,
+      link_args: checker_ldflags,
     )
   ],
 )
@@ -67,6 +81,8 @@ executable(
   files('src/main.cpp'),
   dependencies: checker_common_deps,
   override_options: checker_opts,
+  cpp_args: checker_cflags,
+  link_args: checker_ldflags,
 )
 
 checker_tests = {}
@@ -77,6 +93,8 @@ foreach f : checker_test_srcs
       [f],
       dependencies: checker_common_deps,
       override_options: checker_opts,
+      cpp_args: checker_cflags,
+      link_args: checker_ldflags,
     )
   }
 endforeach

@@ -18,6 +18,7 @@
         cmake
         boost.dev
         argparse
+        linuxPackages.perf
       ];
 
       shellHook = with pkgs; ''

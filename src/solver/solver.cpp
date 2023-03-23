@@ -7,6 +7,7 @@
 #include <boost/graph/filtered_graph.hpp>
 #include <boost/graph/visitors.hpp>
 #include <boost/log/trivial.hpp>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -70,16 +71,16 @@ using Graph = checker::utils::Graph<int64_t, expr>;
 
 template <typename Graph>
 static auto dependency_graph_of(const Graph &polygraph, range auto edges) {
-  using edge_descriptor = typename Graph::edge_descriptor;
+  using Edge = typename Graph::edge_descriptor;
+  using HashSet = std::unordered_set<Edge, boost::hash<Edge>>;
 
   auto filter_edges =
-      [edgeset = edges | to<std::unordered_set<edge_descriptor,
-                                               boost::hash<edge_descriptor>>>](
-          edge_descriptor e) { return edgeset.contains(e); };
+      [edgeset = std::make_shared<HashSet>(edges | to<HashSet>)](
+          Edge e) { return edgeset->contains(e); };
 
   return boost::filtered_graph{
-      polygraph,
-      std::function{filter_edges},
+    polygraph,
+    std::function{std::move(filter_edges)},
   };
 }
 
@@ -244,27 +245,19 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     auto cycle = vector<decltype(graph)::edge_descriptor>{};
     auto cycle_detector =
         CycleDetector<decltype(graph)>{.cycle = std::ref(cycle)};
-    auto visited =
-        vector<boost::default_color_type>(boost::num_vertices(graph));
-    auto visited_map = boost::make_iterator_property_map(
-        visited.begin(), get(boost::vertex_index, graph));
+    boost::depth_first_search(graph, boost::visitor(cycle_detector).root_vertex(boost::source(edge_desc, graph)));
+    assert(!cycle.empty());
 
-    boost::depth_first_search(graph, cycle_detector, visited_map,
-                              boost::target(edge_desc, graph));
-
-    if (!cycle.empty()) {
-      auto cycle_vars = z3::expr_vector{ctx()};
-
-      BOOST_LOG_TRIVIAL(trace) << "conflict: ";
-      for (auto e : cycle) {
-        auto var = polygraph.edge_map.right.at(e);
-        BOOST_LOG_TRIVIAL(trace) << var.to_string();
-        cycle_vars.push_back(var);
-      }
-      BOOST_LOG_TRIVIAL(trace) << '\n';
-
-      conflict(cycle_vars);
+    auto cycle_vars = z3::expr_vector{ctx()};
+    BOOST_LOG_TRIVIAL(trace) << "conflict: ";
+    for (auto e : cycle) {
+      auto var = polygraph.edge_map.right.at(e);
+      BOOST_LOG_TRIVIAL(trace) << var.to_string();
+      cycle_vars.push_back(var);
     }
+    BOOST_LOG_TRIVIAL(trace) << '\n';
+
+    conflict(cycle_vars);
   }
 
   auto fresh(z3::context &ctx) -> z3::user_propagator_base * override {
