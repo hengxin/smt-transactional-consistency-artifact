@@ -44,6 +44,7 @@ template <typename C>
 inline constexpr auto operator|(std::ranges::range auto r, To<C>) -> C {
   auto c = C{};
 
+  c.reserve(std::ranges::size(r));
   for (auto &&e : r) {
     c.emplace(e);
   }

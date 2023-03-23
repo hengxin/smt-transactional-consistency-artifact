@@ -12,6 +12,7 @@ if not z3_dep.found()
     'Z3_ENABLE_EXAMPLE_TARGETS': 'OFF',
     'Z3_BUILD_EXECUTABLE': 'OFF',
     'Z3_BUILD_TEST_EXECUTABLES': 'OFF',
+    'Z3_BUILD_LIBZ3_SHARED': 'OFF',
   })
   if get_option('buildtype') == 'debug'
     z3_opts.add_cmake_defines({
@@ -25,6 +26,7 @@ if not z3_dep.found()
   elif get_option('buildtype') == 'debugoptimized'
     z3_opts.add_cmake_defines({
       'CMAKE_BUILD_TYPE': 'RelWithDebInfo',
+      'CMAKE_CXX_FLAGS': '-pg',
     })
   endif
 
@@ -85,10 +87,10 @@ executable(
   link_args: checker_ldflags,
 )
 
-checker_tests = {}
 foreach f : checker_test_srcs
-  checker_tests += {
-    fs.stem(f) : executable(
+  test(
+    fs.stem(f),
+    executable(
       fs.stem(f) + '_test',
       [f],
       dependencies: checker_common_deps,
@@ -96,9 +98,5 @@ foreach f : checker_test_srcs
       cpp_args: checker_cflags,
       link_args: checker_ldflags,
     )
-  }
-endforeach
-
-foreach n : ['solver', 'toposort']
-  test(n, checker_tests[n])
+  )
 endforeach
