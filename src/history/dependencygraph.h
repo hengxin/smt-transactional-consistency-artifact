@@ -16,16 +16,29 @@
 #include "utils/graph.h"
 
 namespace checker::history {
-
 enum class EdgeType { WW, RW, WR, SO };
 
 struct EdgeInfo {
+  uint64_t id;
   EdgeType type;
   std::vector<int64_t> keys;
 
   friend auto operator<<(std::ostream &os, const EdgeInfo &edge_info)
       -> std::ostream &;
+
+  friend auto operator==(const EdgeInfo &left, const EdgeInfo &right) -> bool;
 };
+
+}  // namespace checker::history
+
+template <>
+struct std::hash<checker::history::EdgeInfo> {
+  auto operator()(const checker::history::EdgeInfo &e) const -> size_t {
+    return std::hash<uint64_t>{}(e.id);
+  }
+};
+
+namespace checker::history {
 
 struct DependencyGraph {
   using SubGraph = utils::Graph<int64_t, EdgeInfo>;

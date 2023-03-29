@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "history.h"
+#include "utils/literal.h"
 
 using boost::add_edge;
 using boost::add_vertex;
@@ -22,6 +23,7 @@ namespace checker::history {
 auto known_graph_of(const History &history) -> DependencyGraph {
   auto graph = DependencyGraph{};
   auto transactions = unordered_map<int64_t, const Transaction *>{};
+  auto edge_id = 0_u64;
 
   for (const auto &txn : history.transactions()) {
     transactions.emplace(txn.id, &txn);
@@ -36,7 +38,8 @@ auto known_graph_of(const History &history) -> DependencyGraph {
     auto prev_txn = (const Transaction *){};
     for (const auto &txn : sess.transactions) {
       if (prev_txn) {
-        graph.so.add_edge(prev_txn->id, txn.id, EdgeInfo{.type = EdgeType::SO});
+        graph.so.add_edge(prev_txn->id, txn.id,
+                          EdgeInfo{.id = edge_id++, .type = EdgeType::SO});
       }
 
       prev_txn = &txn;
@@ -68,9 +71,10 @@ auto known_graph_of(const History &history) -> DependencyGraph {
     if (auto edge = graph.wr.edge(write_txn->id, txn->id); edge) {
       edge.value().get().keys.emplace_back(ev.key);
     } else {
-      graph.wr.add_edge(
-          write_txn->id, txn->id,
-          EdgeInfo{.type = EdgeType::WR, .keys = std::vector{ev.key}});
+      graph.wr.add_edge(write_txn->id, txn->id,
+                        EdgeInfo{.id = edge_id++,
+                                 .type = EdgeType::WR,
+                                 .keys = std::vector{ev.key}});
     }
   }
 
@@ -106,6 +110,10 @@ auto operator<<(std::ostream &os, const EdgeInfo &edge_info) -> std::ostream & {
   }
 
   return os;
+}
+
+auto operator==(const EdgeInfo &left, const EdgeInfo &right) -> bool {
+  return left.id == right.id;
 }
 
 }  // namespace checker::history

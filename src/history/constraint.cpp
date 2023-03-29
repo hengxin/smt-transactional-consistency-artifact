@@ -15,6 +15,7 @@
 
 #include "dependencygraph.h"
 #include "history.h"
+#include "utils/literal.h"
 #include "utils/to_vector.h"
 
 using std::get;
@@ -90,6 +91,7 @@ auto constraints_of(const History &history, const DependencyGraph::SubGraph &wr)
   auto constraints = vector<Constraint>{};
   auto added_pairs =
       unordered_set<pair<int64_t, int64_t>, decltype(hash_txns_pair)>{};
+  auto edge_id = 0_u64;
   for (const auto &[p, v] : edges_per_txn_pair) {
     auto [txn1, txn2] = p;
 
@@ -98,14 +100,15 @@ auto constraints_of(const History &history, const DependencyGraph::SubGraph &wr)
     }
     added_pairs.emplace(txn1, txn2);
 
-    auto to_edge = [](auto txn1, auto txn2) {
-      return transform([=](auto &&p) {
+    auto to_edge = [&](auto txn1, auto txn2) {
+      return transform([=, &edge_id](auto &&p) {
         auto &&[t, keys] = p;
         auto &&[from, to, type] = t;
         return Constraint::Edge{
             from,
             to,
             EdgeInfo{
+                .id = edge_id++,
                 .type = type,
                 .keys = std::move(keys),
             },
