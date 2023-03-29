@@ -14,7 +14,7 @@
 #include <unordered_set>
 #include <utility>
 
-#include "utils/to_vector.h"
+#include "utils/to_container.h"
 
 using boost::add_edge;
 using boost::adjacency_list;

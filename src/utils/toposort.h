@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 
-#include "utils/to_vector.h"
+#include "utils/to_container.h"
 #include "utils/literal.h"
 
 namespace checker::utils {

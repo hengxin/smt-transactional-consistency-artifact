@@ -18,7 +18,7 @@
 #include "history/constraint.h"
 #include "history/dependencygraph.h"
 #include "history/history.h"
-#include "utils/to_vector.h"
+#include "utils/to_container.h"
 
 using checker::history::Event;
 using checker::history::EventType;

@@ -30,7 +30,7 @@
 #include "history/constraint.h"
 #include "history/dependencygraph.h"
 #include "utils/graph.h"
-#include "utils/to_vector.h"
+#include "utils/to_container.h"
 #include "utils/toposort.h"
 
 using boost::adjacency_list;

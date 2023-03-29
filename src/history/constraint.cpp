@@ -16,7 +16,7 @@
 #include "dependencygraph.h"
 #include "history.h"
 #include "utils/literal.h"
-#include "utils/to_vector.h"
+#include "utils/to_container.h"
 
 using std::get;
 using std::pair;
