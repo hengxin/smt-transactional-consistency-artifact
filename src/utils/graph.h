@@ -24,15 +24,15 @@ concept HashAndEquality = requires(T t) {
 
 template <HashAndEquality Vertex, HashAndEquality Edge>
 struct Graph {
-  std::unique_ptr<boost::adjacency_list<>> graph =
-      std::make_unique<boost::adjacency_list<>>();
-  boost::bimap<boost::bimaps::unordered_set_of<Vertex, std::hash<Vertex>>,
-               boost::bimaps::unordered_set_of<
-                   boost::adjacency_list<>::vertex_descriptor>>
-      vertex_map;
+  using InternalGraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS>;
+
+  std::unique_ptr<InternalGraph> graph = std::make_unique<InternalGraph>();
   boost::bimap<
-      boost::bimaps::unordered_set_of<Edge, std::hash<Edge>>,
-      boost::bimaps::unordered_set_of<boost::adjacency_list<>::edge_descriptor>>
+      boost::bimaps::unordered_set_of<Vertex, std::hash<Vertex>>,
+      boost::bimaps::unordered_set_of<InternalGraph::vertex_descriptor>>
+      vertex_map;
+  boost::bimap<boost::bimaps::unordered_set_of<Edge, std::hash<Edge>>,
+               boost::bimaps::unordered_set_of<InternalGraph::edge_descriptor>>
       edge_map;
 
   auto add_vertex(Vertex v) -> const Vertex & {

@@ -2,11 +2,14 @@
 
 #include <z3++.h>
 
+#include <algorithm>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/filtered_graph.hpp>
+#include <boost/graph/reverse_graph.hpp>
 #include <boost/graph/visitors.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/property_map/vector_property_map.hpp>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -67,7 +70,47 @@ struct std::equal_to<expr> {
   }
 };
 
-using Graph = checker::utils::Graph<int64_t, expr>;
+template <typename Graph>
+struct CycleDetector : boost::dfs_visitor<> {
+  using Vertex = typename Graph::vertex_descriptor;
+  using Edge = typename Graph::edge_descriptor;
+
+  std::reference_wrapper<vector<Edge>> cycle;
+  unordered_map<Vertex, Vertex> pred_edge;
+
+  auto back_edge(const Edge &e, const Graph &g) -> void {
+    if (!cycle.get().empty()) {
+      return;
+    }
+
+    auto top = boost::target(e, g);
+    auto bottom = boost::source(e, g);
+
+    cycle.get().push_back(e);
+    for (auto v = bottom; v != top; v = pred_edge.at(v)) {
+      cycle.get().push_back(boost::edge(pred_edge[v], v, g).first);
+    }
+  }
+
+  auto tree_edge(const Edge &e, const Graph &g) -> void {
+    auto from = boost::source(e, g);
+    auto to = boost::target(e, g);
+
+    pred_edge[to] = from;
+  }
+};
+
+template <typename Graph>
+struct TransitiveSuccessorsRecorder : boost::dfs_visitor<> {
+  using Vertex = typename Graph::vertex_descriptor;
+
+  Vertex root_vertex;
+  std::reference_wrapper<vector<Vertex>> successors;
+
+  auto discover_vertex(const Vertex &v, const Graph &g) {
+    successors.get().emplace_back(v);
+  }
+};
 
 template <typename Graph>
 static auto dependency_graph_of(const Graph &polygraph, range auto edges) {
@@ -75,13 +118,36 @@ static auto dependency_graph_of(const Graph &polygraph, range auto edges) {
   using HashSet = std::unordered_set<Edge, boost::hash<Edge>>;
 
   auto filter_edges =
-      [edgeset = std::make_shared<HashSet>(edges | to<HashSet>)](
-          Edge e) { return edgeset->contains(e); };
+      [edgeset = std::make_shared<HashSet>(edges | to<HashSet>)](Edge e) {
+        return edgeset->contains(e);
+      };
 
   return boost::filtered_graph{
-    polygraph,
-    std::function{std::move(filter_edges)},
+      polygraph,
+      std::function{std::move(filter_edges)},
   };
+}
+
+static auto depth_first_visit(const auto &graph, auto root_vertex, auto visitor)
+    -> void {
+  auto visited = vector<boost::default_color_type>{boost::num_vertices(graph)};
+  auto visited_map = boost::make_iterator_property_map(
+      visited.begin(), boost::get(boost::vertex_index, graph));
+
+  boost::depth_first_visit(graph, root_vertex, visitor, visited_map);
+}
+
+template <typename Graph>
+static auto transitive_successors_of(
+    const Graph &graph, typename Graph::vertex_descriptor root_vertex) {
+  auto successors = vector<typename Graph::vertex_descriptor>{};
+  auto recorder = TransitiveSuccessorsRecorder<Graph>{
+      .root_vertex = root_vertex,
+      .successors = std::ref(successors),
+  };
+
+  depth_first_visit(graph, root_vertex, recorder);
+  return successors;
 }
 
 namespace checker::solver {
@@ -94,7 +160,7 @@ Solver::Solver(const history::DependencyGraph &known_graph,
     BOOST_LOG_TRIVIAL(trace) << c << "\n";
   }
 
-  auto polygraph = Graph{};
+  auto polygraph = utils::Graph<int64_t, expr>{};
   auto bool_true = context.bool_val(true);
 
   auto get_vertex = [&](int64_t id) {
@@ -155,46 +221,20 @@ auto Solver::solve() -> bool { return solver.check() == z3::sat; }
 
 Solver::~Solver() = default;
 
-template <typename Graph>
-struct CycleDetector : boost::dfs_visitor<> {
-  using Vertex = typename Graph::vertex_descriptor;
-  using Edge = typename Graph::edge_descriptor;
-
-  std::reference_wrapper<vector<Edge>> cycle;
-  unordered_map<Vertex, Vertex> pred_edge;
-
-  auto back_edge(const Edge &e, const Graph &g) -> void {
-    if (!cycle.get().empty()) {
-      return;
-    }
-
-    auto top = boost::target(e, g);
-    auto bottom = boost::source(e, g);
-
-    cycle.get().push_back(e);
-    for (auto v = bottom; v != top; v = pred_edge.at(v)) {
-      cycle.get().push_back(boost::edge(pred_edge[v], v, g).first);
-    }
-  }
-
-  auto tree_edge(const Edge &e, const Graph &g) -> void {
-    auto from = boost::source(e, g);
-    auto to = boost::target(e, g);
-
-    pred_edge[to] = from;
-  }
-};
-
 struct DependencyGraphHasNoCycle : z3::user_propagator_base {
+  using Graph = utils::Graph<int64_t, expr>;
   Graph polygraph;
 
   vector<size_t> fixed_edges_num;
-  vector<adjacency_list<>::edge_descriptor> fixed_edges;
+  vector<Graph::InternalGraph::edge_descriptor> fixed_edges;
+  z3::expr_vector fixed_vars;
 
-  vector<adjacency_list<>::vertex_descriptor> topo_order;
+  vector<Graph::InternalGraph::vertex_descriptor> topo_order;
 
   DependencyGraphHasNoCycle(z3::solver &solver, Graph &&_polygraph)
-      : z3::user_propagator_base{&solver}, polygraph{std::move(_polygraph)} {
+      : z3::user_propagator_base{&solver},
+        polygraph{std::move(_polygraph)},
+        fixed_vars{solver.ctx()} {
     for (auto [_, __, edge] : polygraph.edges()) {
       add(edge.get());
     }
@@ -219,33 +259,48 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
 
     BOOST_LOG_TRIVIAL(trace) << "unfix: ";
     for (auto i = remains_num; i < fixed_edges.size(); i++) {
-      auto e = fixed_edges[i];
-      BOOST_LOG_TRIVIAL(trace) << polygraph.edge_map.right.at(e).to_string();
+      BOOST_LOG_TRIVIAL(trace) << fixed_vars[i].to_string();
     }
     BOOST_LOG_TRIVIAL(trace) << "\n";
 
     fixed_edges.erase(fixed_edges.begin() + remains_num, fixed_edges.end());
+    fixed_vars.resize(remains_num);
   }
 
   auto fixed(const expr &var, const expr &value) -> void override {
     if (value.bool_value() != Z3_L_TRUE) {
       return;
     }
-
     BOOST_LOG_TRIVIAL(trace) << "fixed: " << var.to_string() << "\n";
 
     auto edge_desc = polygraph.edge_map.left.at(var);
     fixed_edges.emplace_back(edge_desc);
+    fixed_vars.push_back(var);
 
     auto graph = dependency_graph_of(*polygraph.graph, fixed_edges);
-    if (checker::utils::toposort_add_edge(graph, topo_order, edge_desc)) {
+    if (!detect_cycle(graph, edge_desc)) {
       return;
     }
 
-    auto cycle = vector<decltype(graph)::edge_descriptor>{};
+    propagate_unit_edge(graph, edge_desc);
+  }
+
+  auto fresh(z3::context &ctx) -> z3::user_propagator_base * override {
+    return this;
+  }
+
+  auto detect_cycle(auto dependency_graph, auto added_edge) -> bool {
+    if (checker::utils::toposort_add_edge(dependency_graph, topo_order,
+                                          added_edge)) {
+      return true;
+    }
+
+    auto cycle = vector<typename decltype(dependency_graph)::edge_descriptor>{};
     auto cycle_detector =
-        CycleDetector<decltype(graph)>{.cycle = std::ref(cycle)};
-    boost::depth_first_search(graph, boost::visitor(cycle_detector).root_vertex(boost::source(edge_desc, graph)));
+        CycleDetector<decltype(dependency_graph)>{.cycle = std::ref(cycle)};
+    depth_first_visit(dependency_graph,
+                      boost::source(added_edge, dependency_graph),
+                      cycle_detector);
     assert(!cycle.empty());
 
     auto cycle_vars = z3::expr_vector{ctx()};
@@ -258,10 +313,37 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     BOOST_LOG_TRIVIAL(trace) << '\n';
 
     conflict(cycle_vars);
+    return false;
   }
 
-  auto fresh(z3::context &ctx) -> z3::user_propagator_base * override {
-    return this;
+  auto propagate_unit_edge(auto dependency_graph, auto added_edge) -> void {
+    auto from = boost::source(added_edge, dependency_graph);
+    auto to = boost::target(added_edge, dependency_graph);
+
+    auto to_successors = transitive_successors_of(dependency_graph, to);
+    auto from_predecessors = transitive_successors_of(
+        boost::make_reverse_graph(dependency_graph), from);
+    auto unit_edge_vars = vector<expr>{};
+
+    for (const auto &s : to_successors) {
+      for (const auto &p : from_predecessors) {
+        auto [edge, has_edge] = boost::edge(s, p, *polygraph.graph);
+        if (has_edge) {
+          unit_edge_vars.push_back(polygraph.edge_map.right.at(edge));
+        }
+      }
+    }
+
+    if (!unit_edge_vars.empty()) {
+      auto negation =
+          unit_edge_vars | transform([](const expr &e) { return !e; });
+      auto consequence = reduce(negation.begin(), negation.end(),
+                                ctx().bool_val(true), std::bit_and<>{});
+
+      BOOST_LOG_TRIVIAL(trace) << "propagate: " << fixed_vars.to_string()
+                               << " => " << consequence.to_string();
+      propagate(fixed_vars, consequence);
+    }
   }
 };
 
