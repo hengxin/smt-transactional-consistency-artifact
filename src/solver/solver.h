@@ -16,6 +16,7 @@ struct Solver {
   z3::context context;
   z3::solver solver;
   std::unique_ptr<DependencyGraphHasNoCycle> user_propagator;
+  z3::expr_vector known_vars;
 
   Solver(const history::DependencyGraph &known_graph,
          const std::vector<history::Constraint> &constraints);

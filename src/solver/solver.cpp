@@ -154,7 +154,7 @@ namespace checker::solver {
 
 Solver::Solver(const history::DependencyGraph &known_graph,
                const vector<history::Constraint> &constraints)
-    : solver{context, z3::solver::simple{}} {
+    : solver{context, z3::solver::simple{}}, known_vars{context} {
   BOOST_LOG_TRIVIAL(trace) << "wr:\n" << known_graph.wr << "\ncons:\n";
   for (const auto &c : constraints) {
     BOOST_LOG_TRIVIAL(trace) << c << "\n";
@@ -200,7 +200,7 @@ Solver::Solver(const history::DependencyGraph &known_graph,
     auto known_var = get_edge_var(from, to);
     BOOST_LOG_TRIVIAL(trace) << "known: " << known_var.to_string() << '\n';
 
-    solver.add(known_var == bool_true);
+    known_vars.push_back(known_var);
   }
 
   for (const auto &c : constraints) {
@@ -217,19 +217,24 @@ Solver::Solver(const history::DependencyGraph &known_graph,
       std::make_unique<DependencyGraphHasNoCycle>(solver, std::move(polygraph));
 }
 
-auto Solver::solve() -> bool { return solver.check() == z3::sat; }
+auto Solver::solve() -> bool { return solver.check(known_vars) == z3::sat; }
 
 Solver::~Solver() = default;
 
 struct DependencyGraphHasNoCycle : z3::user_propagator_base {
   using Graph = utils::Graph<int64_t, expr>;
+  using Vertex = Graph::InternalGraph::vertex_descriptor;
+  using Edge = Graph::InternalGraph::edge_descriptor;
+  using DependencyGraph =
+      decltype(dependency_graph_of(Graph::InternalGraph{}, vector<Edge>{}));
+
   Graph polygraph;
 
   vector<size_t> fixed_edges_num;
-  vector<Graph::InternalGraph::edge_descriptor> fixed_edges;
+  vector<Edge> fixed_edges;
   z3::expr_vector fixed_vars;
 
-  vector<Graph::InternalGraph::vertex_descriptor> topo_order;
+  vector<Vertex> topo_order;
 
   DependencyGraphHasNoCycle(z3::solver &solver, Graph &&_polygraph)
       : z3::user_propagator_base{&solver},
@@ -283,21 +288,22 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     }
 
     propagate_unit_edge(graph, edge_desc);
+    propagate_rw_edge(graph, edge_desc);
   }
 
   auto fresh(z3::context &ctx) -> z3::user_propagator_base * override {
     return this;
   }
 
-  auto detect_cycle(auto dependency_graph, auto added_edge) -> bool {
+  auto detect_cycle(DependencyGraph dependency_graph, Edge added_edge) -> bool {
     if (checker::utils::toposort_add_edge(dependency_graph, topo_order,
                                           added_edge)) {
       return true;
     }
 
-    auto cycle = vector<typename decltype(dependency_graph)::edge_descriptor>{};
+    auto cycle = vector<DependencyGraph::edge_descriptor>{};
     auto cycle_detector =
-        CycleDetector<decltype(dependency_graph)>{.cycle = std::ref(cycle)};
+        CycleDetector<DependencyGraph>{.cycle = std::ref(cycle)};
     depth_first_visit(dependency_graph,
                       boost::source(added_edge, dependency_graph),
                       cycle_detector);
@@ -316,7 +322,8 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     return false;
   }
 
-  auto propagate_unit_edge(auto dependency_graph, auto added_edge) -> void {
+  auto propagate_unit_edge(DependencyGraph dependency_graph, Edge added_edge)
+      -> void {
     auto from = boost::source(added_edge, dependency_graph);
     auto to = boost::target(added_edge, dependency_graph);
 
@@ -345,6 +352,9 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
       propagate(fixed_vars, consequence);
     }
   }
+
+  auto propagate_rw_edge(DependencyGraph dependency_graph, Edge added_edge)
+      -> void {}
 };
 
 }  // namespace checker::solver
