@@ -1,8 +1,8 @@
 #include <z3++.h>
 
 #include <argparse/argparse.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
+#include <boost/log/trivial.hpp>
 #include <fstream>
 #include <ios>
 #include <iostream>
@@ -12,6 +12,7 @@
 #include "history/dependencygraph.h"
 #include "history/history.h"
 #include "solver/solver.h"
+#include "utils/log.h"
 
 namespace history = checker::history;
 namespace solver = checker::solver;
@@ -20,9 +21,8 @@ auto main(int argc, char **argv) -> int {
   auto args = argparse::ArgumentParser{"checker", "0.0.1"};
   args.add_argument("history").help("History file");
 
-  boost::log::core::get()->set_filter(
-    boost::log::trivial::severity >= boost::log::trivial::info
-  );
+  boost::log::core::get()->set_filter(boost::log::trivial::severity >=
+                                      boost::log::trivial::info);
 
   try {
     args.parse_args(argc, argv);
@@ -36,19 +36,20 @@ auto main(int argc, char **argv) -> int {
   auto dependency_graph = history::known_graph_of(history);
   auto constraints = history::constraints_of(history, dependency_graph.wr);
 
-  BOOST_LOG_TRIVIAL(trace) << "history: " << history;
+  CHECKER_LOG_COND(trace, logger) {
+    logger << "history: " << history << '\n'
+           << "RW:\n"
+           << dependency_graph.rw << '\n'
+           << "WW:\n"
+           << dependency_graph.ww << '\n'
+           << "SO:\n"
+           << dependency_graph.so << '\n'
+           << "WR:\n"
+           << dependency_graph.wr;
 
-  BOOST_LOG_TRIVIAL(trace) << "RW:\n"
-                           << dependency_graph.rw << '\n'
-                           << "WW:\n"
-                           << dependency_graph.ww << '\n'
-                           << "SO:\n"
-                           << dependency_graph.so << '\n'
-                           << "WR:\n"
-                           << dependency_graph.wr;
-
-  for (const auto &c : constraints) {
-    BOOST_LOG_TRIVIAL(trace) << c;
+    for (const auto &c : constraints) {
+      logger << c;
+    }
   }
 
   auto solver = solver::Solver{dependency_graph, constraints};

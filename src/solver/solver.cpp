@@ -33,6 +33,7 @@
 #include "history/constraint.h"
 #include "history/dependencygraph.h"
 #include "utils/graph.h"
+#include "utils/log.h"
 #include "utils/to_container.h"
 #include "utils/toposort.h"
 
@@ -169,9 +170,11 @@ namespace checker::solver {
 Solver::Solver(const history::DependencyGraph &known_graph,
                const vector<history::Constraint> &constraints)
     : solver{context, z3::solver::simple{}}, known_vars{context} {
-  BOOST_LOG_TRIVIAL(trace) << "wr:\n" << known_graph.wr << "\ncons:\n";
-  for (const auto &c : constraints) {
-    BOOST_LOG_TRIVIAL(trace) << c << "\n";
+  CHECKER_LOG_COND(trace, logger) {
+    logger << "wr:\n" << known_graph.wr << "cons:\n";
+    for (const auto &c : constraints) {
+      logger << c;
+    }
   }
 
   auto polygraph = utils::Graph<int64_t, expr>{};
@@ -204,8 +207,7 @@ Solver::Solver(const history::DependencyGraph &known_graph,
 
   for (const auto &[from, to, _] : known_graph.edges()) {
     auto known_var = get_edge_var(from, to);
-    BOOST_LOG_TRIVIAL(trace) << "known: " << known_var.to_string() << '\n';
-
+    BOOST_LOG_TRIVIAL(trace) << "known: " << known_var.to_string();
     known_vars.push_back(known_var);
   }
 
@@ -216,7 +218,7 @@ Solver::Solver(const history::DependencyGraph &known_graph,
     auto cons_var =
         (either_vars[0] && !or_vars[0]) || (!either_vars[0] && or_vars[0]);
 
-    BOOST_LOG_TRIVIAL(trace) << "constraint: " << cons_var.to_string() << '\n';
+    BOOST_LOG_TRIVIAL(trace) << "constraint: " << cons_var.to_string();
     solver.add(cons_var);
     ww_vars.push_back(either_vars[0]);
     ww_vars.push_back(or_vars[0]);
@@ -300,13 +302,13 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
   }
 
   auto push() -> void override {
-    BOOST_LOG_TRIVIAL(trace) << "push\n";
+    BOOST_LOG_TRIVIAL(trace) << "push";
     fixed_edges_num.emplace_back(fixed_edges.size());
     fixed_vars_num.emplace_back(fixed_vars.size());
   }
 
   auto pop(unsigned int num_scopes) -> void override {
-    BOOST_LOG_TRIVIAL(trace) << "pop " << num_scopes << "\n";
+    BOOST_LOG_TRIVIAL(trace) << "pop " << num_scopes;
 
     auto remaining_edges_num =
         fixed_edges_num.at(fixed_edges_num.size() - num_scopes);
@@ -315,11 +317,12 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     fixed_edges_num.resize(fixed_edges_num.size() - num_scopes);
     fixed_vars_num.resize(fixed_vars_num.size() - num_scopes);
 
-    BOOST_LOG_TRIVIAL(trace) << "unfix: ";
-    for (auto i = remaining_vars_num; i < fixed_vars.size(); i++) {
-      BOOST_LOG_TRIVIAL(trace) << fixed_vars[i].to_string();
+    CHECKER_LOG_COND(trace, logger) {
+      logger << "unfix:";
+      for (auto i = remaining_vars_num; i < fixed_vars.size(); i++) {
+        logger << ' ' << fixed_vars[i].to_string();
+      }
     }
-    BOOST_LOG_TRIVIAL(trace) << "\n";
 
     for (auto i = remaining_vars_num; i < fixed_vars.size(); i++) {
       fixed_vars_set.erase(fixed_vars[i]);
@@ -333,7 +336,7 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     if (value.bool_value() != Z3_L_TRUE) {
       return;
     }
-    BOOST_LOG_TRIVIAL(trace) << "fixed: " << ww_var.to_string() << "\n";
+    BOOST_LOG_TRIVIAL(trace) << "fixed: " << ww_var.to_string();
 
     auto ww_edge = polygraph.edge_map.left.at(ww_var);
     fixed_edges.emplace_back(ww_edge);
@@ -370,10 +373,13 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     assert(!cycle.empty());
 
     auto cycle_vars_set = std::unordered_set<expr>{};
-    BOOST_LOG_TRIVIAL(trace) << "conflict: ";
+    CHECKER_LOG_COND(trace, logger) {
+      logger << "conflict:";
+      for (auto e : cycle) {
+        logger << ' ' << polygraph.edge_map.right.at(e).to_string();
+      }
+    }
     for (auto e : cycle) {
-      BOOST_LOG_TRIVIAL(trace) << polygraph.edge_map.right.at(e).to_string();
-
       auto ww_vars = ww_var_map[e] | filter([&](const expr &e) {
                        return fixed_vars_set.contains(e);
                      });
@@ -381,7 +387,6 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
         cycle_vars_set.emplace(ww_var);
       }
     }
-    BOOST_LOG_TRIVIAL(trace) << '\n';
 
     auto cycle_vars = z3::expr_vector{ctx()};
     for (const auto &cycle_var : cycle_vars_set) {

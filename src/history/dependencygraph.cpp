@@ -85,9 +85,15 @@ auto operator<<(std::ostream &os, const EdgeInfo &edge_info) -> std::ostream & {
   auto out = std::osyncstream{os};
   auto print_keys = [&] {
     out << '(';
-    for (auto key : edge_info.keys) {
-      out << key << ',';
+
+    const auto &keys = edge_info.keys;
+    for (auto i = 0_uz; i < keys.size(); i++) {
+      out << keys.at(i);
+      if (i != keys.size() - 1) {
+        out << ' ';
+      }
     }
+
     out << ')';
   };
 

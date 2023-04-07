@@ -80,7 +80,6 @@ auto constraints_of(const History &history, const DependencyGraph::SubGraph &wr)
             continue;
           }
 
-          BOOST_LOG_TRIVIAL(trace) << b_id << "-RW>" << c_id << '\n';
           edges_per_txn_pair[{a.id, c_id}][{b_id, c_id, EdgeType::RW}]
               .emplace_back(key);
         }
@@ -133,22 +132,23 @@ auto operator<<(std::ostream &os, const Constraint &constraint)
   auto out = std::osyncstream{os};
   auto print_cond = [&](const char *tag, int64_t first_id, int64_t second_id,
                         const vector<Constraint::Edge> &edges) {
-    out << tag << ": " << first_id << "->" << second_id << ' ';
+    out << tag << ' ' << first_id << "->" << second_id << ": ";
 
-    for (const auto &edge : edges) {
-      out << get<0>(edge) << "->" << get<1>(edge) << ' ' << get<2>(edge)
-          << ", ";
+    for (auto i = 0_uz; i < edges.size(); i++) {
+      const auto &[from, to, info] = edges.at(i);
+      out << from << "->" << to << ' ' << info;
+      if (i != edges.size() - 1) {
+        out << ", ";
+      }
     }
-
-    out << "; ";
   };
 
   print_cond("either", constraint.either_txn_id, constraint.or_txn_id,
              constraint.either_edges);
+  out << "; ";
   print_cond("or", constraint.or_txn_id, constraint.either_txn_id,
              constraint.or_edges);
   out << '\n';
-
   return os;
 }
 
