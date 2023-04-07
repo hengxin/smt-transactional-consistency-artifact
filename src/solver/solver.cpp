@@ -53,6 +53,7 @@ using std::vector;
 using std::ranges::range;
 using std::ranges::subrange;
 using std::ranges::views::all;
+using std::ranges::views::filter;
 using std::ranges::views::iota;
 using std::ranges::views::reverse;
 using std::ranges::views::transform;
@@ -69,6 +70,19 @@ struct std::equal_to<expr> {
     return left.id() == right.id();
   }
 };
+
+namespace checker::utils {
+static inline auto operator|(const z3::expr_vector v, ToUnorderedSet)
+    -> std::unordered_set<expr> {
+  auto s = std::unordered_set<expr>{};
+
+  for (const auto &e : v) {
+    s.emplace(e);
+  }
+
+  return s;
+}
+}  // namespace checker::utils
 
 template <typename Graph>
 struct CycleDetector : boost::dfs_visitor<> {
@@ -161,7 +175,6 @@ Solver::Solver(const history::DependencyGraph &known_graph,
   }
 
   auto polygraph = utils::Graph<int64_t, expr>{};
-  auto bool_true = context.bool_val(true);
 
   auto get_vertex = [&](int64_t id) {
     if (auto v = polygraph.vertex(id); v) {
@@ -188,13 +201,6 @@ Solver::Solver(const history::DependencyGraph &known_graph,
     const auto &[from, to, _] = e;
     return get_edge_var(from, to);
   });
-  auto negate = [&](range auto r) {
-    return r | transform([](const expr &e) { return !e; });
-  };
-  auto and_all = [&](range auto r) {
-    return reduce(std::ranges::begin(r), std::ranges::end(r), bool_true,
-                  std::bit_and{});
-  };
 
   for (const auto &[from, to, _] : known_graph.edges()) {
     auto known_var = get_edge_var(from, to);
@@ -203,18 +209,21 @@ Solver::Solver(const history::DependencyGraph &known_graph,
     known_vars.push_back(known_var);
   }
 
+  auto ww_vars = z3::expr_vector{context};
   for (const auto &c : constraints) {
-    auto either_vars = c.either_edges | edge_to_var;
-    auto or_vars = c.or_edges | edge_to_var;
-    auto cons_var = (and_all(negate(either_vars)) & and_all(or_vars)) |
-                    (and_all(either_vars) & and_all(negate(or_vars)));
+    auto either_vars = c.either_edges | edge_to_var | to_vector;
+    auto or_vars = c.or_edges | edge_to_var | to_vector;
+    auto cons_var =
+        (either_vars[0] && !or_vars[0]) || (!either_vars[0] && or_vars[0]);
 
     BOOST_LOG_TRIVIAL(trace) << "constraint: " << cons_var.to_string() << '\n';
     solver.add(cons_var);
+    ww_vars.push_back(either_vars[0]);
+    ww_vars.push_back(or_vars[0]);
   }
 
-  user_propagator =
-      std::make_unique<DependencyGraphHasNoCycle>(solver, std::move(polygraph));
+  user_propagator = std::make_unique<DependencyGraphHasNoCycle>(
+      solver, std::move(polygraph), known_vars, ww_vars, constraints);
 }
 
 auto Solver::solve() -> bool { return solver.check(known_vars) == z3::sat; }
@@ -231,21 +240,60 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
   Graph polygraph;
 
   vector<size_t> fixed_edges_num;
+  vector<size_t> fixed_vars_num;
   vector<Edge> fixed_edges;
   z3::expr_vector fixed_vars;
+  std::unordered_set<expr> fixed_vars_set;
 
   vector<Vertex> topo_order;
 
-  DependencyGraphHasNoCycle(z3::solver &solver, Graph &&_polygraph)
+  unordered_map<Edge, vector<Edge>, boost::hash<Edge>> rw_map;
+  unordered_map<Edge, vector<expr>, boost::hash<Edge>> ww_var_map;
+
+  DependencyGraphHasNoCycle(z3::solver &solver, Graph &&_polygraph,
+                            const z3::expr_vector &known_vars,
+                            const z3::expr_vector &ww_vars,
+                            const vector<Constraint> &constraints)
       : z3::user_propagator_base{&solver},
         polygraph{std::move(_polygraph)},
-        fixed_vars{solver.ctx()} {
-    for (auto [_, __, edge] : polygraph.edges()) {
-      add(edge.get());
+        fixed_vars{ctx()} {
+    for (const auto &known_var : known_vars) {
+      add(known_var);
+    }
+    for (const auto &ww_var : ww_vars) {
+      add(ww_var);
     }
 
     for (auto v : polygraph.vertices()) {
       topo_order.push_back(polygraph.vertex_map.left.at(v));
+    }
+
+    for (const auto &c : constraints) {
+      auto fill_rw_map = [&](const vector<Constraint::Edge> &e) {
+        auto get_edge = [&](const Constraint::Edge &e) {
+          const auto &[from, to, _] = e;
+          auto [desc, has_edge] =
+              boost::edge(polygraph.vertex_map.left.at(from),
+                          polygraph.vertex_map.left.at(to), *polygraph.graph);
+
+          assert(has_edge);
+          return desc;
+        };
+
+        auto ww_edge = get_edge(e[0]);
+        auto rw_edges =
+            subrange(e.begin() + 1, e.end()) | transform(get_edge) | to_vector;
+        std::ranges::copy(rw_edges, std::back_inserter(rw_map[ww_edge]));
+
+        auto [from, to, _] = e[0];
+        auto ww_var = polygraph.edge(from, to).value().get();
+        for (const auto &rw_edge : rw_edges) {
+          ww_var_map[rw_edge].emplace_back(ww_var);
+        }
+      };
+
+      fill_rw_map(c.either_edges);
+      fill_rw_map(c.or_edges);
     }
 
     register_fixed();
@@ -254,41 +302,53 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
   auto push() -> void override {
     BOOST_LOG_TRIVIAL(trace) << "push\n";
     fixed_edges_num.emplace_back(fixed_edges.size());
+    fixed_vars_num.emplace_back(fixed_vars.size());
   }
 
   auto pop(unsigned int num_scopes) -> void override {
     BOOST_LOG_TRIVIAL(trace) << "pop " << num_scopes << "\n";
 
-    auto remains_num = fixed_edges_num[fixed_edges_num.size() - num_scopes];
+    auto remaining_edges_num =
+        fixed_edges_num.at(fixed_edges_num.size() - num_scopes);
+    auto remaining_vars_num =
+        fixed_vars_num.at(fixed_vars_num.size() - num_scopes);
     fixed_edges_num.resize(fixed_edges_num.size() - num_scopes);
+    fixed_vars_num.resize(fixed_vars_num.size() - num_scopes);
 
     BOOST_LOG_TRIVIAL(trace) << "unfix: ";
-    for (auto i = remains_num; i < fixed_edges.size(); i++) {
+    for (auto i = remaining_vars_num; i < fixed_vars.size(); i++) {
       BOOST_LOG_TRIVIAL(trace) << fixed_vars[i].to_string();
     }
     BOOST_LOG_TRIVIAL(trace) << "\n";
 
-    fixed_edges.erase(fixed_edges.begin() + remains_num, fixed_edges.end());
-    fixed_vars.resize(remains_num);
+    for (auto i = remaining_vars_num; i < fixed_vars.size(); i++) {
+      fixed_vars_set.erase(fixed_vars[i]);
+    }
+    fixed_edges.erase(fixed_edges.begin() + remaining_edges_num,
+                      fixed_edges.end());
+    fixed_vars.resize(remaining_vars_num);
   }
 
-  auto fixed(const expr &var, const expr &value) -> void override {
+  auto fixed(const expr &ww_var, const expr &value) -> void override {
     if (value.bool_value() != Z3_L_TRUE) {
       return;
     }
-    BOOST_LOG_TRIVIAL(trace) << "fixed: " << var.to_string() << "\n";
+    BOOST_LOG_TRIVIAL(trace) << "fixed: " << ww_var.to_string() << "\n";
 
-    auto edge_desc = polygraph.edge_map.left.at(var);
-    fixed_edges.emplace_back(edge_desc);
-    fixed_vars.push_back(var);
+    auto ww_edge = polygraph.edge_map.left.at(ww_var);
+    fixed_edges.emplace_back(ww_edge);
+    fixed_vars.push_back(ww_var);
+    fixed_vars_set.emplace(ww_var);
 
     auto graph = dependency_graph_of(*polygraph.graph, fixed_edges);
-    if (!detect_cycle(graph, edge_desc)) {
+
+    propagate_rw_edge(graph, ww_edge);
+    if (!detect_cycle(graph, ww_edge)) {
       return;
     }
 
-    propagate_unit_edge(graph, edge_desc);
-    propagate_rw_edge(graph, edge_desc);
+    // TODO(czg): adapt to propagate_rw_edge
+    // propagate_unit_edge(graph, ww_edge);
   }
 
   auto fresh(z3::context &ctx) -> z3::user_propagator_base * override {
@@ -309,15 +369,24 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
                       cycle_detector);
     assert(!cycle.empty());
 
-    auto cycle_vars = z3::expr_vector{ctx()};
+    auto cycle_vars_set = std::unordered_set<expr>{};
     BOOST_LOG_TRIVIAL(trace) << "conflict: ";
     for (auto e : cycle) {
-      auto var = polygraph.edge_map.right.at(e);
-      BOOST_LOG_TRIVIAL(trace) << var.to_string();
-      cycle_vars.push_back(var);
+      BOOST_LOG_TRIVIAL(trace) << polygraph.edge_map.right.at(e).to_string();
+
+      auto ww_vars = ww_var_map[e] | filter([&](const expr &e) {
+                       return fixed_vars_set.contains(e);
+                     });
+      for (const auto &ww_var : ww_vars) {
+        cycle_vars_set.emplace(ww_var);
+      }
     }
     BOOST_LOG_TRIVIAL(trace) << '\n';
 
+    auto cycle_vars = z3::expr_vector{ctx()};
+    for (const auto &cycle_var : cycle_vars_set) {
+      cycle_vars.push_back(cycle_var);
+    }
     conflict(cycle_vars);
     return false;
   }
@@ -354,7 +423,11 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
   }
 
   auto propagate_rw_edge(DependencyGraph dependency_graph, Edge added_edge)
-      -> void {}
+      -> void {
+    if (rw_map.contains(added_edge)) {
+      std::ranges::copy(rw_map.at(added_edge), std::back_inserter(fixed_edges));
+    }
+  }
 };
 
 }  // namespace checker::solver
