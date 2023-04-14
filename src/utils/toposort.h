@@ -5,17 +5,57 @@
 #include <boost/graph/filtered_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
 #include <boost/log/trivial.hpp>
+#include <cassert>
 #include <functional>
 #include <iterator>
+#include <optional>
 #include <ranges>
 #include <sstream>
 #include <utility>
 #include <vector>
 
-#include "utils/to_container.h"
 #include "utils/literal.h"
+#include "utils/to_container.h"
 
 namespace checker::utils {
+
+template <typename Graph>
+struct CycleDetector : boost::dfs_visitor<> {
+  using Vertex = typename Graph::vertex_descriptor;
+  using Edge = typename Graph::edge_descriptor;
+
+  std::reference_wrapper<std::vector<Edge>> cycle;
+  std::reference_wrapper<std::vector<Vertex>> reverse_topo_order;
+  std::unordered_map<Vertex, Vertex> pred;
+
+  auto back_edge(const Edge &e, const Graph &g) -> void {
+    if (!cycle.get().empty()) {
+      return;
+    }
+
+    auto top = boost::target(e, g);
+    auto bottom = boost::source(e, g);
+
+    reverse_topo_order.get().clear();
+    cycle.get().push_back(e);
+    for (auto v = bottom; v != top; v = pred.at(v)) {
+      cycle.get().push_back(boost::edge(pred.at(v), v, g).first);
+    }
+  }
+
+  auto tree_edge(const Edge &e, const Graph &g) -> void {
+    auto from = boost::source(e, g);
+    auto to = boost::target(e, g);
+
+    pred[to] = from;
+  }
+
+  auto finish_vertex(const Vertex &v, const Graph &g) -> void {
+    if (cycle.get().empty()) {
+      reverse_topo_order.get().emplace_back(v);
+    }
+  }
+};
 
 // ref:
 // http://www.doc.ic.ac.uk/%7Ephjk/Publications/DynamicTopoSortAlg-JEA-07.pdf
@@ -23,15 +63,19 @@ template <typename Graph>
 static auto toposort_add_edge(
     const Graph &graph,
     std::vector<typename Graph::vertex_descriptor> &topo_order,
-    typename Graph::edge_descriptor edge) -> bool {
+    typename Graph::edge_descriptor edge)
+    -> std::optional<std::vector<typename Graph::edge_descriptor>> {
+  using boost::depth_first_search;
   using boost::filtered_graph;
-  using boost::not_a_dag;
+  using boost::keep_all;
   using boost::source;
   using boost::target;
-  using boost::topological_sort;
   using vertex_descriptor = typename Graph::vertex_descriptor;
+  using edge_descriptor = typename Graph::edge_descriptor;
   using std::back_inserter;
+  using std::function;
   using std::greater;
+  using std::nullopt;
   using std::pair;
   using std::vector;
   using std::ranges::reverse;
@@ -52,7 +96,7 @@ static auto toposort_add_edge(
   auto target_pos = vertex_pos.at(to);
 
   if (source_pos < target_pos) {
-    return true;
+    return nullopt;
   }
 
   auto filter_vertices = [&](vertex_descriptor vertex) {
@@ -62,18 +106,24 @@ static auto toposort_add_edge(
 
   auto partial_graph = filtered_graph{
       graph,
-      boost::keep_all{},
-      std::function{filter_vertices},
+      keep_all{},
+      function{filter_vertices},
   };
 
   auto partial_topo_order = vector<vertex_descriptor>{};
-  try {
-    topological_sort(partial_graph, back_inserter(partial_topo_order));
-  } catch (const not_a_dag &e) {
-    return false;
-  }
-  reverse(partial_topo_order);
+  auto cycle = vector<edge_descriptor>{};
+  auto cycle_detector = CycleDetector<decltype(partial_graph)>{
+      .cycle = std::ref(cycle),
+      .reverse_topo_order = std::ref(partial_topo_order),
+  };
+  boost::depth_first_search(partial_graph, boost::visitor(cycle_detector));
 
+  assert(!cycle.empty() || !partial_topo_order.empty());
+  if (!cycle.empty()) {
+    return {std::move(cycle)};
+  }
+
+  reverse(partial_topo_order);
   auto partial_vertex_pos =
       partial_topo_order                                     //
       | transform([&](auto v) { return vertex_pos.at(v); })  //
@@ -84,7 +134,7 @@ static auto toposort_add_edge(
     topo_order.at(partial_vertex_pos.at(i)) = partial_topo_order.at(i);
   }
 
-  return true;
+  return nullopt;
 }
 
 }  // namespace checker::utils

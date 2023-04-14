@@ -86,36 +86,6 @@ static inline auto operator|(const z3::expr_vector v, ToUnorderedSet)
 }  // namespace checker::utils
 
 template <typename Graph>
-struct CycleDetector : boost::dfs_visitor<> {
-  using Vertex = typename Graph::vertex_descriptor;
-  using Edge = typename Graph::edge_descriptor;
-
-  std::reference_wrapper<vector<Edge>> cycle;
-  unordered_map<Vertex, Vertex> pred_edge;
-
-  auto back_edge(const Edge &e, const Graph &g) -> void {
-    if (!cycle.get().empty()) {
-      return;
-    }
-
-    auto top = boost::target(e, g);
-    auto bottom = boost::source(e, g);
-
-    cycle.get().push_back(e);
-    for (auto v = bottom; v != top; v = pred_edge.at(v)) {
-      cycle.get().push_back(boost::edge(pred_edge[v], v, g).first);
-    }
-  }
-
-  auto tree_edge(const Edge &e, const Graph &g) -> void {
-    auto from = boost::source(e, g);
-    auto to = boost::target(e, g);
-
-    pred_edge[to] = from;
-  }
-};
-
-template <typename Graph>
 struct TransitiveSuccessorsRecorder : boost::dfs_visitor<> {
   using Vertex = typename Graph::vertex_descriptor;
 
@@ -343,15 +313,20 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     fixed_vars.push_back(ww_var);
     fixed_vars_set.emplace(ww_var);
 
+    auto added_edges = vector{ww_edge};
+    std::ranges::copy(propagate_rw_edge(ww_edge),
+                      std::back_inserter(added_edges));
     auto graph = dependency_graph_of(*polygraph.graph, fixed_edges);
 
-    propagate_rw_edge(graph, ww_edge);
-    if (!detect_cycle(graph, ww_edge)) {
-      return;
+    for (auto e : added_edges) {
+      if (!detect_cycle(graph, e)) {
+        return;
+      }
     }
 
-    // TODO(czg): adapt to propagate_rw_edge
-    // propagate_unit_edge(graph, ww_edge);
+    for (auto e : added_edges) {
+      propagate_unit_edge(graph, e);
+    }
   }
 
   auto fresh(z3::context &ctx) -> z3::user_propagator_base * override {
@@ -359,27 +334,20 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
   }
 
   auto detect_cycle(DependencyGraph dependency_graph, Edge added_edge) -> bool {
-    if (checker::utils::toposort_add_edge(dependency_graph, topo_order,
-                                          added_edge)) {
+    auto cycle = checker::utils::toposort_add_edge(dependency_graph, topo_order,
+                                                   added_edge);
+    if (!cycle) {
       return true;
     }
-
-    auto cycle = vector<DependencyGraph::edge_descriptor>{};
-    auto cycle_detector =
-        CycleDetector<DependencyGraph>{.cycle = std::ref(cycle)};
-    depth_first_visit(dependency_graph,
-                      boost::source(added_edge, dependency_graph),
-                      cycle_detector);
-    assert(!cycle.empty());
 
     auto cycle_vars_set = std::unordered_set<expr>{};
     CHECKER_LOG_COND(trace, logger) {
       logger << "conflict:";
-      for (auto e : cycle) {
+      for (auto e : cycle.value()) {
         logger << ' ' << polygraph.edge_map.right.at(e).to_string();
       }
     }
-    for (auto e : cycle) {
+    for (auto e : cycle.value()) {
       auto ww_vars = ww_var_map[e] | filter([&](const expr &e) {
                        return fixed_vars_set.contains(e);
                      });
@@ -421,17 +389,25 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
       auto consequence = reduce(negation.begin(), negation.end(),
                                 ctx().bool_val(true), std::bit_and<>{});
 
-      BOOST_LOG_TRIVIAL(trace) << "propagate: " << fixed_vars.to_string()
-                               << " => " << consequence.to_string();
+      CHECKER_LOG_COND(trace, logger) {
+        logger << "propagate:";
+        for (const auto &v : fixed_vars) {
+          logger << ' ' << v.to_string();
+        }
+        logger << " => " << consequence.to_string();
+      }
       propagate(fixed_vars, consequence);
     }
   }
 
-  auto propagate_rw_edge(DependencyGraph dependency_graph, Edge added_edge)
-      -> void {
+  auto propagate_rw_edge(Edge added_edge) -> vector<Edge> {
     if (rw_map.contains(added_edge)) {
-      std::ranges::copy(rw_map.at(added_edge), std::back_inserter(fixed_edges));
+      const auto rw_edges = rw_map.at(added_edge);
+      std::ranges::copy(rw_edges, std::back_inserter(fixed_edges));
+      return rw_edges;
     }
+
+    return {};
   }
 };
 
