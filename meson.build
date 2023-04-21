@@ -60,6 +60,8 @@ if get_option('buildtype') == 'debug'
 elif get_option('buildtype') == 'debugoptimized'
   checker_cflags += ['-pg']
   checker_ldflags += ['-pg']
+elif get_option('buildtype') == 'release'
+  checker_opts += ['b_lto=true']
 endif
 
 checker_common_deps = declare_dependency(

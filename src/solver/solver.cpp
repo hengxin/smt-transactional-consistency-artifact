@@ -3,6 +3,7 @@
 #include <z3++.h>
 
 #include <algorithm>
+#include <boost/container_hash/extensions.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/filtered_graph.hpp>
@@ -50,7 +51,9 @@ using std::optional;
 using std::pair;
 using std::reduce;
 using std::unordered_map;
+using std::unordered_set;
 using std::vector;
+using std::ranges::copy;
 using std::ranges::range;
 using std::ranges::subrange;
 using std::ranges::views::all;
@@ -72,19 +75,6 @@ struct std::equal_to<expr> {
   }
 };
 
-namespace checker::utils {
-static inline auto operator|(const z3::expr_vector v, ToUnorderedSet)
-    -> std::unordered_set<expr> {
-  auto s = std::unordered_set<expr>{};
-
-  for (const auto &e : v) {
-    s.emplace(e);
-  }
-
-  return s;
-}
-}  // namespace checker::utils
-
 template <typename Graph>
 struct TransitiveSuccessorsRecorder : boost::dfs_visitor<> {
   using Vertex = typename Graph::vertex_descriptor;
@@ -98,14 +88,13 @@ struct TransitiveSuccessorsRecorder : boost::dfs_visitor<> {
 };
 
 template <typename Graph>
-static auto dependency_graph_of(const Graph &polygraph, range auto edges) {
-  using Edge = typename Graph::edge_descriptor;
-  using HashSet = std::unordered_set<Edge, boost::hash<Edge>>;
-
-  auto filter_edges =
-      [edgeset = std::make_shared<HashSet>(edges | to<HashSet>)](Edge e) {
-        return edgeset->contains(e);
-      };
+static auto dependency_graph_of(
+    const Graph &polygraph,
+    const unordered_set<typename Graph::edge_descriptor,
+                        boost::hash<typename Graph::edge_descriptor>> &edges) {
+  auto filter_edges = [&](typename Graph::edge_descriptor e) {
+    return edges.contains(e);
+  };
 
   return boost::filtered_graph{
       polygraph,
@@ -206,8 +195,8 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
   using Graph = utils::Graph<int64_t, expr>;
   using Vertex = Graph::InternalGraph::vertex_descriptor;
   using Edge = Graph::InternalGraph::edge_descriptor;
-  using DependencyGraph =
-      decltype(dependency_graph_of(Graph::InternalGraph{}, vector<Edge>{}));
+  using DependencyGraph = decltype(dependency_graph_of(
+      Graph::InternalGraph{}, unordered_set<Edge, boost::hash<Edge>>{}));
 
   Graph polygraph;
 
@@ -216,6 +205,7 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
   vector<Edge> fixed_edges;
   z3::expr_vector fixed_vars;
   std::unordered_set<expr> fixed_vars_set;
+  std::unordered_set<Edge, boost::hash<Edge>> fixed_edges_set;
 
   vector<Vertex> topo_order;
 
@@ -297,6 +287,9 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     for (auto i = remaining_vars_num; i < fixed_vars.size(); i++) {
       fixed_vars_set.erase(fixed_vars[i]);
     }
+    for (auto i = remaining_edges_num; i < fixed_edges.size(); i++) {
+      fixed_edges_set.erase(fixed_edges.at(i));
+    }
     fixed_edges.erase(fixed_edges.begin() + remaining_edges_num,
                       fixed_edges.end());
     fixed_vars.resize(remaining_vars_num);
@@ -312,11 +305,11 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     fixed_edges.emplace_back(ww_edge);
     fixed_vars.push_back(ww_var);
     fixed_vars_set.emplace(ww_var);
+    fixed_edges_set.emplace(ww_edge);
 
     auto added_edges = vector{ww_edge};
-    std::ranges::copy(propagate_rw_edge(ww_edge),
-                      std::back_inserter(added_edges));
-    auto graph = dependency_graph_of(*polygraph.graph, fixed_edges);
+    copy(propagate_rw_edge(ww_edge), std::back_inserter(added_edges));
+    auto graph = dependency_graph_of(*polygraph.graph, fixed_edges_set);
 
     for (auto e : added_edges) {
       if (!detect_cycle(graph, e)) {
@@ -324,9 +317,10 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
       }
     }
 
-    for (auto e : added_edges) {
-      propagate_unit_edge(graph, e);
-    }
+    // TODO(czg): propagate_unit_edge has performance issues. Fix it or remove it.
+    // for (auto e : added_edges) {
+    //   propagate_unit_edge(graph, e);
+    // }
   }
 
   auto fresh(z3::context &ctx) -> z3::user_propagator_base * override {
@@ -403,7 +397,8 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
   auto propagate_rw_edge(Edge added_edge) -> vector<Edge> {
     if (rw_map.contains(added_edge)) {
       const auto rw_edges = rw_map.at(added_edge);
-      std::ranges::copy(rw_edges, std::back_inserter(fixed_edges));
+      copy(rw_edges, std::back_inserter(fixed_edges));
+      copy(rw_edges, std::inserter(fixed_edges_set, fixed_edges_set.end()));
       return rw_edges;
     }
 

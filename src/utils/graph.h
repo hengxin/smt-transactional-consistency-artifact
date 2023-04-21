@@ -106,6 +106,8 @@ struct Graph {
 
   auto num_vertices() const -> ssize_t { return boost::num_vertices(*graph); }
 
+  auto num_edges() const -> ssize_t { return boost::num_edges(*graph); }
+
   auto edges() const -> std::ranges::range auto{
     auto [begin, end] = boost::edges(*graph);
     return std::ranges::subrange(begin, end)  //

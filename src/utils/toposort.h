@@ -6,6 +6,7 @@
 #include <boost/graph/topological_sort.hpp>
 #include <boost/log/trivial.hpp>
 #include <cassert>
+#include <cstddef>
 #include <functional>
 #include <iterator>
 #include <optional>
@@ -26,7 +27,14 @@ struct CycleDetector : boost::dfs_visitor<> {
 
   std::reference_wrapper<std::vector<Edge>> cycle;
   std::reference_wrapper<std::vector<Vertex>> reverse_topo_order;
-  std::unordered_map<Vertex, Vertex> pred;
+  std::vector<Vertex> pred;
+
+  CycleDetector(std::reference_wrapper<std::vector<Edge>> _cycle,
+                std::reference_wrapper<std::vector<Vertex>> _reverse_topo_order,
+                size_t num_edges)
+      : cycle{_cycle}, reverse_topo_order{_reverse_topo_order} {
+    pred.resize(num_edges);
+  }
 
   auto back_edge(const Edge &e, const Graph &g) -> void {
     if (!cycle.get().empty()) {
@@ -47,7 +55,7 @@ struct CycleDetector : boost::dfs_visitor<> {
     auto from = boost::source(e, g);
     auto to = boost::target(e, g);
 
-    pred[to] = from;
+    pred.at(to) = from;
   }
 
   auto finish_vertex(const Vertex &v, const Graph &g) -> void {
@@ -84,11 +92,11 @@ static auto toposort_add_edge(
   using std::ranges::views::iota;
   using std::ranges::views::transform;
 
-  auto vertex_pos = iota(0_uz, topo_order.size())  //
-                    | transform([&](auto pos) {
-                        return pair{topo_order.at(pos), pos};
-                      })  //
-                    | to_unordered_map;
+  auto vertex_pos = std::vector<size_t>{};
+  vertex_pos.resize(boost::num_vertices(graph));
+  for (auto i : iota(0_uz, topo_order.size())) {
+    vertex_pos.at(topo_order.at(i)) = i;
+  }
 
   auto from = source(edge, graph);
   auto to = target(edge, graph);
@@ -113,9 +121,8 @@ static auto toposort_add_edge(
   auto partial_topo_order = vector<vertex_descriptor>{};
   auto cycle = vector<edge_descriptor>{};
   auto cycle_detector = CycleDetector<decltype(partial_graph)>{
-      .cycle = std::ref(cycle),
-      .reverse_topo_order = std::ref(partial_topo_order),
-  };
+      std::ref(cycle), std::ref(partial_topo_order),
+      boost::num_vertices(graph)};
   boost::depth_first_search(partial_graph, boost::visitor(cycle_detector));
 
   assert(!cycle.empty() || !partial_topo_order.empty());
