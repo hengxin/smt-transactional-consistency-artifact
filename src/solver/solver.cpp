@@ -224,21 +224,18 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
   unordered_map<Edge, vector<expr>, boost::hash<Edge>> edge_to_expr_map;
 
   unordered_map<expr, EdgeSet> constraint_to_edge_map;
-  vector<Vertex> topo_order;
+  utils::TopologicalOrder<Vertex> topo_order;
 
   DependencyGraphHasNoCycle(z3::solver &solver, Graph &&_polygraph,
                             unordered_map<expr, EdgeSet> &&constraint_edges)
       : z3::user_propagator_base{&solver},
         polygraph{std::move(_polygraph)},
         fixed_vars{ctx()},
-        constraint_to_edge_map{std::move(constraint_edges)} {
+        constraint_to_edge_map{std::move(constraint_edges)},
+        topo_order{polygraph.vertices()} {
     for (const auto &var : keys(constraint_to_edge_map)) {
       BOOST_LOG_TRIVIAL(trace) << "add: " << var.to_string();
       add(var);
-    }
-
-    for (auto v : polygraph.vertices()) {
-      topo_order.emplace_back(polygraph.vertex_map.left.at(v));
     }
 
     register_fixed();

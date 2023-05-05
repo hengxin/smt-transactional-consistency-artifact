@@ -18,7 +18,11 @@ struct To {};
 
 inline constexpr auto operator|(std::ranges::range auto r, ToVector)
     -> std::vector<std::ranges::range_value_t<decltype(r)>> {
-  return std::vector(std::ranges::begin(r), std::ranges::end(r));
+  auto v = std::vector<std::ranges::range_value_t<decltype(r)>>{};
+  for (auto &&n : r) {
+    v.emplace_back(n);
+  }
+  return v;
 }
 
 inline constexpr auto operator|(std::ranges::range auto r, ToUnorderedMap)
