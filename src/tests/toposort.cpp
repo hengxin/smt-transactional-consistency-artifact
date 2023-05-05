@@ -89,5 +89,6 @@ BOOST_AUTO_TEST_CASE(toposort) {
   BOOST_TEST(partial_equal(ord, {0, 1, 2, 3, 4}));
 
   auto e3 = add_edge(4, 2, g).first;
-  BOOST_TEST(cycle_equal(toposort_add_edge(g, ord, e3).value(), {2, 3, 4}, g));
+  BOOST_TEST(
+      cycle_equal(toposort_add_edge(g, ord, e3).value(), {2, 3, 4}, g));
 }

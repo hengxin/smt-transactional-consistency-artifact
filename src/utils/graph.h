@@ -15,6 +15,8 @@
 #include <unordered_map>
 #include <utility>
 
+#include "boost/container_hash/extensions.hpp"
+
 namespace checker::utils {
 template <typename T>
 concept HashAndEquality = requires(T t) {
@@ -22,7 +24,7 @@ concept HashAndEquality = requires(T t) {
   { std::equal_to<T>{}(t, t) } -> std::same_as<bool>;
 };
 
-template <HashAndEquality Vertex, HashAndEquality Edge>
+template <HashAndEquality Vertex, typename Edge>
 struct Graph {
   using InternalGraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS>;
 
@@ -31,8 +33,8 @@ struct Graph {
       boost::bimaps::unordered_set_of<Vertex, std::hash<Vertex>>,
       boost::bimaps::unordered_set_of<InternalGraph::vertex_descriptor>>
       vertex_map;
-  boost::bimap<boost::bimaps::unordered_set_of<Edge, std::hash<Edge>>,
-               boost::bimaps::unordered_set_of<InternalGraph::edge_descriptor>>
+  std::unordered_map<InternalGraph::edge_descriptor, Edge,
+                     boost::hash<InternalGraph::edge_descriptor>>
       edge_map;
 
   auto add_vertex(Vertex v) -> const Vertex & {
@@ -55,7 +57,7 @@ struct Graph {
     auto to_desc = vertex_map.left.at(to);
 
     auto [desc, _] = boost::add_edge(from_desc, to_desc, *graph);
-    return edge_map.insert({e, desc}).first->get_left_pair().first;
+    return edge_map.try_emplace(desc, e).first->second;
   }
 
   auto edge(Vertex from, Vertex to)
@@ -74,18 +76,10 @@ struct Graph {
 
     if (auto [desc, has_edge] = boost::edge(from_desc, to_desc, *graph);
         has_edge) {
-      return std::ref(edge_map.right.at(desc));
+      return std::ref(edge_map.at(desc));
     } else {
       return std::nullopt;
     }
-  }
-
-  auto source(Edge edge) const -> const Vertex & {
-    return vertex_map.right.at(boost::source(edge_map.left.at(edge), *graph));
-  }
-
-  auto target(Edge edge) const -> const Vertex & {
-    return vertex_map.right.at(boost::target(edge_map.left.at(edge), *graph));
   }
 
   auto successors(Vertex vertex) const -> std::ranges::range auto{
@@ -115,7 +109,7 @@ struct Graph {
                return std::tuple{
                    std::ref(vertex_map.right.at(boost::source(desc, *graph))),
                    std::ref(vertex_map.right.at(boost::target(desc, *graph))),
-                   std::ref(edge_map.right.at(desc)),
+                   std::ref(edge_map.at(desc)),
                };
              });
   }

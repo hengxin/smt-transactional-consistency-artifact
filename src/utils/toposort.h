@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <functional>
 #include <iterator>
+#include <limits>
 #include <optional>
 #include <ranges>
 #include <sstream>
@@ -83,7 +84,10 @@ static auto toposort_add_edge(
   using std::back_inserter;
   using std::function;
   using std::greater;
+  using std::max;
+  using std::min;
   using std::nullopt;
+  using std::numeric_limits;
   using std::pair;
   using std::vector;
   using std::ranges::reverse;
@@ -98,18 +102,15 @@ static auto toposort_add_edge(
     vertex_pos.at(topo_order.at(i)) = i;
   }
 
-  auto from = source(edge, graph);
-  auto to = target(edge, graph);
-  auto source_pos = vertex_pos.at(from);
-  auto target_pos = vertex_pos.at(to);
-
-  if (source_pos < target_pos) {
+  auto from_pos = vertex_pos.at(source(edge, graph));
+  auto to_pos = vertex_pos.at(target(edge, graph));
+  if (from_pos < to_pos) {
     return nullopt;
   }
 
   auto filter_vertices = [&](vertex_descriptor vertex) {
     auto pos = vertex_pos.at(vertex);
-    return target_pos <= pos && pos <= source_pos;
+    return to_pos <= pos && pos <= from_pos;
   };
 
   auto partial_graph = filtered_graph{
