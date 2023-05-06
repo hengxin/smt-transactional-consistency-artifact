@@ -41,14 +41,16 @@ struct TopologicalOrder {
 
   auto vertex_pos(Vertex v) const -> size_t { return vertex_to_pos.at(v); }
 
-  auto vertex_at_pos(size_t index) const -> Vertex { return pos_to_vertex.at(index); }
+  auto vertex_at_pos(size_t index) const -> Vertex {
+    return pos_to_vertex.at(index);
+  }
 
   auto update_pos(const std::vector<std::pair<Vertex, size_t>> &mapping) {
 #ifndef NDEBUG
-    auto original_pos =
-        std::ranges::views::keys(mapping) |
-        std::ranges::views::transform([&](auto v) { return vertex_to_pos.at(v); }) |
-        to<std::unordered_set<size_t>>;
+    auto original_pos = std::ranges::views::keys(mapping) |
+                        std::ranges::views::transform(
+                            [&](auto v) { return vertex_to_pos.at(v); }) |
+                        to<std::unordered_set<size_t>>;
 
     auto new_pos =
         std::ranges::views::values(mapping) | to<std::unordered_set<size_t>>;
@@ -62,7 +64,7 @@ struct TopologicalOrder {
     }
   }
 
-  auto vertices() const -> std::ranges::range auto {
+  auto vertices() const -> std::ranges::range auto{
     return std::ranges::views::all(pos_to_vertex);
   }
 };
@@ -112,82 +114,91 @@ struct CycleDetector : boost::dfs_visitor<> {
   }
 };
 
-// ref:
-// http://www.doc.ic.ac.uk/%7Ephjk/Publications/DynamicTopoSortAlg-JEA-07.pdf
 template <typename Graph>
-static auto toposort_add_edge(
-    const Graph &graph,
-    TopologicalOrder<typename Graph::vertex_descriptor> &topo_order,
-    typename Graph::edge_descriptor edge)
-    -> std::optional<std::vector<typename Graph::edge_descriptor>> {
-  using boost::depth_first_search;
-  using boost::filtered_graph;
-  using boost::keep_all;
-  using boost::source;
-  using boost::target;
-  using vertex_descriptor = typename Graph::vertex_descriptor;
-  using edge_descriptor = typename Graph::edge_descriptor;
-  using std::back_inserter;
-  using std::function;
-  using std::greater;
-  using std::max;
-  using std::min;
-  using std::nullopt;
-  using std::numeric_limits;
-  using std::pair;
-  using std::vector;
-  using std::ranges::reverse;
-  using std::ranges::sort;
-  using std::ranges::subrange;
-  using std::ranges::views::iota;
-  using std::ranges::views::transform;
+struct IncrementalCycleDetector {
+  using Edge = typename Graph::edge_descriptor;
 
-  auto from_pos = topo_order.vertex_pos(source(edge, graph));
-  auto to_pos = topo_order.vertex_pos(target(edge, graph));
-  if (from_pos < to_pos) {
+  Graph *graph;
+  TopologicalOrder<typename Graph::vertex_descriptor> topo_order;
+
+  explicit IncrementalCycleDetector(Graph &graph)
+      : graph{&graph}, topo_order{[&] {
+          auto [begin, end] = boost::vertices(graph);
+          return std::ranges::subrange(begin, end);
+        }()} {}
+
+  // ref:
+  // http://www.doc.ic.ac.uk/%7Ephjk/Publications/DynamicTopoSortAlg-JEA-07.pdf
+  auto check_add_edge(const Edge &edge) -> std::optional<std::vector<Edge>> {
+    using boost::depth_first_search;
+    using boost::filtered_graph;
+    using boost::keep_all;
+    using boost::source;
+    using boost::target;
+    using vertex_descriptor = typename Graph::vertex_descriptor;
+    using edge_descriptor = typename Graph::edge_descriptor;
+    using std::back_inserter;
+    using std::function;
+    using std::greater;
+    using std::max;
+    using std::min;
+    using std::nullopt;
+    using std::numeric_limits;
+    using std::pair;
+    using std::vector;
+    using std::ranges::reverse;
+    using std::ranges::sort;
+    using std::ranges::subrange;
+    using std::ranges::views::iota;
+    using std::ranges::views::transform;
+
+    auto from_pos = topo_order.vertex_pos(source(edge, *graph));
+    auto to_pos = topo_order.vertex_pos(target(edge, *graph));
+    if (from_pos < to_pos) {
+      return nullopt;
+    }
+
+    auto filter_vertices = [&](vertex_descriptor vertex) {
+      auto pos = topo_order.vertex_pos(vertex);
+      return to_pos <= pos && pos <= from_pos;
+    };
+
+    auto partial_graph = filtered_graph{
+        *graph,
+        keep_all{},
+        function{filter_vertices},
+    };
+
+    auto partial_topo_order = vector<vertex_descriptor>{};
+    auto cycle = vector<edge_descriptor>{};
+    auto cycle_detector = CycleDetector<decltype(partial_graph)>{
+        std::ref(cycle), std::ref(partial_topo_order),
+        boost::num_vertices(partial_graph)};
+    boost::depth_first_search(partial_graph, boost::visitor(cycle_detector));
+
+    assert(!cycle.empty() || !partial_topo_order.empty());
+    if (!cycle.empty()) {
+      return {std::move(cycle)};
+    }
+
+    reverse(partial_topo_order);
+    auto partial_vertex_pos =
+        partial_topo_order                                             //
+        | transform([&](auto v) { return topo_order.vertex_pos(v); })  //
+        | to_vector;
+    sort(partial_vertex_pos);
+
+    auto mapping =
+        iota(0_uz, partial_topo_order.size())  //
+        | transform([&](auto i) {
+            return pair{partial_topo_order.at(i), partial_vertex_pos.at(i)};
+          })  //
+        | to_vector;
+    topo_order.update_pos(mapping);
+
     return nullopt;
   }
-
-  auto filter_vertices = [&](vertex_descriptor vertex) {
-    auto pos = topo_order.vertex_pos(vertex);
-    return to_pos <= pos && pos <= from_pos;
-  };
-
-  auto partial_graph = filtered_graph{
-      graph,
-      keep_all{},
-      function{filter_vertices},
-  };
-
-  auto partial_topo_order = vector<vertex_descriptor>{};
-  auto cycle = vector<edge_descriptor>{};
-  auto cycle_detector = CycleDetector<decltype(partial_graph)>{
-      std::ref(cycle), std::ref(partial_topo_order),
-      boost::num_vertices(graph)};
-  boost::depth_first_search(partial_graph, boost::visitor(cycle_detector));
-
-  assert(!cycle.empty() || !partial_topo_order.empty());
-  if (!cycle.empty()) {
-    return {std::move(cycle)};
-  }
-
-  reverse(partial_topo_order);
-  auto partial_vertex_pos =
-      partial_topo_order                                                //
-      | transform([&](auto v) { return topo_order.vertex_pos(v); })  //
-      | to_vector;
-  sort(partial_vertex_pos);
-
-  auto mapping =
-      iota(0_uz, partial_topo_order.size())  //
-      | transform([&](auto i) {
-          return pair{partial_topo_order.at(i), partial_vertex_pos.at(i)};
-        })  //
-      | to_vector;
-  topo_order.update_pos(mapping);
-
-  return nullopt;
-}
+};
 
 }  // namespace checker::utils
 

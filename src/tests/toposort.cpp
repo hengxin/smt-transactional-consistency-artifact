@@ -1,4 +1,5 @@
 // clang-format off
+#include <memory>
 #define BOOST_TEST_MODULE toposort
 #include <boost/test/included/unit_test.hpp>
 // clang-format on
@@ -21,7 +22,6 @@
 using boost::add_edge;
 using checker::utils::to;
 using checker::utils::TopologicalOrder;
-using checker::utils::toposort_add_edge;
 using std::array;
 using std::initializer_list;
 using std::pair;
@@ -39,17 +39,17 @@ static_assert(std::is_same_v<Vertex, size_t>);
 
 static auto create_graph(size_t num_vertices,
                          initializer_list<pair<Vertex, Vertex>> edges)
-    -> pair<Graph, TopologicalOrder<Vertex>> {
-  auto graph = Graph{num_vertices};
+    -> pair<std::unique_ptr<Graph>,
+            checker::utils::IncrementalCycleDetector<Graph>> {
+  auto graph = std::make_unique<Graph>(num_vertices);
+  auto detector = checker::utils::IncrementalCycleDetector{*graph};
+
   for (auto [from, to] : edges) {
-    add_edge(from, to, graph);
+    auto [e, _] = add_edge(from, to, *graph);
+    assert(!detector.check_add_edge(e));
   }
 
-  auto topo_order = std::vector<Vertex>{};
-  boost::topological_sort(graph, std::back_inserter(topo_order));
-  reverse(topo_order);
-
-  return {graph, TopologicalOrder<Vertex>{topo_order}};
+  return {std::move(graph), std::move(detector)};
 }
 
 static auto partial_equal(const TopologicalOrder<Vertex> &topo_order,
@@ -78,16 +78,16 @@ static auto cycle_equal(const vector<Edge> &cycle,
 }
 
 BOOST_AUTO_TEST_CASE(toposort) {
-  auto [g, ord] = create_graph(5, {{0, 1}, {1, 3}, {2, 3}});
+  auto [g, d] = create_graph(5, {{0, 1}, {1, 3}, {2, 3}});
 
-  auto e = add_edge(1, 2, g).first;
-  BOOST_TEST(!toposort_add_edge(g, ord, e).has_value());
-  BOOST_TEST(partial_equal(ord, {0, 1, 2, 3}));
+  auto e = add_edge(1, 2, *g).first;
+  BOOST_TEST(!d.check_add_edge(e).has_value());
+  BOOST_TEST(partial_equal(d.topo_order, {0, 1, 2, 3}));
 
-  auto e2 = add_edge(3, 4, g).first;
-  BOOST_TEST(!toposort_add_edge(g, ord, e2).has_value());
-  BOOST_TEST(partial_equal(ord, {0, 1, 2, 3, 4}));
+  auto e2 = add_edge(3, 4, *g).first;
+  BOOST_TEST(!d.check_add_edge(e2).has_value());
+  BOOST_TEST(partial_equal(d.topo_order, {0, 1, 2, 3, 4}));
 
-  auto e3 = add_edge(4, 2, g).first;
-  BOOST_TEST(cycle_equal(toposort_add_edge(g, ord, e3).value(), {2, 3, 4}, g));
+  auto e3 = add_edge(4, 2, *g).first;
+  BOOST_TEST(cycle_equal(d.check_add_edge(e3).value(), {2, 3, 4}, *g));
 }

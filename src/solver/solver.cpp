@@ -187,6 +187,7 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
    * variables are currently assigned true by Z3.
    */
   Graph dependency_graph;
+  utils::IncrementalCycleDetector<Graph> cycle_detector;
 
   /*
    * Z3 uses a stack of fixed variables internally. When push() is called, a new
@@ -204,7 +205,6 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
   vector<Edge> fixed_edges;        // stack of fixed edges
 
   unordered_map<expr, PolyGraphEdgeSet> constraint_to_edge_map;
-  utils::TopologicalOrder<PolyGraphVertex> topo_order;
 
   size_t n_fixed_called = 0;
   size_t n_conflicts_returned = 0;
@@ -218,8 +218,8 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
       : z3::user_propagator_base{&solver},
         polygraph{std::move(polygraph)},
         dependency_graph{num_vertices(this->polygraph)},
-        constraint_to_edge_map{std::move(constraint_edges)},
-        topo_order{vertices(this->polygraph)} {
+        cycle_detector{dependency_graph},
+        constraint_to_edge_map{std::move(constraint_edges)} {
     for (const auto &var : keys(constraint_to_edge_map)) {
       BOOST_LOG_TRIVIAL(trace) << "add: " << var.to_string();
       add(var);
@@ -291,8 +291,7 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
   }
 
   auto detect_cycle(Edge added_edge) -> bool {
-    auto cycle = checker::utils::toposort_add_edge(dependency_graph, topo_order,
-                                                   added_edge);
+    auto cycle = cycle_detector.check_add_edge(added_edge);
     if (!cycle) {
       return true;
     }
