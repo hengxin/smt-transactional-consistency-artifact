@@ -1,9 +1,13 @@
 #include "history.h"
 
+#include <bits/ranges_algo.h>
+
 #include <boost/endian.hpp>
+#include <boost/log/trivial.hpp>
 #include <cstdint>
 #include <istream>
 #include <iterator>
+#include <numeric>
 #include <ostream>
 #include <ranges>
 #include <string>
@@ -13,7 +17,7 @@
 
 #include "utils/to_container.h"
 
-using std::ssize;
+using std::ranges::count_if;
 using std::ranges::views::iota;
 using std::ranges::views::transform;
 
@@ -119,6 +123,13 @@ auto parse_dbcop_history(std::istream &is) -> History {
           .session_id = init_session_id,
       }},
   });
+
+  auto count_all = [](auto &&) { return true; };
+  BOOST_LOG_TRIVIAL(info) << "#sessions: " << history.sessions.size();
+  BOOST_LOG_TRIVIAL(info) << "#transactions: "
+                          << count_if(history.transactions(), count_all);
+  BOOST_LOG_TRIVIAL(info) << "#events: "
+                          << count_if(history.events(), count_all);
 
   return history;
 }

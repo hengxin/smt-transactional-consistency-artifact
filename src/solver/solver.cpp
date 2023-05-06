@@ -90,6 +90,38 @@ struct TransitiveSuccessorsRecorder : boost::dfs_visitor<> {
 };
 
 template <typename Graph>
+struct EdgeBitset {
+  using Edge = typename Graph::edge_descriptor;
+
+  const Graph *graph;
+  vector<vector<bool>> edge_set;
+
+  explicit EdgeBitset(const Graph &graph) : graph{&graph} {
+    auto num_vertices = boost::num_vertices(graph);
+    edge_set.resize(num_vertices);
+    for (auto &v : edge_set) {
+      v.resize(num_vertices);
+    }
+  }
+
+  auto operator[](const Edge &e) -> decltype(auto) {
+    auto [from, to] = endpoints(e);
+    return edge_set.at(from).at(to);
+  }
+
+  auto contains(const Edge &e) const -> bool {
+    auto [from, to] = endpoints(e);
+    return edge_set.at(from).at(to);
+  }
+
+  auto endpoints(const Edge &e) const -> pair<size_t, size_t> {
+    auto from = boost::source(e, *graph);
+    auto to = boost::target(e, *graph);
+    return {from, to};
+  }
+};
+
+template <typename Graph>
 static auto dependency_graph_of(const Graph &polygraph, const auto &edges) {
   auto filter_edges = [&](typename Graph::edge_descriptor e) {
     return edges.contains(e);
@@ -222,17 +254,25 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
 
   // Map from each fixed edges to the corresponding variables.
   unordered_map<Edge, vector<expr>, boost::hash<Edge>> edge_to_expr_map;
+  EdgeBitset<Graph::InternalGraph> edge_set;
 
   unordered_map<expr, EdgeSet> constraint_to_edge_map;
   utils::TopologicalOrder<Vertex> topo_order;
 
-  DependencyGraphHasNoCycle(z3::solver &solver, Graph &&_polygraph,
+  size_t n_fixed_called = 0;
+  size_t n_conflicts_returned = 0;
+  size_t n_conflict_vars_returned = 0;
+  size_t n_pop_called = 0;
+  size_t n_pop_scopes = 0;
+
+  DependencyGraphHasNoCycle(z3::solver &solver, Graph &&polygraph,
                             unordered_map<expr, EdgeSet> &&constraint_edges)
       : z3::user_propagator_base{&solver},
-        polygraph{std::move(_polygraph)},
+        polygraph{std::move(polygraph)},
         fixed_vars{ctx()},
+        edge_set{*this->polygraph.graph},
         constraint_to_edge_map{std::move(constraint_edges)},
-        topo_order{polygraph.vertices()} {
+        topo_order{this->polygraph.vertices()} {
     for (const auto &var : keys(constraint_to_edge_map)) {
       BOOST_LOG_TRIVIAL(trace) << "add: " << var.to_string();
       add(var);
@@ -248,6 +288,8 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
   }
 
   auto pop(unsigned int num_scopes) -> void override {
+    n_pop_called++;
+    n_pop_scopes += num_scopes;
     BOOST_LOG_TRIVIAL(trace) << "pop " << num_scopes;
 
     auto remaining_scopes = fixed_vars_num.size() - num_scopes;
@@ -269,6 +311,7 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
 
       it->second.pop_back();
       if (it->second.empty()) {
+        edge_set[it->first] = false;
         edge_to_expr_map.erase(it);
       }
     }
@@ -284,14 +327,16 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     }
 
     BOOST_LOG_TRIVIAL(trace) << "fixed: " << var.to_string();
+    n_fixed_called++;
     fixed_vars.push_back(var);
 
     const auto &added_edges = constraint_to_edge_map.at(var);
-    auto graph = dependency_graph_of(*polygraph.graph, edge_to_expr_map);
+    auto graph = dependency_graph_of(*polygraph.graph, edge_set);
 
     for (const auto &e : added_edges) {
       fixed_edges.emplace_back(e);
       edge_to_expr_map[e].emplace_back(var);
+      edge_set[e] = true;
 
       if (!detect_cycle(graph, e)) {
         return;
@@ -334,8 +379,23 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
         logger << ' ' << e.to_string();
       }
     }
+
+    n_conflicts_returned++;
+    n_conflict_vars_returned += cycle_exprs.size();
     conflict(cycle_exprs);
     return false;
+  }
+
+  ~DependencyGraphHasNoCycle() override {
+    BOOST_LOG_TRIVIAL(debug) << "fixed() called " << n_fixed_called << " times";
+    BOOST_LOG_TRIVIAL(debug)
+        << "found conflict " << n_conflicts_returned << " times";
+    BOOST_LOG_TRIVIAL(debug)
+        << "avg. conflict length: "
+        << static_cast<float>(n_conflict_vars_returned) / n_conflicts_returned;
+    BOOST_LOG_TRIVIAL(debug) << "pop() called " << n_pop_called << " times";
+    BOOST_LOG_TRIVIAL(debug) << "avg. pop scopes: "
+                             << static_cast<float>(n_pop_scopes) / n_pop_called;
   }
 };
 

@@ -124,6 +124,8 @@ auto constraints_of(const History &history, const DependencyGraph::SubGraph &wr)
     });
   }
 
+  BOOST_LOG_TRIVIAL(info) << "#constraints: " << constraints.size();
+
   return constraints;
 }
 

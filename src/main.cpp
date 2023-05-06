@@ -57,6 +57,12 @@ auto main(int argc, char **argv) -> int {
   }
 
   auto history_file = std::ifstream{args.get("history")};
+  if (!history_file.is_open()) {
+    std::ostringstream os;
+    os << "Cannot open file '" << args.get("history") << "'";
+    throw std::runtime_error{os.str()};
+  }
+
   auto history = history::parse_dbcop_history(history_file);
   auto dependency_graph = history::known_graph_of(history);
   auto constraints = history::constraints_of(history, dependency_graph.wr);
