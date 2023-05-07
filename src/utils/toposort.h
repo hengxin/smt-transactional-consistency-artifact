@@ -2,15 +2,20 @@
 #define CHECKER_UTILS_TOPOSORT_H
 
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/filtered_graph.hpp>
+#include <boost/graph/reverse_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
+#include <boost/graph/visitors.hpp>
 #include <boost/log/trivial.hpp>
 #include <cassert>
 #include <cstddef>
 #include <functional>
 #include <iterator>
 #include <limits>
+#include <memory>
 #include <optional>
+#include <queue>
 #include <ranges>
 #include <sstream>
 #include <type_traits>
@@ -69,57 +74,20 @@ struct TopologicalOrder {
   }
 };
 
-template <typename Graph>
-struct CycleDetector : boost::dfs_visitor<> {
-  using Vertex = typename Graph::vertex_descriptor;
-  using Edge = typename Graph::edge_descriptor;
-
-  std::reference_wrapper<std::vector<Edge>> cycle;
-  std::reference_wrapper<std::vector<Vertex>> reverse_topo_order;
-  std::vector<Vertex> pred;
-
-  CycleDetector(std::reference_wrapper<std::vector<Edge>> cycle,
-                std::reference_wrapper<std::vector<Vertex>> reverse_topo_order,
-                size_t num_edges)
-      : cycle{cycle}, reverse_topo_order{reverse_topo_order} {
-    pred.resize(num_edges);
-  }
-
-  auto back_edge(const Edge &e, const Graph &g) -> void {
-    if (!cycle.get().empty()) {
-      return;
-    }
-
-    auto top = boost::target(e, g);
-    auto bottom = boost::source(e, g);
-
-    reverse_topo_order.get().clear();
-    cycle.get().push_back(e);
-    for (auto v = bottom; v != top; v = pred.at(v)) {
-      cycle.get().push_back(boost::edge(pred.at(v), v, g).first);
-    }
-  }
-
-  auto tree_edge(const Edge &e, const Graph &g) -> void {
-    auto from = boost::source(e, g);
-    auto to = boost::target(e, g);
-
-    pred.at(to) = from;
-  }
-
-  auto finish_vertex(const Vertex &v, const Graph &g) -> void {
-    if (cycle.get().empty()) {
-      reverse_topo_order.get().emplace_back(v);
-    }
-  }
-};
+template <std::input_iterator I>
+static auto as_range(std::pair<I, I> p) {
+  return std::ranges::subrange(p.first, p.second);
+}
 
 template <typename Graph>
 struct IncrementalCycleDetector {
+  using Vertex = typename Graph::vertex_descriptor;
   using Edge = typename Graph::edge_descriptor;
 
   Graph *graph;
   TopologicalOrder<typename Graph::vertex_descriptor> topo_order;
+
+  size_t n_bfs_called = 0;
 
   explicit IncrementalCycleDetector(Graph &graph)
       : graph{&graph}, topo_order{[&] {
@@ -135,8 +103,6 @@ struct IncrementalCycleDetector {
     using boost::keep_all;
     using boost::source;
     using boost::target;
-    using vertex_descriptor = typename Graph::vertex_descriptor;
-    using edge_descriptor = typename Graph::edge_descriptor;
     using std::back_inserter;
     using std::function;
     using std::greater;
@@ -158,7 +124,7 @@ struct IncrementalCycleDetector {
       return nullopt;
     }
 
-    auto filter_vertices = [&](vertex_descriptor vertex) {
+    auto filter_vertices = [&](Vertex vertex) {
       auto pos = topo_order.vertex_pos(vertex);
       return to_pos <= pos && pos <= from_pos;
     };
@@ -169,19 +135,12 @@ struct IncrementalCycleDetector {
         function{filter_vertices},
     };
 
-    auto partial_topo_order = vector<vertex_descriptor>{};
-    auto cycle = vector<edge_descriptor>{};
-    auto cycle_detector = CycleDetector<decltype(partial_graph)>{
-        std::ref(cycle), std::ref(partial_topo_order),
-        boost::num_vertices(partial_graph)};
-    boost::depth_first_search(partial_graph, boost::visitor(cycle_detector));
-
+    auto [partial_topo_order, cycle] = bfs_topo_sort(edge, partial_graph);
     assert(!cycle.empty() || !partial_topo_order.empty());
     if (!cycle.empty()) {
       return {std::move(cycle)};
     }
 
-    reverse(partial_topo_order);
     auto partial_vertex_pos =
         partial_topo_order                                             //
         | transform([&](auto v) { return topo_order.vertex_pos(v); })  //
@@ -190,13 +149,104 @@ struct IncrementalCycleDetector {
 
     auto mapping =
         iota(0_uz, partial_topo_order.size())  //
-        | transform([&](auto i) {
+        | transform([&, &partial_topo_order = partial_topo_order](auto i) {
             return pair{partial_topo_order.at(i), partial_vertex_pos.at(i)};
           })  //
         | to_vector;
     topo_order.update_pos(mapping);
 
     return nullopt;
+  }
+
+  auto bfs_topo_sort(const Edge &added_edge, const auto &filtered_graph)
+      -> std::pair<std::vector<Vertex>, std::vector<Edge>> {
+    using boost::edge;
+    using boost::num_vertices;
+    using boost::out_edges;
+    using boost::source;
+    using boost::target;
+    using boost::vertices;
+    using std::numeric_limits;
+    using std::pair;
+    using std::queue;
+    using std::vector;
+    using std::ranges::find_if;
+    using std::ranges::reverse;
+
+    n_bfs_called++;
+
+    auto from = source(added_edge, filtered_graph);
+    auto to = target(added_edge, filtered_graph);
+
+    auto topo_order = vector<Vertex>{};
+    auto q = queue<Vertex>{};
+    auto in_degree = vector<size_t>(num_vertices(filtered_graph));
+
+    for (auto &&v : as_range(vertices(filtered_graph))) {
+      for (auto &&e : as_range(out_edges(v, filtered_graph))) {
+        in_degree.at(target(e, filtered_graph))++;
+      }
+    }
+    for (auto &&v : as_range(vertices(filtered_graph))) {
+      if (!in_degree.at(v)) {
+        q.push(v);
+      }
+    }
+
+    while (!q.empty()) {
+      auto v = q.front();
+      q.pop();
+      topo_order.emplace_back(v);
+
+      for (auto &&e : as_range(out_edges(v, filtered_graph))) {
+        auto v2 = target(e, filtered_graph);
+
+        if (!--in_degree.at(v2)) {
+          q.push(v2);
+        }
+      }
+    }
+
+    if (find_if(in_degree, [](auto n) { return n != 0; }) == in_degree.end()) {
+      return pair{std::move(topo_order), vector<Edge>{}};
+    }
+
+    auto predecessor = vector<Vertex>(num_vertices(filtered_graph),
+                                      numeric_limits<Vertex>::max());
+    q.push(to);
+    while (true) {
+      assert(!q.empty());
+      auto v = q.front();
+      q.pop();
+
+      if (v == from) {
+        break;
+      }
+
+      for (auto &&e : as_range(out_edges(v, filtered_graph))) {
+        auto v2 = target(e, filtered_graph);
+        if (predecessor.at(v2) != numeric_limits<Vertex>::max()) {
+          continue;
+        }
+
+        predecessor.at(v2) = v;
+        q.push(v2);
+      }
+    }
+
+    auto cycle = vector{added_edge};
+    for (auto v = from; v != to; v = predecessor.at(v)) {
+      auto [e, has_edge] = edge(predecessor.at(v), v, filtered_graph);
+      assert(has_edge);
+      cycle.emplace_back(e);
+    }
+
+    reverse(cycle);
+    return pair{vector<Vertex>{}, std::move(cycle)};
+  }
+
+  ~IncrementalCycleDetector() {
+    BOOST_LOG_TRIVIAL(debug) << "bfs() called " << n_bfs_called << " times";
   }
 };
 

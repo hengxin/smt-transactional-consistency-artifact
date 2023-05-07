@@ -2,7 +2,6 @@
 #define CHECKER_HISTORY_DEPENDENCYGRAPH_H
 
 #include <array>
-#include <boost/graph/adjacency_list.hpp>
 #include <cstdint>
 #include <functional>
 #include <iosfwd>

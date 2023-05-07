@@ -172,7 +172,7 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
       unordered_set<PolyGraphEdge, boost::hash<PolyGraphEdge>>;
 
   using Graph =
-      adjacency_list<vecS, vecS, bidirectionalS, no_property, vector<expr>>;
+      adjacency_list<vecS, vecS, directedS, no_property, vector<expr>>;
   using Vertex = Graph::vertex_descriptor;
   using Edge = Graph::edge_descriptor;
 

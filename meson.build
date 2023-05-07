@@ -22,11 +22,13 @@ if not z3_dep.found()
     z3_opts.add_cmake_defines({
       'CMAKE_BUILD_TYPE': 'Release',
       'Z3_LINK_TIME_OPTIMIZATION': 'ON',
+      'Z3_SINGLE_THREADED': 'ON',
     })
   elif get_option('buildtype') == 'debugoptimized'
     z3_opts.add_cmake_defines({
       'CMAKE_BUILD_TYPE': 'RelWithDebInfo',
       'CMAKE_CXX_FLAGS': '-pg',
+      'Z3_SINGLE_THREADED': 'ON',
     })
   endif
 
