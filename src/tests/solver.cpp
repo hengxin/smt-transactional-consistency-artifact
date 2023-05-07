@@ -25,7 +25,7 @@ using checker::history::EventType;
 using checker::history::History;
 using checker::history::Session;
 using checker::history::Transaction;
-using checker::utils::to_vector;
+using checker::utils::to;
 using EventType::READ;
 using EventType::WRITE;
 using std::tuple;
@@ -64,12 +64,12 @@ static auto create_history(
                   .type = t,
                   .transaction_id = txn_id,
                 };
-              }) | to_vector,
+              }) | to<vector<Event>>,
               .session_id = id,
             };
-          }) | to_vector,
+          }) | to<vector<Transaction>>,
         };
-      }) | to_vector,
+      }) | to<vector<Session>>,
   };
   // clang-format on
 }

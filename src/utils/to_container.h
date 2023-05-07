@@ -4,64 +4,72 @@
 #include <ranges>
 #include <unordered_map>
 #include <unordered_set>
-#include <vector>
 #include <utility>
+#include <vector>
+
+#define TO_CONTAINER_DEFINE()
 
 namespace checker::utils {
 
-struct ToVector {};
-struct ToUnorderedMap {};
-struct ToUnorderedSet {};
+namespace impl {
+
+template <typename C, typename E>
+requires requires(C &c, E &&e) { c.emplace(std::forward<E>(e)); }
+auto add(C &c, E &&e) { c.emplace(std::forward<E>(e)); }
+
+template <typename C, typename E>
+requires requires(C &c, E &&e) { c.push_back(std::forward<E>(e)); }
+auto add(C &c, E &&e) {
+  if constexpr (requires(C & c, E && e) {
+                  c.emplace_back(std::forward<E>(e));
+                }) {
+    c.emplace_back(std::forward<E>(e));
+  } else {
+    c.push_back(std::forward<E>(e));
+  }
+}
+
+}  // namespace impl
+
+template <typename ConstructorClosure>
+struct ToContainerWithConstructor {
+  ConstructorClosure c;
+  using Container = decltype(c());
+};
 
 template <typename Container>
-struct To {};
-
-inline constexpr auto operator|(std::ranges::range auto r, ToVector)
-    -> std::vector<std::ranges::range_value_t<decltype(r)>> {
-  auto v = std::vector<std::ranges::range_value_t<decltype(r)>>{};
-  for (auto &&n : r) {
-    v.emplace_back(n);
+struct ToContainer {
+  template <typename... Args>
+  constexpr auto operator()(Args &&...args) const {
+    return ToContainerWithConstructor{
+        .c = [&]() { return Container(std::forward<Args>(args)...); },
+    };
   }
-  return v;
-}
 
-inline constexpr auto operator|(std::ranges::range auto r, ToUnorderedMap)
-    -> std::unordered_map<
-        typename std::ranges::range_value_t<decltype(r)>::first_type,
-        typename std::ranges::range_value_t<decltype(r)>::second_type> {
-  auto m = std::unordered_map<
-      typename std::ranges::range_value_t<decltype(r)>::first_type,
-      typename std::ranges::range_value_t<decltype(r)>::second_type>{};
-
-  for (auto &&[first, second] : r) {
-    m.emplace(first, second);
+  template <std::ranges::range R>
+  friend constexpr auto operator|(R &&r, ToContainer t) -> Container {
+    return r | t();
   }
-  return m;
-}
+};
 
-inline constexpr auto operator|(std::ranges::range auto r, ToUnorderedSet)
-    -> std::unordered_set<std::ranges::range_value_t<decltype(r)>> {
-  return std::unordered_set(std::ranges::begin(r), std::ranges::end(r));
-}
+template <std::ranges::range R, typename T>
+constexpr auto operator|(R &&r, ToContainerWithConstructor<T> t) {
+  auto c = t.c();
 
-template <typename C>
-inline constexpr auto operator|(std::ranges::range auto r, To<C>) -> C {
-  auto c = C{};
-
-  c.reserve(std::ranges::size(r));
-  for (auto &&e : r) {
-    c.emplace(e);
+  if constexpr (requires(decltype(c) &c, R && r) {
+                  c.reserve(std::ranges::size(r));
+                }) {
+    c.reserve(std::ranges::size(r));
   }
+
+  std::ranges::for_each(
+      r, [&]<typename E>(E &&e) { impl::add(c, std::forward<E>(e)); });
 
   return c;
 }
 
-inline constexpr auto to_vector = ToVector{};
-inline constexpr auto to_unordered_map = ToUnorderedMap{};
-inline constexpr auto to_unordered_set = ToUnorderedSet{};
-
 template <typename C>
-inline constexpr auto to = To<C>{};
+inline constexpr auto to = ToContainer<C>{};
 
 }  // namespace checker::utils
 

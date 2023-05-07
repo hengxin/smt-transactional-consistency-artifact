@@ -144,7 +144,7 @@ struct IncrementalCycleDetector {
     auto partial_vertex_pos =
         partial_topo_order                                             //
         | transform([&](auto v) { return topo_order.vertex_pos(v); })  //
-        | to_vector;
+        | to<vector<size_t>>;
     sort(partial_vertex_pos);
 
     auto mapping =
@@ -152,7 +152,7 @@ struct IncrementalCycleDetector {
         | transform([&, &partial_topo_order = partial_topo_order](auto i) {
             return pair{partial_topo_order.at(i), partial_vertex_pos.at(i)};
           })  //
-        | to_vector;
+        | to<vector<pair<Vertex, size_t>>>;
     topo_order.update_pos(mapping);
 
     return nullopt;

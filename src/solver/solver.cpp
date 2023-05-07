@@ -53,9 +53,6 @@ using boost::vecS;
 using boost::vertex_index_t;
 using checker::history::Constraint;
 using checker::utils::to;
-using checker::utils::to_unordered_map;
-using checker::utils::to_unordered_set;
-using checker::utils::to_vector;
 using std::get;
 using std::optional;
 using std::pair;
@@ -86,12 +83,6 @@ struct std::equal_to<expr> {
     return left.id() == right.id();
   }
 };
-
-template <typename Graph>
-static auto vertices(const Graph &graph) {
-  auto [begin, end] = boost::vertices(graph);
-  return subrange(begin, end);
-}
 
 namespace checker::solver {
 

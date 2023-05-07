@@ -25,8 +25,7 @@ using std::unordered_set;
 using std::vector;
 using std::ranges::subrange;
 using std::ranges::views::transform;
-
-using checker::utils::to_vector;
+using checker::utils::to;
 
 static constexpr auto filter_write_event =
     std::ranges::views::filter([](const auto &ev) {
@@ -118,9 +117,11 @@ auto constraints_of(const History &history, const DependencyGraph::SubGraph &wr)
         .either_txn_id = txn1,
         .or_txn_id = txn2,
         .either_edges = edges_per_txn_pair[{txn1, txn2}]  //
-                        | to_edge(txn1, txn2) | to_vector,
+                        | to_edge(txn1, txn2)             //
+                        | to<vector<Constraint::Edge>>,
         .or_edges = edges_per_txn_pair[{txn2, txn1}]  //
-                    | to_edge(txn2, txn1) | to_vector,
+                    | to_edge(txn2, txn1)             //
+                    | to<vector<Constraint::Edge>>,
     });
   }
 

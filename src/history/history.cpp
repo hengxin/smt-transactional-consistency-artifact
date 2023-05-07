@@ -14,6 +14,7 @@
 #include <syncstream>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
 #include "utils/to_container.h"
 
@@ -119,7 +120,7 @@ auto parse_dbcop_history(std::istream &is) -> History {
                             .transaction_id = init_txn_id,
                         };
                       })  //
-                    | utils::to_vector,
+                    | utils::to<std::vector<Event>>,
           .session_id = init_session_id,
       }},
   });
