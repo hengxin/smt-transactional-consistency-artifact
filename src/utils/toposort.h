@@ -50,22 +50,23 @@ struct TopologicalOrder {
     return pos_to_vertex.at(index);
   }
 
-  auto update_pos(const std::vector<std::pair<Vertex, size_t>> &mapping) {
+  auto update_range(const std::vector<Vertex> &partial_order,
+                    size_t start_pos) {
 #ifndef NDEBUG
-    auto original_pos = std::ranges::views::keys(mapping) |
-                        std::ranges::views::transform(
-                            [&](auto v) { return vertex_to_pos.at(v); }) |
-                        to<std::unordered_set<size_t>>;
+    auto original_vertices =
+        std::ranges::views::counted(pos_to_vertex.begin() + start_pos,
+                                    partial_order.size()) |
+        to<std::unordered_set<size_t>>;
 
-    auto new_pos =
-        std::ranges::views::values(mapping) | to<std::unordered_set<size_t>>;
+    auto new_vertices = partial_order | to<std::unordered_set<size_t>>;
 
-    assert(original_pos == new_pos);
+    assert(original_vertices == new_vertices);
 #endif
 
-    for (const auto &[v, i] : mapping) {
-      pos_to_vertex.at(i) = v;
-      vertex_to_pos.at(v) = i;
+    auto pos = start_pos;
+    for (const auto &v : partial_order) {
+      pos_to_vertex.at(pos) = v;
+      vertex_to_pos.at(v) = pos++;
     }
   }
 
@@ -141,20 +142,7 @@ struct IncrementalCycleDetector {
       return {std::move(cycle)};
     }
 
-    auto partial_vertex_pos =
-        partial_topo_order                                             //
-        | transform([&](auto v) { return topo_order.vertex_pos(v); })  //
-        | to<vector<size_t>>;
-    sort(partial_vertex_pos);
-
-    auto mapping =
-        iota(0_uz, partial_topo_order.size())  //
-        | transform([&, &partial_topo_order = partial_topo_order](auto i) {
-            return pair{partial_topo_order.at(i), partial_vertex_pos.at(i)};
-          })  //
-        | to<vector<pair<Vertex, size_t>>>;
-    topo_order.update_pos(mapping);
-
+    topo_order.update_range(partial_topo_order, to_pos);
     return nullopt;
   }
 

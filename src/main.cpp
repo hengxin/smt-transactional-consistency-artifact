@@ -10,6 +10,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <syncstream>
 #include <unordered_map>
 
 #include "history/constraint.h"
@@ -84,7 +85,8 @@ auto main(int argc, char **argv) -> int {
   }
 
   auto solver = solver::Solver{dependency_graph, constraints};
-  std::cout << "accept: " << std::boolalpha << solver.solve() << std::endl;
+  std::osyncstream os{std::cout};
+  os << "accept: " << std::boolalpha << solver.solve() << std::endl;
 
   return 0;
 }

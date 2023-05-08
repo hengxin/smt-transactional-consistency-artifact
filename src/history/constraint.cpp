@@ -18,6 +18,7 @@
 #include "utils/literal.h"
 #include "utils/to_container.h"
 
+using checker::utils::to;
 using std::get;
 using std::pair;
 using std::unordered_map;
@@ -25,7 +26,6 @@ using std::unordered_set;
 using std::vector;
 using std::ranges::subrange;
 using std::ranges::views::transform;
-using checker::utils::to;
 
 static constexpr auto filter_write_event =
     std::ranges::views::filter([](const auto &ev) {
@@ -113,15 +113,25 @@ auto constraints_of(const History &history, const DependencyGraph::SubGraph &wr)
         };
       });
     };
+    auto is_ww_edge = [](auto &&e) {
+      return std::get<2>(e).type == EdgeType::WW;
+    };
+
+    auto either_edges = edges_per_txn_pair.at({txn1, txn2})  //
+                        | to_edge(txn1, txn2)                //
+                        | to<vector<Constraint::Edge>>;
+    auto or_edges = edges_per_txn_pair[{txn2, txn1}]  //
+                    | to_edge(txn2, txn1)             //
+                    | to<vector<Constraint::Edge>>;
+    std::swap(either_edges.front(),
+              *std::ranges::find_if(either_edges, is_ww_edge));
+    std::swap(or_edges.front(), *std::ranges::find_if(or_edges, is_ww_edge));
+
     constraints.emplace_back(Constraint{
         .either_txn_id = txn1,
         .or_txn_id = txn2,
-        .either_edges = edges_per_txn_pair[{txn1, txn2}]  //
-                        | to_edge(txn1, txn2)             //
-                        | to<vector<Constraint::Edge>>,
-        .or_edges = edges_per_txn_pair[{txn2, txn1}]  //
-                    | to_edge(txn2, txn1)             //
-                    | to<vector<Constraint::Edge>>,
+        .either_edges = either_edges,
+        .or_edges = or_edges,
     });
   }
 
