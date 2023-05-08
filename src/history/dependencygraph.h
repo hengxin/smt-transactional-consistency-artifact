@@ -19,14 +19,11 @@ namespace checker::history {
 enum class EdgeType { WW, RW, WR, SO };
 
 struct EdgeInfo {
-  uint64_t id;
   EdgeType type;
   std::vector<int64_t> keys;
 
   friend auto operator<<(std::ostream &os, const EdgeInfo &edge_info)
       -> std::ostream &;
-
-  friend auto operator==(const EdgeInfo &left, const EdgeInfo &right) -> bool;
 };
 
 struct DependencyGraph {
