@@ -6,6 +6,12 @@
       # stdenv = pkgs.llvmPackages_15.libcxxStdenv;
       stdenv = pkgs.gcc12Stdenv;
     };
+    gdb-wrapper = pkgs.writeShellApplication {
+      name = "gdb";
+      text = ''
+        exec gdb -ex 'add-auto-load-safe-path ${pkgs.gcc12Stdenv.cc.cc.lib}' "$@"
+      '';
+    };
   in
   {
     devShell.x86_64-linux = mkShell {
@@ -25,10 +31,7 @@
         export BOOST_INCLUDEDIR="${boost.dev}/include"
         export BOOST_LIBRARYDIR="${boost}/lib"
         export AR="gcc-ar"
-
-        ln -sf ${pkgs.writeText "gdbinit" ''
-          add-auto-load-safe-path ${pkgs.gcc12Stdenv.cc.cc.lib}
-        ''} .gdbinit
+        export PATH="${gdb-wrapper}/bin:$PATH"
       '';
     };
   };

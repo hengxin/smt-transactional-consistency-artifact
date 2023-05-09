@@ -1,1 +1,1 @@
-checker_srcs += files('solver.cpp')
+checker_srcs += files('solver.cpp', 'pruner.cpp')

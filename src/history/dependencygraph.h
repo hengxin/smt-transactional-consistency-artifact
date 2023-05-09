@@ -38,6 +38,11 @@ struct DependencyGraph {
     return std::array{so.edges(), rw.edges(), wr.edges(), ww.edges()}  //
            | std::ranges::views::join;
   }
+
+  auto num_vertices() const -> size_t { return boost::num_vertices(*so.graph); }
+
+  friend auto operator<<(std::ostream &os, const DependencyGraph &graph)
+      -> std::ostream &;
 };
 
 auto known_graph_of(const History &history) -> DependencyGraph;

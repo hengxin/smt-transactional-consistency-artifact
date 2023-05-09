@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "utils/literal.h"
+#include "utils/ranges.h"
 #include "utils/to_container.h"
 
 namespace checker::utils {
@@ -74,11 +75,6 @@ struct TopologicalOrder {
     return std::ranges::views::all(pos_to_vertex);
   }
 };
-
-template <std::input_iterator I>
-static auto as_range(std::pair<I, I> p) {
-  return std::ranges::subrange(p.first, p.second);
-}
 
 template <typename Graph>
 struct IncrementalCycleDetector {

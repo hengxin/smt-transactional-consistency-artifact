@@ -18,6 +18,8 @@
 #include "history/constraint.h"
 #include "history/dependencygraph.h"
 #include "history/history.h"
+#include "solver/pruner.h"
+#include "utils/log.h"
 #include "utils/to_container.h"
 
 using checker::history::Event;
@@ -38,9 +40,17 @@ using std::ranges::views::transform;
 static auto check_history(const History &h) {
   auto depgraph = checker::history::known_graph_of(h);
   auto cons = checker::history::constraints_of(h, depgraph.wr);
-  auto solver = checker::solver::Solver{depgraph, cons};
 
-  return solver.solve();
+  CHECKER_LOG_COND(trace, logger) {
+    logger << "history:\n"
+           << h << "\ndependency graph:\n"
+           << depgraph << "\nconstraints:\n";
+    for (auto &&c : cons) {
+      logger << c << '\n';
+    }
+  }
+  return checker::solver::prune_constraints(depgraph, cons) &&
+         checker::solver::Solver{depgraph, cons}.solve();
 }
 
 static auto create_history(

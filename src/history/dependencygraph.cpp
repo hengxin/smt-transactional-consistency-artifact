@@ -115,4 +115,18 @@ auto operator<<(std::ostream &os, const EdgeInfo &edge_info) -> std::ostream & {
   return os;
 }
 
+auto operator<<(std::ostream &os, const DependencyGraph &graph)
+    -> std::ostream & {
+  auto out = std::osyncstream{os};
+  out << "RW:\n"
+      << graph.rw << '\n'
+      << "WW:\n"
+      << graph.ww << '\n'
+      << "SO:\n"
+      << graph.so << '\n'
+      << "WR:\n"
+      << graph.wr << '\n';
+
+  return os;
+}
 }  // namespace checker::history

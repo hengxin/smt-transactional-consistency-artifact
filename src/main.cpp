@@ -16,6 +16,7 @@
 #include "history/constraint.h"
 #include "history/dependencygraph.h"
 #include "history/history.h"
+#include "solver/pruner.h"
 #include "solver/solver.h"
 #include "utils/log.h"
 
@@ -69,24 +70,22 @@ auto main(int argc, char **argv) -> int {
   auto constraints = history::constraints_of(history, dependency_graph.wr);
 
   CHECKER_LOG_COND(trace, logger) {
-    logger << "history: " << history << '\n'
-           << "RW:\n"
-           << dependency_graph.rw << '\n'
-           << "WW:\n"
-           << dependency_graph.ww << '\n'
-           << "SO:\n"
-           << dependency_graph.so << '\n'
-           << "WR:\n"
-           << dependency_graph.wr;
+    logger << "history: " << history << "\ndependency graph:\n"
+           << dependency_graph;
 
     for (const auto &c : constraints) {
       logger << c;
     }
   }
 
-  auto solver = solver::Solver{dependency_graph, constraints};
-  std::osyncstream os{std::cout};
-  os << "accept: " << std::boolalpha << solver.solve() << std::endl;
+  auto accept = true;
+
+  accept = solver::prune_constraints(dependency_graph, constraints);
+  if (accept) {
+    auto solver = solver::Solver{dependency_graph, constraints};
+    accept = solver.solve();
+  }
+  std::cout << "accept: " << std::boolalpha << accept << std::endl;
 
   return 0;
 }
