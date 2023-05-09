@@ -1,10 +1,3 @@
-// clang-format off
-#define BOOST_TEST_MODULE solver
-#include <boost/test/included/unit_test.hpp>
-// clang-format on
-
-#include "solver/solver.h"
-
 #include <z3++.h>
 
 #include <cstdint>
@@ -19,8 +12,12 @@
 #include "history/dependencygraph.h"
 #include "history/history.h"
 #include "solver/pruner.h"
+#include "solver/solver.h"
 #include "utils/log.h"
 #include "utils/to_container.h"
+
+#define BOOST_TEST_MODULE solver
+#include <boost/test/included/unit_test.hpp>
 
 using checker::history::Event;
 using checker::history::EventType;

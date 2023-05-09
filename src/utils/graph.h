@@ -26,7 +26,8 @@ concept HashAndEquality = requires(T t) {
 
 template <HashAndEquality Vertex, typename Edge>
 struct Graph {
-  using InternalGraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS>;
+  using InternalGraph =
+      boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS>;
 
   std::unique_ptr<InternalGraph> graph = std::make_unique<InternalGraph>();
   boost::bimap<

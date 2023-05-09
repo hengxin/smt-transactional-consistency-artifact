@@ -1,23 +1,20 @@
-// clang-format off
-#include <memory>
-#define BOOST_TEST_MODULE toposort
-#include <boost/test/included/unit_test.hpp>
-// clang-format on
-
-#include "utils/toposort.h"
-
 #include <algorithm>
 #include <boost/graph/adjacency_list.hpp>
 #include <cassert>
 #include <cstddef>
 #include <initializer_list>
 #include <iterator>
+#include <memory>
 #include <ranges>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include "utils/to_container.h"
+#include "utils/toposort.h"
+
+#define BOOST_TEST_MODULE toposort
+#include <boost/test/included/unit_test.hpp>
 
 using boost::add_edge;
 using checker::utils::to;
