@@ -401,3 +401,63 @@ BOOST_AUTO_TEST_CASE(serializability_2) {
 
   BOOST_TEST(check_history(h));
 }
+
+BOOST_AUTO_TEST_CASE(write_propagation) {
+  auto h = create_history(
+      {
+          {0, {0}},
+          {1, {1}},
+          {2, {2}},
+      },
+      {
+          {0,
+           {
+               {WRITE, 1, 1},
+           }},
+          {1,
+           {
+               {WRITE, 1, 2},
+               {WRITE, 2, 2},
+           }},
+          {2,
+           {
+               {READ, 1, 1},
+               {WRITE, 2, 1},
+           }},
+      });
+
+  BOOST_TEST(check_history(h));
+}
+
+BOOST_AUTO_TEST_CASE(pruning) {
+  auto h = create_history(
+      {
+          {0, {0}},
+          {1, {1}},
+          {2, {2}},
+          {3, {3}},
+      },
+      {
+          {0,
+           {
+               {WRITE, 1, 1},
+           }},
+          {1,
+           {
+               {READ, 1, 1},
+               {READ, 2, 2},
+               {WRITE, 1, 2},
+           }},
+          {2,
+           {
+               {READ, 1, 1},
+               {WRITE, 1, 1},
+           }},
+          {3,
+           {
+               {WRITE, 2, 2},
+           }},
+      });
+
+  BOOST_TEST(check_history(h));
+}

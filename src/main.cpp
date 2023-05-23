@@ -4,6 +4,7 @@
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
 #include <cctype>
+#include <chrono>
 #include <fstream>
 #include <ios>
 #include <iostream>
@@ -22,6 +23,7 @@
 
 namespace history = checker::history;
 namespace solver = checker::solver;
+namespace chrono = std::chrono;
 
 auto main(int argc, char **argv) -> int {
   auto args = argparse::ArgumentParser{"checker", "0.0.1"};
@@ -29,6 +31,10 @@ auto main(int argc, char **argv) -> int {
   args.add_argument("--log-level")
       .help("Logging level")
       .default_value(std::string{"INFO"});
+  args.add_argument("--pruning")
+      .help("Do pruning")
+      .default_value(false)
+      .implicit_value(true);
 
   try {
     args.parse_args(argc, argv);
@@ -58,6 +64,8 @@ auto main(int argc, char **argv) -> int {
     throw std::invalid_argument{os.str()};
   }
 
+  auto time = chrono::steady_clock::now();
+
   auto history_file = std::ifstream{args.get("history")};
   if (!history_file.is_open()) {
     std::ostringstream os;
@@ -68,6 +76,14 @@ auto main(int argc, char **argv) -> int {
   auto history = history::parse_dbcop_history(history_file);
   auto dependency_graph = history::known_graph_of(history);
   auto constraints = history::constraints_of(history, dependency_graph.wr);
+
+  {
+    auto curr_time = chrono::steady_clock::now();
+    BOOST_LOG_TRIVIAL(debug)
+        << "construct time: "
+        << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+    time = curr_time;
+  }
 
   CHECKER_LOG_COND(trace, logger) {
     logger << "history: " << history << "\ndependency graph:\n"
@@ -80,10 +96,28 @@ auto main(int argc, char **argv) -> int {
 
   auto accept = true;
 
-  accept = solver::prune_constraints(dependency_graph, constraints);
+  if (args["--pruning"] == true) {
+    accept = solver::prune_constraints(dependency_graph, constraints);
+
+    {
+      auto curr_time = chrono::steady_clock::now();
+      BOOST_LOG_TRIVIAL(debug)
+          << "prune time: "
+          << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+      time = curr_time;
+    }
+  }
+
   if (accept) {
     auto solver = solver::Solver{dependency_graph, constraints};
     accept = solver.solve();
+
+    {
+      auto curr_time = chrono::steady_clock::now();
+      BOOST_LOG_TRIVIAL(debug)
+          << "solve time: "
+          << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+    }
   }
   std::cout << "accept: " << std::boolalpha << accept << std::endl;
 

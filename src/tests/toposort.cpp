@@ -88,3 +88,10 @@ BOOST_AUTO_TEST_CASE(toposort) {
   auto e3 = add_edge(4, 2, *g).first;
   BOOST_TEST(cycle_equal(d.check_add_edge(e3).value(), {2, 3, 4}, *g));
 }
+
+BOOST_AUTO_TEST_CASE(minimal_cycle) {
+  auto [g, d] = create_graph(5, {{0, 1}, {0, 2}, {1, 4}, {2, 3}, {3, 4}});
+
+  auto e = add_edge(4, 0, *g).first;
+  BOOST_TEST(cycle_equal(d.check_add_edge(e).value(), {0, 1, 4}, *g));
+}
