@@ -26,6 +26,7 @@ namespace solver = checker::solver;
 namespace chrono = std::chrono;
 
 auto main(int argc, char **argv) -> int {
+  // handle cmdline args, see checker --help
   auto args = argparse::ArgumentParser{"checker", "0.0.1"};
   args.add_argument("history").help("History file");
   args.add_argument("--log-level")
@@ -66,6 +67,7 @@ auto main(int argc, char **argv) -> int {
 
   auto time = chrono::steady_clock::now();
 
+  // read history
   auto history_file = std::ifstream{args.get("history")};
   if (!history_file.is_open()) {
     std::ostringstream os;
@@ -74,6 +76,8 @@ auto main(int argc, char **argv) -> int {
   }
 
   auto history = history::parse_dbcop_history(history_file);
+
+  // compute known graph (WR edges) and constraints from history
   auto dependency_graph = history::known_graph_of(history);
   auto constraints = history::constraints_of(history, dependency_graph.wr);
 
@@ -109,7 +113,10 @@ auto main(int argc, char **argv) -> int {
   }
 
   if (accept) {
+    // encode constraints and known graph
     auto solver = solver::Solver{dependency_graph, constraints};
+
+    // use SMT solver to solve constraints
     accept = solver.solve();
 
     {

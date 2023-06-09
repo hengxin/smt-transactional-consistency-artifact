@@ -36,6 +36,7 @@
 #include "history/constraint.h"
 #include "history/dependencygraph.h"
 #include "utils/log.h"
+#include "utils/ranges.h"
 #include "utils/to_container.h"
 #include "utils/toposort.h"
 
@@ -85,6 +86,17 @@ struct std::hash<expr> {
 };
 
 template <>
+struct std::hash<pair<adjacency_list<>::vertex_descriptor,
+                      adjacency_list<>::vertex_descriptor>> {
+  auto operator()(const pair<adjacency_list<>::vertex_descriptor,
+                             adjacency_list<>::vertex_descriptor> &p) const
+      -> size_t {
+    auto h = boost::hash<adjacency_list<>::vertex_descriptor>{};
+    return h(p.first) ^ h(p.second);
+  }
+};
+
+template <>
 struct std::equal_to<expr> {
   auto operator()(const expr &left, const expr &right) const -> bool {
     return left.id() == right.id();
@@ -110,6 +122,7 @@ Solver::Solver(const history::DependencyGraph &known_graph,
 
   auto polygraph = Graph{};
   auto vertex_map = unordered_map<int64_t, Vertex>{};
+  auto edge_map = unordered_map<pair<Vertex, Vertex>, Edge>{};
 
   auto get_vertex = [&](int64_t id) {
     if (vertex_map.contains(id)) {
@@ -121,7 +134,14 @@ Solver::Solver(const history::DependencyGraph &known_graph,
     auto from_desc = get_vertex(from);
     auto to_desc = get_vertex(to);
 
-    return add_edge(from_desc, to_desc, polygraph).first;
+    if (auto it = edge_map.find({from_desc, to_desc}); it != edge_map.end()) {
+      return it->second;
+    } else {
+      return edge_map
+          .try_emplace({from_desc, to_desc},
+                       add_edge(from_desc, to_desc, polygraph).first)
+          .first->second;
+    }
   };
   auto add_constraint_edge = transform([&](const Constraint::Edge &e) {
     const auto &[from, to, _] = e;
@@ -224,9 +244,17 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
   vector<size_t> fixed_edges_num;  // total number of fixed edges
   vector<Edge> fixed_edges;        // stack of fixed edges
 
+  // SMT variable -> polygraph edges to add
   unordered_map<expr, vector<PolyGraphEdge>> constraint_to_edge_map;
+
+  // SMT variable -> propagate expr, used for WW propagation
   unordered_map<expr, expr> propagate_map;
 
+  // edge -> conflicting SMT variables, used for incremental pruning
+  unordered_map<PolyGraphEdge, vector<expr>, boost::hash<PolyGraphEdge>>
+      conflict_map;
+
+  // statistics
   size_t n_fixed_called = 0;
   size_t n_conflicts_returned = 0;
   size_t n_conflict_vars_returned = 0;
@@ -282,6 +310,18 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
                  |
                  filter([&](auto &&p) { return p.second.num_args() != 0; })  //
                  | to<unordered_map<expr, expr>>;
+        }()},
+        conflict_map{[&]() {
+          auto m = unordered_map<PolyGraphEdge, vector<expr>,
+                                 boost::hash<PolyGraphEdge>>{};
+
+          for (auto &&[ex, edges] : this->constraint_to_edge_map) {
+            for (auto &&e : edges) {
+              m[e].emplace_back(ex);
+            }
+          }
+
+          return m;
         }()} {
     for (const auto &var : keys(constraint_to_edge_map)) {
       BOOST_LOG_TRIVIAL(trace) << "add: " << var.to_string();
@@ -356,6 +396,8 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
         has_conflict = true;
         return;
       }
+
+      // propagate_edge(var, e);
     }
 
     propagate_var(var);
@@ -365,6 +407,7 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     return this;
   }
 
+  // incremental cycle detection
   auto detect_cycle(Edge added_edge) -> bool {
     auto cycle = cycle_detector.check_add_edge(added_edge);
     if (!cycle) {
@@ -397,6 +440,7 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     return false;
   }
 
+  // assignment propagation using WW edges
   auto propagate_var(const expr &var) -> void {
     auto it = propagate_map.find(var);
     if (it == propagate_map.end()) {
@@ -413,6 +457,41 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
     }
 
     propagate(single(var) | to<expr_vector>(ctx()), it->second);
+  }
+
+  auto propagate_edge(const expr &var, Edge e) -> void {
+    auto from = source(e, dependency_graph);
+    auto to = target(e, dependency_graph);
+
+    auto conseq = ctx().bool_val(true);
+    auto successors = std::unordered_set<Vertex>{};
+    auto edges = std::unordered_set<PolyGraphEdge, boost::hash<PolyGraphEdge>>{};
+
+    std::function<void(Vertex)> get_successors = [&](Vertex current){
+      for (auto e : utils::as_range(boost::out_edges(current, dependency_graph))) {
+        auto to = target(e, dependency_graph);
+        edges.emplace(edge(current, to, polygraph).first);
+
+        if (successors.contains(to)) {
+          continue;
+        }
+
+        successors.emplace(to);
+        get_successors(to);
+      }
+    };
+
+    get_successors(to);
+
+    for (auto e : edges) {
+      if (auto it = conflict_map.find(e); it != conflict_map.end()) {
+        for (auto &&v : it->second) {
+          conseq = conseq && !v;
+        }
+      }
+    }
+
+    // propagate(single(var) | utils::to<expr_vector>(ctx()), conseq);
   }
 
   ~DependencyGraphHasNoCycle() override {

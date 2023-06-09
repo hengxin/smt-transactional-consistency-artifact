@@ -53,6 +53,20 @@ struct History {
   }
 };
 
+/**
+ * Read history from an input stream. The history is in dbcop format.
+ *
+ * Dbcop format:
+ *
+ * DBCOP_FILE := ID SESSION_NUM KEY_NUM TXN_NUM EVENT_NUM INFO START_TIME END_TIME
+ * HISTORY := SIZE SESSION_1 ... SESSION_{SIZE}
+ * SESSION := SIZE TRANSACTION_1 ... TRANSACTION_{SIZE}
+ * TRANSACTION := SIZE EVENT_1 ... EVENT_{SIZE}
+ * EVENT := IS_WRITE KEY VALUE SUCCESS
+ * ID, SESSION_NUM, KEY_NUM, TXN_NUM, EVENT_NUM, SIZE, KEY, VALUE := int64_t
+ * INFO, START, END := null terminated string
+ * IS_WRITE, SUCCESS := bool
+ */
 auto parse_dbcop_history(std::istream &is) -> History;
 
 }  // namespace checker::history
