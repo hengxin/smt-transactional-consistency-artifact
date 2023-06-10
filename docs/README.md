@@ -29,4 +29,4 @@ history is Serializable (accept) or not (reject).
   assignments, and enforces Serializability constraint by checking that the
   dependency graph is cycle-free.
 
-For details of each part, see [algo-details](assets/algo-details.pdf).
+TODO: algo-details
