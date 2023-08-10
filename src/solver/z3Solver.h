@@ -6,23 +6,25 @@
 #include <memory>
 #include <vector>
 
+#include "abstractSolver.h"
+
 #include "history/constraint.h"
 #include "history/dependencygraph.h"
 
 namespace checker::solver {
 struct DependencyGraphHasNoCycle;
 
-struct Solver {
+struct Z3Solver : AbstractSolver {
   z3::context context;
   z3::solver solver;
   std::unique_ptr<DependencyGraphHasNoCycle> user_propagator;
 
-  Solver(const history::DependencyGraph &known_graph,
+  Z3Solver(const history::DependencyGraph &known_graph,
          const std::vector<history::Constraint> &constraints);
 
-  auto solve() -> bool;
+  auto solve() -> bool override;
 
-  ~Solver();
+  ~Z3Solver();
 };
 }  // namespace checker::solver
 

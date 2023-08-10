@@ -1,4 +1,4 @@
-#include "solver.h"
+#include "z3Solver.h"
 
 #include <z3++.h>
 
@@ -105,7 +105,7 @@ struct std::equal_to<expr> {
 
 namespace checker::solver {
 
-Solver::Solver(const history::DependencyGraph &known_graph,
+Z3Solver::Z3Solver(const history::DependencyGraph &known_graph,
                const vector<history::Constraint> &constraints)
     : solver{context, z3::solver::simple{}} {
   using Graph = adjacency_list<hash_setS, vecS, directedS, int64_t>;
@@ -199,9 +199,9 @@ Solver::Solver(const history::DependencyGraph &known_graph,
       solver, std::move(polygraph), std::move(constraint_edges));
 }
 
-auto Solver::solve() -> bool { return solver.check() == z3::sat; }
+auto Z3Solver::solve() -> bool { return solver.check() == z3::sat; }
 
-Solver::~Solver() = default;
+Z3Solver::~Z3Solver() = default;
 
 struct DependencyGraphHasNoCycle : z3::user_propagator_base {
   using PolyGraph = adjacency_list<hash_setS, vecS, directedS, int64_t>;

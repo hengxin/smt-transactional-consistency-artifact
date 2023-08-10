@@ -12,7 +12,7 @@
 #include "history/dependencygraph.h"
 #include "history/history.h"
 #include "solver/pruner.h"
-#include "solver/solver.h"
+#include "solver/z3Solver.h"
 #include "utils/log.h"
 #include "utils/to_container.h"
 
@@ -47,7 +47,7 @@ static auto check_history(const History &h) {
     }
   }
   return checker::solver::prune_constraints(depgraph, cons) &&
-         checker::solver::Solver{depgraph, cons}.solve();
+         checker::solver::Z3Solver{depgraph, cons}.solve();
 }
 
 static auto create_history(

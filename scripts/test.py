@@ -20,12 +20,7 @@ for history_dir in os.listdir(history_path):
       table_line.append(log.split(':')[-1].strip())
     else: # '[time] [addr] [log_level] #...:...'
       table_line.append(log.split('#')[-1].split(':')[-1].strip())
-  if len(table_line) != len(table.field_names):
+  if len(table_line) != len(table.field_names): # Killed, seems terminated by z3 itself, but why? 
     continue
   table.add_row(table_line)
 print(table) 
-
-
-
-  
-  

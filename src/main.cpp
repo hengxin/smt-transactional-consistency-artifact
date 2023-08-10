@@ -18,7 +18,7 @@
 #include "history/dependencygraph.h"
 #include "history/history.h"
 #include "solver/pruner.h"
-#include "solver/solver.h"
+#include "solver/solverFactory.h"
 #include "utils/log.h"
 
 namespace history = checker::history;
@@ -36,6 +36,9 @@ auto main(int argc, char **argv) -> int {
       .help("Do pruning")
       .default_value(false)
       .implicit_value(true);
+  args.add_argument("--solver")
+      .help("Select backend solver")
+      .default_value(std::string{"z3"});
 
   try {
     args.parse_args(argc, argv);
@@ -62,6 +65,20 @@ auto main(int argc, char **argv) -> int {
   } else {
     std::ostringstream os;
     os << "Invalid log level '" << log_level << "'";
+    throw std::invalid_argument{os.str()};
+  }
+
+  auto solver_type = args.get("--solver");
+  const auto all_solvers = std::set<std::string>{"z3", "monosat", "z3-ts"};
+  if (all_solvers.contains(solver_type)) {
+    BOOST_LOG_TRIVIAL(debug)
+        << "use "
+        << solver_type
+        << "as backend solver";
+  } else {
+    std::ostringstream os;
+    os << "Invalid solver '" << solver_type << "'";
+    os << "All valid solvers: 'z3' or 'monosat' or 'z3-ts'";
     throw std::invalid_argument{os.str()};
   }
 
@@ -114,7 +131,8 @@ auto main(int argc, char **argv) -> int {
 
   if (accept) {
     // encode constraints and known graph
-    auto solver = solver::Solver{dependency_graph, constraints};
+    auto solver = solver::SolverFactory::getSolverFactory().make(solver_type, dependency_graph, constraints);
+    // auto solver = solver::Z3Solver{dependency_graph, constraints};
 
     // use SMT solver to solve constraints
     accept = solver.solve();
