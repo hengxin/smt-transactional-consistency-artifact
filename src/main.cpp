@@ -132,7 +132,6 @@ auto main(int argc, char **argv) -> int {
   if (accept) {
     // encode constraints and known graph
     auto solver = solver::SolverFactory::getSolverFactory().make(solver_type, dependency_graph, constraints);
-    // auto solver = solver::Z3Solver{dependency_graph, constraints};
 
     // use SMT solver to solve constraints
     accept = solver.solve();

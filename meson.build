@@ -50,9 +50,19 @@ endif
 # boost
 boost_dep = dependency('boost', modules: ['log'])
 
+# monosat
+monosat_dep = dependency('monosat', required: false)
+if not monosat_dep.found()
+  monosat_pro = cmake.subproject('monosat')
+  monosat_dep = declare_dependency(
+    include_directories: include_directories('subprojects/monosat/src/monosat/api'),
+    dependencies: monosat_pro.dependency('libmonosat')
+  )
+endif
+
 subdir('src')
 
-checker_deps = [z3_dep, argparse_dep, boost_dep]
+checker_deps = [z3_dep, argparse_dep, boost_dep, monosat_dep]
 checker_opts = ['cpp_std=c++20']
 checker_incs = ['src']
 checker_cflags = []
