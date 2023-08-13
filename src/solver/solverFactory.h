@@ -8,6 +8,7 @@
 
 #include "solver/abstractSolver.h"
 #include "solver/z3Solver.h"
+#include "solver/monosatSolver.h"
 // TODO: implement more solvers
 
 namespace checker::solver {
@@ -18,9 +19,11 @@ private:
 public:
     auto make(const std::string &solver_type, 
               const history::DependencyGraph &dependency_graph,
-              const std::vector<history::Constraint> &constraints) -> AbstractSolver {
+              const std::vector<history::Constraint> &constraints) -> AbstractSolver * {
                 if (solver_type == "z3") {
-                  return Z3Solver{dependency_graph, constraints};
+                  return new Z3Solver{dependency_graph, constraints};
+                } else if (solver_type == "monosat") {
+                  return new MonosatSolver{dependency_graph, constraints};
                 } else {
                   throw std::runtime_error("unknown solver!");
                 }

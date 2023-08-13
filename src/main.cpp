@@ -74,7 +74,7 @@ auto main(int argc, char **argv) -> int {
     BOOST_LOG_TRIVIAL(debug)
         << "use "
         << solver_type
-        << "as backend solver";
+        << " as backend solver";
   } else {
     std::ostringstream os;
     os << "Invalid solver '" << solver_type << "'";
@@ -134,7 +134,7 @@ auto main(int argc, char **argv) -> int {
     auto solver = solver::SolverFactory::getSolverFactory().make(solver_type, dependency_graph, constraints);
 
     // use SMT solver to solve constraints
-    accept = solver.solve();
+    accept = solver->solve();
 
     {
       auto curr_time = chrono::steady_clock::now();
@@ -142,6 +142,8 @@ auto main(int argc, char **argv) -> int {
           << "#solve time: "
           << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
     }
+
+    delete solver;
   }
   std::cout << "accept: " << std::boolalpha << accept << std::endl;
 

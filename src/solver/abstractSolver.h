@@ -1,5 +1,5 @@
-#ifndef CHECKER_ABSTRACT_SOLVER_H
-#define CHECKER_ABSTRACT_SOLVER_H
+#ifndef CHECKER_SOLVER_ABSTRACT_SOLVER_H
+#define CHECKER_SOLVER_ABSTRACT_SOLVER_H
 
 #include <vector>
 
@@ -14,4 +14,4 @@ namespace checker::solver {
   };
 } // namespace
 
-#endif // CHECKER_ABSTRACT_SOLVER_H
+#endif // CHECKER_SOLVER_ABSTRACT_SOLVER_H

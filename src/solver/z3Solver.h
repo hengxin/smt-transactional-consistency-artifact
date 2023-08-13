@@ -1,5 +1,5 @@
-#ifndef CHECKER_SOLVER_SOLVER_H
-#define CHECKER_SOLVER_SOLVER_H
+#ifndef CHECKER_SOLVER_Z3SOLVER_H
+#define CHECKER_SOLVER_Z3SOLVER_H
 
 #include <z3++.h>
 
@@ -28,4 +28,4 @@ struct Z3Solver : AbstractSolver {
 };
 }  // namespace checker::solver
 
-#endif  // CHECKER_SOLVER_SOLVER_H
+#endif  // CHECKER_SOLVER_Z3SOLVER_H
