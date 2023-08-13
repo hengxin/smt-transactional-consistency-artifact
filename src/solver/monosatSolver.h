@@ -5,17 +5,19 @@
 
 #include <vector>
 #include <string>
-#include <iostream>
+#include <filesystem>
 
 #include "abstractSolver.h"
 
 #include "history/constraint.h"
 #include "history/dependencygraph.h"
 
+namespace fs = std::filesystem;
+
 namespace checker::solver {
 struct MonosatSolver : AbstractSolver {
   SolverPtr solver;
-  std::FILE* input_file;
+  fs::path gnf_path;
 
   MonosatSolver(const history::DependencyGraph &known_graph,
                 const std::vector<history::Constraint> &constraints);

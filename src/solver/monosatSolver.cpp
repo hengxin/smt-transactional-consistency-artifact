@@ -23,25 +23,31 @@ namespace checker::solver {
 MonosatSolver::MonosatSolver(const history::DependencyGraph &known_graph,
                             const std::vector<history::Constraint> &constraints) {
   solver = newSolver();
-  input_file = std::tmpfile();
-  utils::write_to_gnf_file(input_file, known_graph, constraints);
+  gnf_path = fs::current_path();
+  gnf_path.append("monosat_tmp_input.gnf");
+  try {
+    utils::write_to_gnf_file(gnf_path, known_graph, constraints);
+  } catch(std::runtime_error &e) {
+    // TODO
+  };
+  
 }
 
 auto MonosatSolver::solve() -> bool {
   // linux specific method to get the tmpfile name
-  std::string input_file_path = fs::read_symlink(fs::path("/proc/self/fd") 
-                                / std::to_string(fileno(input_file)));
 
   BOOST_LOG_TRIVIAL(debug)
     << "generating tmp file '"
-    << input_file_path
+    << gnf_path
     << "'";
 
-  return true;
+  // return true;
 
-  // readGNF(solver, input_file_path.c_str());
-  // bool ret = solveWrapper(solver);
+  readGNF(solver, gnf_path.c_str());
+  bool ret = solveWrapper(solver);
+  return ret;
 }
 
-MonosatSolver::~MonosatSolver() { std::fclose(input_file); };
+MonosatSolver::~MonosatSolver() { deleteSolver(solver); };
+
 }
