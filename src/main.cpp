@@ -101,7 +101,7 @@ auto main(int argc, char **argv) -> int {
   {
     auto curr_time = chrono::steady_clock::now();
     BOOST_LOG_TRIVIAL(info)
-        << "#construct time: "
+        << "construct time: "
         << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
     time = curr_time;
   }
@@ -139,7 +139,7 @@ auto main(int argc, char **argv) -> int {
     {
       auto curr_time = chrono::steady_clock::now();
       BOOST_LOG_TRIVIAL(info)
-          << "#solve time: "
+          << "solve time: "
           << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
     }
 

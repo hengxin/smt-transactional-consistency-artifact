@@ -1,5 +1,3 @@
-#include <z3++.h>
-
 #include <cstdint>
 #include <ranges>
 #include <tuple>
@@ -12,11 +10,11 @@
 #include "history/dependencygraph.h"
 #include "history/history.h"
 #include "solver/pruner.h"
-#include "solver/z3Solver.h"
+#include "solver/monosatSolver.h"
 #include "utils/log.h"
 #include "utils/to_container.h"
 
-#define BOOST_TEST_MODULE z3Solver
+#define BOOST_TEST_MODULE monosatSolver
 #include <boost/test/included/unit_test.hpp>
 
 using checker::history::Event;
@@ -47,7 +45,7 @@ static auto check_history(const History &h) {
     }
   }
   return checker::solver::prune_constraints(depgraph, cons) &&
-         checker::solver::Z3Solver{depgraph, cons}.solve();
+         checker::solver::MonosatSolver{depgraph, cons}.solve();
 }
 
 static auto create_history(
@@ -80,30 +78,6 @@ static auto create_history(
   };
   // clang-format on
 }
-
-struct SetupTest {
-  auto setup() -> void {
-    for (auto s : {
-             "user_propagate",
-             "final_check_step",
-             "final_check_result",
-             "bounded_search",
-             "after_first_propagate",
-             "search_bug",
-             "assigned_literals_per_lvl",
-             "guessed_literals",
-             "before_search",
-             "smt_kernel",
-             "propagate",
-             "conflict_detail",
-             "conflict_bug",
-             "conflict",
-         })
-      Z3_enable_trace(s);
-  }
-};
-
-BOOST_TEST_GLOBAL_FIXTURE(SetupTest);
 
 BOOST_AUTO_TEST_CASE(read_committed) {
   auto h = create_history(

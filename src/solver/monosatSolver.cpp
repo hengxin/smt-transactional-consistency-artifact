@@ -37,11 +37,8 @@ auto MonosatSolver::solve() -> bool {
   // linux specific method to get the tmpfile name
 
   BOOST_LOG_TRIVIAL(debug)
-    << "generating tmp file '"
-    << gnf_path
-    << "'";
-
-  // return true;
+    << "generating tmp file "
+    << gnf_path;
 
   readGNF(solver, gnf_path.c_str());
   bool ret = solveWrapper(solver);

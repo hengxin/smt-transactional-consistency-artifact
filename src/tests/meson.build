@@ -1,1 +1,1 @@
-checker_test_srcs = files('z3Solver.cpp', 'toposort.cpp')
+checker_test_srcs = files('z3Solver.cpp', 'toposort.cpp', 'monosatSolver.cpp')
