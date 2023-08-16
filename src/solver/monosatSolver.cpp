@@ -27,7 +27,7 @@ MonosatSolver::MonosatSolver(const history::DependencyGraph &known_graph,
   gnf_path.append("monosat_tmp_input.gnf");
   try {
     utils::write_to_gnf_file(gnf_path, known_graph, constraints);
-  } catch(std::runtime_error &e) {
+  } catch (std::runtime_error &e) {
     // TODO
   };
   

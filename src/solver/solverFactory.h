@@ -9,6 +9,7 @@
 #include "solver/abstractSolver.h"
 #include "solver/z3Solver.h"
 #include "solver/monosatSolver.h"
+#include "solver/acyclicMinisatSolver.h"
 // TODO: implement more solvers
 
 namespace checker::solver {
@@ -24,6 +25,8 @@ public:
                   return new Z3Solver{dependency_graph, constraints};
                 } else if (solver_type == "monosat") {
                   return new MonosatSolver{dependency_graph, constraints};
+                } else if (solver_type == "acyclic-minisat") {
+                  return new AcyclicMinisatSolver{dependency_graph, constraints};
                 } else {
                   throw std::runtime_error("unknown solver!");
                 }

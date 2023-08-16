@@ -69,7 +69,7 @@ auto main(int argc, char **argv) -> int {
   }
 
   auto solver_type = args.get("--solver");
-  const auto all_solvers = std::set<std::string>{"z3", "monosat", "z3-ts"};
+  const auto all_solvers = std::set<std::string>{"z3", "monosat", "acyclic-minisat"};
   if (all_solvers.contains(solver_type)) {
     BOOST_LOG_TRIVIAL(debug)
         << "use "
@@ -78,7 +78,7 @@ auto main(int argc, char **argv) -> int {
   } else {
     std::ostringstream os;
     os << "Invalid solver '" << solver_type << "'";
-    os << "All valid solvers: 'z3' or 'monosat' or 'z3-ts'";
+    os << "All valid solvers: 'z3' or 'monosat' or 'acyclic-minisat'";
     throw std::invalid_argument{os.str()};
   }
 
