@@ -10,7 +10,7 @@ table.field_names = ['name', '#sessions', '#txns', '#events', '#constrains', 'co
 for history_dir in os.listdir(history_path):
   print('[running checker] in ./history/{}/'.format(history_dir))
   bincode_path = os.path.join(history_path, history_dir, 'hist-00000', 'history.bincode')
-  result = subprocess.run([checker_path, bincode_path, '--pruning', '--solver', 'z3'], capture_output=True, text=True)
+  result = subprocess.run([checker_path, bincode_path, '--pruning', '--solver', 'acyclic-minisat'], capture_output=True, text=True)
   logs = result.stdout.split(os.linesep)
   table_line = [history_dir]
   for log in logs:

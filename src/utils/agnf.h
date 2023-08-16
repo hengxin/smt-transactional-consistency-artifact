@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <fstream>
 #include <filesystem>
+#include <cassert>
 
 #include <boost/log/trivial.hpp>
 
@@ -40,11 +41,10 @@ void write_to_agnf_file(fs::path &agnf_path,
     alloc_edge_id((AGNFEdge) {from, to});
     alloc_node_id(from), alloc_node_id(to);
   };
-  int64_t n_known_edge = 0;
   for (const auto &[from, to, _] : known_graph.edges()) { 
     alloc_edge(from, to); 
-    n_known_edge++;
   } 
+  int64_t n_known_edge = n_edge;
   for (const auto &cons : constraints) {
     for (const auto &[from, to, _] : cons.either_edges) alloc_edge(from, to);
     for (const auto &[from, to, _] : cons.or_edges) alloc_edge(from, to); 
@@ -55,11 +55,23 @@ void write_to_agnf_file(fs::path &agnf_path,
   ofs << n_node << " " << n_edge << " " << n_known_edge << " " << constraints.size() << std::endl;
   for (int64_t id = 1; id <= n_edge; id++) {
     auto &[from, to] = id_edge[id];
-    ofs << from << " " << to << std::endl;
+    ofs << node_id[from] << " " << node_id[to] << std::endl;
   }
+  std::set<int64_t> output_known_edge_ids;
+  int64_t known_edge_cnt = 0;
   for (const auto &[from, to, _] : known_graph.edges()) {
-    ofs << from << " " << to << std::endl;
+    auto edge = std::make_pair(from, to);
+    if (!edge_id.contains(edge)) {
+      BOOST_LOG_TRIVIAL(info) << "Oops! not allocate edge if to (from, to)";
+      continue;
+    }
+    auto eid = edge_id[edge];
+    if (output_known_edge_ids.contains(eid)) continue;
+    output_known_edge_ids.insert(eid);
+    ofs << node_id[from] << " " << node_id[to] << std::endl;
+    ++known_edge_cnt;
   }
+  assert(known_edge_cnt == n_known_edge);
   for (const auto &cons : constraints) {
     for (const auto &[from, to, _] : cons.either_edges) {
       if (!edge_id.contains(std::make_pair(from, to))) {
