@@ -1,0 +1,27 @@
+\documentclass{article}
+
+\usepackage{algorithm}
+\usepackage{algpseudocodex}
+\usepackage{algorithmicx}
+
+\begin{document}
+  \begin{algorithm}
+    \caption{Propagate}
+    \begin{algorithmic}
+      \Function {Propagate} {$\mathcal{M}$}
+        \State{$E^{-} \gets E_0$} \Comment{$E_0$: known\_graph}
+        \For {edge $e_i$ of $E$} 
+          \State
+            \If { $(e_i \in E^{-}) \in \mathcal{M}$ }
+              \State $E^{-} \gets E^{-} \cup \{e_i\}$
+            \EndIf
+        \EndFor
+        \State $G \gets (V, E^{-})$
+        \If {$\lnot acyclic(G)$} \Comment{$acyclic()$: an algorithm to detect cycles}
+          \State \Return $\textbf{False}, analyze(G)$ \Comment{$analyze()$: find a proper cycle}
+        \EndIf
+        \State \Return $\textbf{True}, \mathcal{M}$
+      \EndFunction
+    \end{algorithmic}
+  \end{algorithm}
+\end{document}
