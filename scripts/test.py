@@ -6,11 +6,13 @@ root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 history_path = os.path.join(root_path, 'history')
 checker_path = os.path.join(root_path, 'builddir', 'checker')
 table = PrettyTable()
-table.field_names = ['name', '#sessions', '#txns', '#events', '#constrains', 'construct time', 'solve time', 'status']
+table.field_names = ['name', '#sessions', '#txns', '#events', '#constrains', 'construct time', 'init time', 'solve time', 'status']
+solver = 'acyclic-minisat'
+print('[use] {} as backend solver'.format(solver))
 for history_dir in os.listdir(history_path):
   print('[running checker] in ./history/{}/'.format(history_dir))
   bincode_path = os.path.join(history_path, history_dir, 'hist-00000', 'history.bincode')
-  result = subprocess.run([checker_path, bincode_path, '--pruning', '--solver', 'acyclic-minisat'], capture_output=True, text=True)
+  result = subprocess.run([checker_path, bincode_path, '--pruning', '--solver', solver], capture_output=True, text=True)
   logs = result.stdout.split(os.linesep)
   table_line = [history_dir]
   for log in logs:
@@ -35,6 +37,10 @@ for history_dir in os.listdir(history_path):
         print('Unknown log:', end=' ')
         print(log)
         continue
+  while len(table_line) < len(table.field_names):
+    table_line.append('')
   if len(table_line) == len(table.field_names):
     table.add_row(table_line)
+  else:
+    print('Parse failed, name = {}'.format(history_dir))
 print(table) 

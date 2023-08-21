@@ -30,16 +30,12 @@ MonosatSolver::MonosatSolver(const history::DependencyGraph &known_graph,
   } catch (std::runtime_error &e) {
     // TODO
   };
-  
+  BOOST_LOG_TRIVIAL(debug)
+  << "generating tmp file "
+  << gnf_path; 
 }
 
 auto MonosatSolver::solve() -> bool {
-  // linux specific method to get the tmpfile name
-
-  BOOST_LOG_TRIVIAL(debug)
-    << "generating tmp file "
-    << gnf_path;
-
   readGNF(solver, gnf_path.c_str());
   bool ret = solveWrapper(solver);
   return ret;

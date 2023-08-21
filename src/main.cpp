@@ -133,6 +133,14 @@ auto main(int argc, char **argv) -> int {
     // encode constraints and known graph
     auto solver = solver::SolverFactory::getSolverFactory().make(solver_type, dependency_graph, constraints);
 
+    {
+      auto curr_time = chrono::steady_clock::now();
+      BOOST_LOG_TRIVIAL(info)
+          << "solver initializing time: "
+          << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+      time = curr_time;
+    }
+
     // use SMT solver to solve constraints
     accept = solver->solve();
 

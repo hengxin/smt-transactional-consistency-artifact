@@ -27,10 +27,11 @@ auto AcyclicMinisatSolver::solve() -> bool {
   // TODO: call acyclic-minisat as backend solver
   // a toy implementation: call acyclic-minisat as a subprocess
   auto obuf = subprocess::check_output({"/home/rikka/acyclic-minisat/build/minisat_core", agnf_path});
-  BOOST_LOG_TRIVIAL(debug) << "stdout of acyclic-minisat: " << obuf.buf.data();
+  // BOOST_LOG_TRIVIAL(debug) << "stdout of acyclic-minisat length: " << obuf.length;
   std::string output = "";
   for (char ch : obuf.buf) output += ch;
   output = output.substr(0, output.length() - 1); // delete last '\n'
+  BOOST_LOG_TRIVIAL(debug) << "stdout of acyclic-minisat: " << output;
   return output == "SAT";
 }
 
