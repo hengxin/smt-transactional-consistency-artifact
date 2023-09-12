@@ -69,6 +69,9 @@ struct History {
  */
 auto parse_dbcop_history(std::istream &is) -> History;
 
+auto n_txns_of(History &history) -> int;
+auto n_rw_same_key_txns_of(History &history) -> int;
+auto n_written_key_txns_of(History &history) -> std::unordered_map<int64_t, int>;
 }  // namespace checker::history
 
 namespace std {

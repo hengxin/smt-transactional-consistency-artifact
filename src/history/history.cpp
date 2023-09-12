@@ -156,4 +156,43 @@ auto operator<<(std::ostream &os, const History &history) -> std::ostream & {
   return os;
 }
 
+auto n_rw_same_key_txns_of(History &history) -> int {
+  int ret = 0;
+  for (auto transaction : history.transactions()) {
+    std::unordered_map<int64_t, bool> r_keys;
+    for (auto [key, value, type, _] : transaction.events) {
+      if (type == EventType::READ) {
+        r_keys[key] = true;
+      } else { // type == EventType::WRITE
+        if (r_keys.contains(key)) {
+          ++ret;
+          break;
+        }
+      }
+    }
+  }
+  return ret;
+}
+
+auto n_txns_of(History &history) -> int {
+  int ret = 0;
+  for (auto transaction : history.transactions()) ++ret;
+  return ret;
+}
+
+auto n_written_key_txns_of(History &history) -> std::unordered_map<int64_t, int> {
+  std::unordered_map<int64_t, std::unordered_set<int64_t>> written_txns_of_key;
+  for (auto transaction : history.transactions()) {
+    for (auto [key, value, type, txn_id] : transaction.events) {
+      if (type != EventType::WRITE) continue;
+      written_txns_of_key[key].insert(txn_id);
+    }
+  }
+  std::unordered_map<int64_t, int> n_written_txns_of_key;
+  for (const auto &[key, txns] : written_txns_of_key) {
+    n_written_txns_of_key[key] = txns.size();
+  }
+  return n_written_txns_of_key;
+}
+
 }  // namespace checker::history

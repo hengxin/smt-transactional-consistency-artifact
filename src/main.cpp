@@ -94,6 +94,18 @@ auto main(int argc, char **argv) -> int {
 
   auto history = history::parse_dbcop_history(history_file);
 
+  // std::cout << history::n_rw_same_key_txns_of(history) << " / " << n_txns_of(history) << std::endl;
+
+  // std::unordered_map<int64_t, int> n_written_key_txns_of_key = history::n_written_key_txns_of(history);
+  // int64_t write_count = 0, less_than_2_count = 0;
+  // for (auto [key, cnt] : n_written_key_txns_of_key) {
+  //   write_count += cnt;
+  //   if (cnt <= 2) less_than_2_count++;
+  // } 
+  // double avg_write_count = 1.0 * write_count / n_written_key_txns_of_key.size();
+  // std::cout << avg_write_count << " / " << n_written_key_txns_of_key.size() << std::endl; 
+  // std::cout << less_than_2_count << std::endl;
+
   // compute known graph (WR edges) and constraints from history
   auto dependency_graph = history::known_graph_of(history);
   auto constraints = history::constraints_of(history, dependency_graph.wr);
@@ -154,6 +166,5 @@ auto main(int argc, char **argv) -> int {
     delete solver;
   }
   std::cout << "accept: " << std::boolalpha << accept << std::endl;
-
   return 0;
 }
