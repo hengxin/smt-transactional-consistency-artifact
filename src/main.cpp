@@ -39,6 +39,9 @@ auto main(int argc, char **argv) -> int {
   args.add_argument("--solver")
       .help("Select backend solver")
       .default_value(std::string{"z3"});
+  args.add_argument("--history-type")
+      .help("History type")
+      .default_value(std::string{"dbcop"});
 
   try {
     args.parse_args(argc, argv);
@@ -82,29 +85,43 @@ auto main(int argc, char **argv) -> int {
     throw std::invalid_argument{os.str()};
   }
 
-  auto time = chrono::steady_clock::now();
-
-  // read history
-  auto history_file = std::ifstream{args.get("history")};
-  if (!history_file.is_open()) {
+  auto history_type = args.get("--history-type");
+  const auto all_history_types = std::set<std::string>{"cobra", "dbcop"};
+  if (all_history_types.contains(history_type)) {
+    BOOST_LOG_TRIVIAL(debug)
+        << "history type: "
+        << history_type;
+  } else {
     std::ostringstream os;
-    os << "Cannot open file '" << args.get("history") << "'";
-    throw std::runtime_error{os.str()};
+    os << "Invalid history type '" << history_type << "'";
+    os << "All valid history types: 'dpcop' or 'cobra'";
+    throw std::invalid_argument{os.str()};
   }
 
-  auto history = history::parse_dbcop_history(history_file);
+  auto time = chrono::steady_clock::now();
 
-  // std::cout << history::n_rw_same_key_txns_of(history) << " / " << n_txns_of(history) << std::endl;
+  history::History history;
+  if (history_type == "dbcop") {
+    // read history
+    auto history_file = std::ifstream{args.get("history")};
+    if (!history_file.is_open()) {
+      std::ostringstream os;
+      os << "Cannot open file '" << args.get("history") << "'";
+      throw std::runtime_error{os.str()};
+    }
 
-  // std::unordered_map<int64_t, int> n_written_key_txns_of_key = history::n_written_key_txns_of(history);
-  // int64_t write_count = 0, less_than_2_count = 0;
-  // for (auto [key, cnt] : n_written_key_txns_of_key) {
-  //   write_count += cnt;
-  //   if (cnt <= 2) less_than_2_count++;
-  // } 
-  // double avg_write_count = 1.0 * write_count / n_written_key_txns_of_key.size();
-  // std::cout << avg_write_count << " / " << n_written_key_txns_of_key.size() << std::endl; 
-  // std::cout << less_than_2_count << std::endl;
+    history = history::parse_dbcop_history(history_file);
+  } else if (history_type == "cobra") {
+    auto history_dir = args.get("history");
+    try {
+      history = history::parse_cobra_history(history_dir);
+    } catch (const std::runtime_error &e) {
+      std::cerr << e.what() << std::endl;
+      return 1;
+    }
+  } else {
+    assert(0);
+  }
 
   // compute known graph (WR edges) and constraints from history
   auto dependency_graph = history::known_graph_of(history);

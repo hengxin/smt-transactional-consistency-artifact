@@ -68,6 +68,7 @@ struct History {
  * IS_WRITE, SUCCESS := bool
  */
 auto parse_dbcop_history(std::istream &is) -> History;
+auto parse_cobra_history(const std::string &history_dir) -> History;
 
 auto n_txns_of(History &history) -> int;
 auto n_rw_same_key_txns_of(History &history) -> int;
