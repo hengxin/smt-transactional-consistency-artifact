@@ -36,6 +36,12 @@ static auto read_int64(std::istream &in) -> int64_t {
   return n;
 }
 
+static auto read_int64_big_endian(std::istream &in) -> int64_t {
+  int64_t n = read_int64(in);
+  boost::endian::native_to_big_inplace(n);
+  return n;
+};
+
 static auto read_str(std::istream &in) -> std::string {
   auto size = read_int64(in);
   auto s = std::string(size, '\0');
@@ -143,6 +149,7 @@ auto parse_dbcop_history(std::istream &is) -> History {
       }},
   });
 
+  // log history meta
   auto count_all = [](auto &&) { return true; };
   BOOST_LOG_TRIVIAL(info) << "#sessions: " << history.sessions.size();
   BOOST_LOG_TRIVIAL(info) << "#transactions: "
@@ -200,7 +207,7 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
 
   auto add_session = [&](int64_t id = 0) -> Session * {
     if (!id) id = ++session_id;
-    if (sessions.contains(id)) throw std::runtime_error{"Invalid history: replicated session id!"};
+    if (sessions.contains(id)) throw std::runtime_error{"Invalid history: fail in add_session()!"};
     Session *session = new Session{};
     session->id = id;
     sessions[id] = session;
@@ -208,18 +215,19 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
   };
   auto add_transaction = [&](Session *session, int64_t id) -> Transaction * {
     if (!sessions.contains(session->id) || transactions.contains(id)) {
-      throw std::runtime_error{"Invalid history!"};
+      throw std::runtime_error{"Invalid history: fail in add_transaction()!"};
     }
 
     Transaction *txn = new Transaction{};
     txn->id = id, txn->session_id = session->id;
     transactions[id] = txn;
+    transactions_status[txn] = TransactionStatus::ONGOING;
     return txn;
   };
   auto add_event = [&](Transaction *transaction, EventType type, int64_t key, int64_t value) {
     if (type == EventType::WRITE) {
       if (!transactions.contains(transaction->id) || writes.contains({key, value})) {
-        throw std::runtime_error{"Invalid history!"};
+        throw std::runtime_error{"Invalid history: fail in add_event()!"};
       }
       writes.insert({key, value});
     }
@@ -230,26 +238,28 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
     Transaction *current = nullptr;
     while (1) {
       char op = read_char(in);
-      if (op == EOF) break;
+      if (op == 255) { // the file ends with 255(EOF), but not reach the real end of this file
+        break;
+      }
       switch (op) {
         case 'S': { 
           // txn start 
-          assert(current == nullptr);
-          auto id = read_int64(in);
+          // assert(current == nullptr);
+          auto id = read_int64_big_endian(in);
           if (!transactions.contains(id)) {
             current = add_transaction(session, id);
           } else {
             current = transactions[id];
             // previous txn reads this txn
             if (transactions_status[current] == TransactionStatus::ONGOING || current->events.size() != 0) {
-              throw std::runtime_error{"Invalid history!"};
+              throw std::runtime_error{"Invalid history: fail in txn start()!"};
             }
           }
           break;
         }
         case 'C': {
           // txn commit
-          auto id = read_int64(in);
+          auto id = read_int64_big_endian(in);
           assert(current != nullptr && current->id == id);
           transactions_status[current] = TransactionStatus::COMMIT;
           Session *session = sessions[current->session_id];
@@ -259,19 +269,19 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
         case 'W': {
           // write
           assert(current != nullptr);
-          auto write_id = read_int64(in);
-          auto key = read_int64(in);
-          auto value = read_int64(in);
+          auto write_id = read_int64_big_endian(in);
+          auto key = read_int64_big_endian(in);
+          auto value = read_int64_big_endian(in);
           add_event(current, EventType::WRITE, key, get_cobra_hash({write_id, current->id, value}));
           break;
         }
         case 'R': {
           // read
           assert(current != nullptr);
-          auto write_txn_id = read_int64(in);
-          auto write_id = read_int64(in);
-          auto key = read_int64(in);
-          auto value = read_int64(in);
+          auto write_txn_id = read_int64_big_endian(in);
+          auto write_id = read_int64_big_endian(in);
+          auto key = read_int64_big_endian(in);
+          auto value = read_int64_big_endian(in);
           
           if (write_txn_id == INIT_TXN_ID || write_txn_id == NULL_TXN_ID) {
             if (write_id == INIT_WRITE_ID || write_id == NULL_TXN_ID) {
@@ -282,21 +292,21 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
               }
               // TODO: init_writes.computeIfAbsent(key, k -> new CobraValue(key, INIT_TXN_ID, value))
             } else if ((write_id != GC_WID_FALSE && write_id != GC_WID_TRUE) || write_txn_id != INIT_TXN_ID) {
-              throw std::runtime_error{"Invalid history!"};
+              throw std::runtime_error{"Invalid history: fail in read()!"};
             }
           }
 
           add_event(current, EventType::READ, key, get_cobra_hash({write_id, write_txn_id, value}));
           break;
         }
-        default: throw std::runtime_error{"Invalid history!"};
+        default: throw std::runtime_error{"Invalid history: no opt type is matched!"};
       }
     }
   };
 
   for (const auto &entry : fs::directory_iterator(history_dir_entry)) {
     if (entry.path().extension() != ".log") {
-      BOOST_LOG_TRIVIAL(trace) << "skip file '" << entry.path().filename() << "'";
+      BOOST_LOG_TRIVIAL(trace) << "skip file " << entry.path().filename();
       continue;
     }
     std::string log_file_s = entry.path().string();
@@ -306,6 +316,7 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
       os << "Cannot open file '" << entry << "'";
       throw std::runtime_error{os.str()};
     }
+    BOOST_LOG_TRIVIAL(trace) << "parse file " << entry.path().filename();
     try {
       auto session = add_session();
       parse_log(log_file, session);
@@ -316,17 +327,28 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
     }
   }
 
-  Transaction *init_txn = add_transaction(add_session(INIT_TXN_ID), INIT_TXN_ID);
+  auto init_session = add_session(INIT_TXN_ID);
+  Transaction *init_txn = add_transaction(init_session, INIT_TXN_ID);
   for (const auto &[key, value] : init_writes) {
     add_event(init_txn, EventType::WRITE, key, value);
   }
   transactions_status[init_txn] = TransactionStatus::COMMIT;
+  init_session->transactions.push_back(std::move(*init_txn));
+  history.sessions.push_back(std::move(*init_session));
 
   for (const auto &[txn_ref, status] : transactions_status) {
     if (status == TransactionStatus::ONGOING) {
       throw std::runtime_error{"Invalid history: uncommited transaction!"};
     }
   }
+
+  // log history meta
+  auto count_all = [](auto &&) { return true; };
+  BOOST_LOG_TRIVIAL(info) << "#sessions: " << history.sessions.size();
+  BOOST_LOG_TRIVIAL(info) << "#transactions: "
+                          << count_if(history.transactions(), count_all);
+  BOOST_LOG_TRIVIAL(info) << "#events: "
+                          << count_if(history.events(), count_all);
 
   return history;
 }
