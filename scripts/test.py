@@ -7,11 +7,11 @@ history_path = os.path.join(root_path, 'history')
 checker_path = os.path.join(root_path, 'builddir', 'checker')
 table = PrettyTable()
 table.field_names = ['name', '#sessions', '#txns', '#events', '#constrains', 'construct time', 'init time', 'solve time', 'status']
-solver = 'z3'
+solver = 'acyclic-minisat'
 print('[use] {} as backend solver'.format(solver))
 for history_dir in os.listdir(history_path):
-  if len(history_dir) >= 14:
-    print('[skip] in ./history/{}/'.format(history_dir))
+  if len(history_dir) >= 14 or (history_dir[0] > '9' or history_dir[0] < '0'):
+    print('[skip] ./history/{}/'.format(history_dir))
     continue
   print('[running checker] in ./history/{}/'.format(history_dir))
   bincode_path = os.path.join(history_path, history_dir, 'hist-00000', 'history.bincode')
