@@ -62,3 +62,20 @@ docker-compose up -d -f docker/postgres/docker-compose.yml
 dbcop/target/release/dbcop generate -d /tmp/gen -e 2 -n 10 -t 3 -v 2
 dbcop/target/release/dbcop run -d /tmp/gen/ --db postgres-ser -o /tmp/hist 127.0.0.1:5432
 ```
+
+## Note: a bug was detected in `src/solver/pruner.cpp`
+
+```cpp
+while (changed) {
+  changed = false;
+  for (auto constraint : constraints) {
+    if (can be pruned) {
+      changed = true;
+    }
+    ...
+    if (changed) { // changed was misused here, for a previous pruned contraint can trigger all following constraints to be pruned
+      prune constraint
+    }
+  }
+}
+```
