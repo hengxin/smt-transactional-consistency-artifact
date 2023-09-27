@@ -127,6 +127,17 @@ auto main(int argc, char **argv) -> int {
   auto dependency_graph = history::known_graph_of(history);
   auto constraints = history::constraints_of(history, dependency_graph.wr);
 
+  // std::cout << dependency_graph << std::endl;
+
+  auto display_constraints = [](const std::vector<history::Constraint> &constraints, std::string info = {""}) -> void {
+    if (info != "") std::cout << info << std::endl;
+    for (auto constraint : constraints) {
+      std::cout << constraint << std::endl;
+    }
+    std::cout << std::endl;
+  };
+  // display_constraints(constraints, "Constraints before Pruning:");
+
   {
     auto curr_time = chrono::steady_clock::now();
     BOOST_LOG_TRIVIAL(info)
@@ -148,6 +159,8 @@ auto main(int argc, char **argv) -> int {
 
   if (args["--pruning"] == true) {
     accept = solver::prune_constraints(dependency_graph, constraints);
+
+    // display_constraints(constraints, "Constraints after Pruning:");
 
     {
       auto curr_time = chrono::steady_clock::now();

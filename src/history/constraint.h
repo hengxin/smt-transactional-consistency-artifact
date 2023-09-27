@@ -5,6 +5,7 @@
 #include <iosfwd>
 #include <tuple>
 #include <vector>
+#include <string>
 
 #include "dependencygraph.h"
 #include "history.h"

@@ -12,6 +12,8 @@
 #include <ranges>
 #include <unordered_set>
 #include <vector>
+#include <cassert>
+#include <iostream>
 
 #include "history/constraint.h"
 #include "history/dependencygraph.h"
@@ -58,6 +60,8 @@ auto prune_constraints(DependencyGraph &dependency_graph,
   }
 
   while (changed) {
+    BOOST_LOG_TRIVIAL(trace) << "new pruning pass:";
+
     changed = false;
 
     auto known_graph = adjacency_list<>{dependency_graph.num_vertices()};
@@ -94,19 +98,30 @@ auto prune_constraints(DependencyGraph &dependency_graph,
 
         for (auto &&e : as_range(out_edges(v, known_graph))) {
           auto v2 = target(e, known_graph);
-          if (!r.at(v)[v2]) {
-            r.at(v) |= r.at(v2);
-          }
+          // FIXME: is this !r.at(v)[v2] condition sufficient to this dynamic programming? 
+          // if (!r.at(v)[v2]) {
+          //   r.at(v) |= r.at(v2);
+          // }
+          r.at(v) |= r.at(v2);
         }
       }
 
       return r;
     }();
 
+    // for (auto &&v : reverse_topo_order.value()) std::cout << v << " ";
+    // std::cout << std::endl;
+
+    // for (auto &&v : reverse_topo_order.value()) {
+    //   std::cout << v << ": ";
+    //   std::cout << reachability.at(v) << std::endl;
+    // }
+    // std::cout << std::endl;
+
     for (auto &&c : constraints | not_pruned) {
-      auto check_edges = [&](const vector<Constraint::Edge> &edges) {
+      auto check_edges = [&](const vector<Constraint::Edge> &edges) -> bool {
         for (auto &&[from, to, _] : edges) {
-          if (reachability.at(vertex_map.at(to))[vertex_map.at(from)]) {
+          if (reachability.at(vertex_map.at(to)).test(vertex_map.at(from))) {
             return false;
           }
         }
@@ -137,16 +152,19 @@ auto prune_constraints(DependencyGraph &dependency_graph,
       };
 
       auto added_edges_name = "or";
+      auto pruned = false;
       if (!check_edges(c.either_edges)) {
         add_edges(c.or_edges);
         changed = true;
+        pruned = true;
       } else if (!check_edges(c.or_edges)) {
         add_edges(c.either_edges);
         changed = true;
+        pruned = true;
         added_edges_name = "either";
       }
 
-      if (changed) {
+      if (pruned) {
         pruned_constraints.emplace(&c);
         BOOST_LOG_TRIVIAL(trace) << "pruned constraint, added "
                                  << added_edges_name << " edges: " << c;
