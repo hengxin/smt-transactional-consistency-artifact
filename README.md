@@ -73,7 +73,7 @@ while (changed) {
       changed = true;
     }
     ...
-    if (changed) { // changed was misused here, for a previous pruned contraint can trigger all following constraints to be pruned
+    if (changed) { // changed was misused here, for a previously pruned contraint can trigger the pruning of all following constraints
       prune constraint
     }
   }
