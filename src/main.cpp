@@ -164,7 +164,7 @@ auto main(int argc, char **argv) -> int {
 
     {
       auto curr_time = chrono::steady_clock::now();
-      BOOST_LOG_TRIVIAL(debug)
+      BOOST_LOG_TRIVIAL(info)
           << "prune time: "
           << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
       time = curr_time;

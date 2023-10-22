@@ -2,20 +2,28 @@ import os
 import subprocess
 from prettytable import PrettyTable
 
+history_type = 'dbcop'
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
-history_path = os.path.join(root_path, 'history')
+# history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'one-shot-chengRW')
+history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type))
+print(history_path)
 checker_path = os.path.join(root_path, 'builddir', 'checker')
 table = PrettyTable()
-table.field_names = ['name', '#sessions', '#txns', '#events', '#constrains', 'construct time', 'init time', 'solve time', 'status']
+table.field_names = ['name', '#sessions', '#txns', '#events', '#constrains', 'construct time', 'prune time', 'init time', 'solve time', 'status']
 solver = 'acyclic-minisat'
 print('[use] {} as backend solver'.format(solver))
 for history_dir in os.listdir(history_path):
-  if len(history_dir) >= 14 or (history_dir[0] > '9' or history_dir[0] < '0'):
-    print('[skip] ./history/{}/'.format(history_dir))
-    continue
+  # if len(history_dir) >= 14 or (history_dir[0] > '9' or history_dir[0] < '0'):
+  #   print('[skip] ./history/{}/'.format(history_dir))
+  #   continue
   print('[running checker] in ./history/{}/'.format(history_dir))
-  bincode_path = os.path.join(history_path, history_dir, 'hist-00000', 'history.bincode')
-  result = subprocess.run([checker_path, bincode_path, '--solver', solver], capture_output=True, text=True)
+  if history_type == 'cobra':
+    bincode_path = str(os.path.join(history_path, history_dir)) + '/'
+    result = subprocess.run([checker_path, bincode_path, '--solver', solver, '--history-type', history_type, '--pruning'], capture_output=True, text=True)
+  else: # dbcop
+    bincode_path = os.path.join(history_path, history_dir, 'hist-00000', 'history.bincode')
+    result = subprocess.run([checker_path, bincode_path, '--solver', solver, '--history-type', history_type, '--pruning'], capture_output=True, text=True)
+
   logs = result.stdout.split(os.linesep)
   table_line = [history_dir]
   for log in logs:
