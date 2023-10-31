@@ -23,7 +23,10 @@ struct AcyclicMinisatSolver : AbstractSolver {
 
   fs::path agnf_path;
 
-  std::vector<std::pair<SimplifiedKnownGraph, SimplifiedConstraints>> polygraph_components;
+  int n_vertices;
+  SimplifiedKnownGraph no_bridge_known_graph;
+  SimplifiedConstraints no_bridge_constraints;
+  // std::vector<std::pair<SimplifiedKnownGraph, SimplifiedConstraints>> polygraph_components;
 
   AcyclicMinisatSolver(const history::DependencyGraph &known_graph,
                        const std::vector<history::Constraint> &constraints);

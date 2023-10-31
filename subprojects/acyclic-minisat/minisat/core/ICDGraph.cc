@@ -81,9 +81,8 @@ bool ICDGraph::detect_cycle(int from, int to, int label) {
   std::unordered_set<int> backward_visited;
   std::queue<int> q;
   q.push(from), backward_visited.insert(from);
-  bool cycle = false;
-  // int delta = (int)std::min(std::pow(n, 2.0 / 3), std::pow(max_m, 1.0 / 2)) / 8 + 1, visited_cnt = 0;
-  int delta = (int)(std::pow(max_m, 1.0 / 2)) / 8 + 1, visited_cnt = 0;
+  int delta = (int)std::min(std::pow(n, 2.0 / 3), std::pow(max_m, 1.0 / 2)) / 10 + 1, visited_cnt = 0;
+  // int delta = (int)(std::pow(max_m, 1.0 / 2)) / 8 + 1, visited_cnt = 0;
   // TODO: count current n_vertices and n_edges dynamically
   while (!q.empty()) {
     int x = q.front(); q.pop();

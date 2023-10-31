@@ -313,8 +313,8 @@ inline void Solver::varBumpActivity(Var v, double inc) {
     if ( (activity[v] += inc) > 1e100 ) {
         // Rescale:
         for (int i = 0; i < nVars(); i++)
-            activity[i] *= 1e-150;
-        var_inc *= 1e-150; }
+            activity[i] *= 1e-100;
+        var_inc *= 1e-100; }
 
     // Update order_heap with respect to new activity:
     if (order_heap.inHeap(v))
