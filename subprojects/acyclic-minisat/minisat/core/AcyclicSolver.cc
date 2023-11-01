@@ -39,7 +39,6 @@ CRef AcyclicSolver::propagate() {
 #ifdef MONITOR_ENABLED
         Monitor::get_monitor()->add_edge_times++;
 #endif
-        // TODO: handle cycle whose width = 2
         bool cycle = !solver_helper->add_edges_of_var(v);
         if (cycle) {
 
@@ -58,7 +57,7 @@ CRef AcyclicSolver::propagate() {
           // for (Lit l : conflict_clause) std::cerr << var(l) << "\n";
           // std::cerr << "\n";
 
-          confl = ca.alloc(clause, false); // TODO: learnt = true, to trigger claBumpActivity()
+          confl = ca.alloc(clause, false); 
           solver_helper->conflict_clauses.pop_back();
         } else {
           added_var[v] = true;
@@ -276,7 +275,7 @@ lbool AcyclicSolver::search(int nof_conflicts) { // same as Solver.cc
 #endif
 
         if (next == lit_Undef) {
-          next = pickBranchLit(); // TODO: propagated vars can be called here
+          next = pickBranchLit(); 
         }
 
         if (next == lit_Undef)

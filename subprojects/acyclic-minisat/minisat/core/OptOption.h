@@ -5,7 +5,7 @@
 
 #define SKIP_BRIDGE 1
 
-#define INIT_PAIR_CONFLICT 1
+// #define INIT_PAIR_CONFLICT 1
 
 // #define MONITOR_ENABLED 1
 

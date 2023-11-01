@@ -15,13 +15,14 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   polygraph = _polygraph;
   icd_graph.init(polygraph->n_vertices);
   conflict_clauses.clear();
-  bool cycle = false;
+  reach_graph.init(polygraph->n_vertices);
+
   for (const auto &[from, to] : polygraph->known_edges) {
-    cycle = !icd_graph.add_edge(from, to, /* label = */ -1, /* need_detect_cycle = */ false); 
-    if (cycle) {
-      throw std::runtime_error("Oops! Cycles were detected in the known graph");
-    }
+    icd_graph.add_edge(from, to, /* label = */ -1, /* need_detect_cycle = */ false);  // return value is ignored here
+    reach_graph.add_edge(from, to, /* need_count = */ false);
   }
+
+  reach_graph.init_reachability();
 
   // initialize vars_heap, sorting by n_edges_of_var
   int n_vars = polygraph->edges.size();
@@ -40,17 +41,47 @@ void AcyclicSolverHelper::remove_var(int var) {
   vars_heap.insert(std::make_pair(n_edges, var));
 }
 
+bool AcyclicSolverHelper::detect_cycle_in_proximity(int var) {
+  // 1. pruning, width = 1
+  const auto &edges_of_var = polygraph->edges[var];
+  for (const auto &[from, to] : edges_of_var) {
+    if (reach_graph.can_reach(to, from)) {
+      conflict_clause_in_proximity.clear();
+      conflict_clause_in_proximity.push_back(mkLit(var, false));
+      return true;
+    }
+  }
+
+  // TODO: more length: pair, triple, ...
+
+  return false;
+} 
+
 bool AcyclicSolverHelper::add_edges_of_var(int var) { 
   // return true if edge is successfully added into the graph, i.e. no cycle is detected 
   const auto &edges_of_var = polygraph->edges[var];
   bool cycle = false;
   std::vector<std::tuple<int, int, int>> added_edges;
+
+  // TODO: refactor this function, to integrate reach_graph 
+
+  // * note: This(below) is a bad implementation! It's better to integrate icd_graph and reach_graph in a unified function.
+  cycle = detect_cycle_in_proximity(var);
+  if (cycle) {
+    conflict_clauses.push_back(conflict_clause_in_proximity);
+    conflict_clause_in_proximity.clear();
+    return false;
+  }
+
   for (const auto &[from, to] : edges_of_var) {
     cycle = !icd_graph.add_edge(from, to, /* label = */ var);
     if (cycle) break;
     added_edges.push_back(std::make_tuple(from, to, var));
   }
   if (!cycle) {
+    for (const auto &[from, to] : edges_of_var) {
+      reach_graph.add_edge(from, to);
+    }
     icd_graph.get_propagated_lits(propagated_lits);
     return true;
   } else {
@@ -68,6 +99,7 @@ void AcyclicSolverHelper::remove_edges_of_var(int var) {
   const auto &edges_of_vars = polygraph->edges[var];
   for (const auto &[from, to] : edges_of_vars) {
     icd_graph.remove_edge(from, to, /* label = */ var);
+    reach_graph.remove_edge(from, to);
   }
 }
 

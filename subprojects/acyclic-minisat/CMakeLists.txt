@@ -49,7 +49,8 @@ set(MINISAT_LIB_SOURCES
     minisat/core/AcyclicSolver.cc
     minisat/core/AcyclicSolverHelper.cc
     minisat/core/ICDGraph.cc
-    minisat/simp/SimpSolver.cc)
+    minisat/simp/SimpSolver.cc
+    minisat/core/ReachGraph.cc)
 
 add_library(minisat-lib-static STATIC ${MINISAT_LIB_SOURCES})
 add_library(minisat-lib-shared SHARED ${MINISAT_LIB_SOURCES})

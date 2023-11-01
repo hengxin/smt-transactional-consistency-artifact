@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "minisat/core/Polygraph.h"
+#include "minisat/core/ReachGraph.h"
 #include "minisat/core/ICDGraph.h"
 #include "minisat/core/SolverTypes.h"
 #include "minisat/mtl/Vec.h"
@@ -17,7 +18,11 @@ namespace Minisat {
 class AcyclicSolverHelper {
   Polygraph *polygraph;
   ICDGraph icd_graph;
+  ReachGraph reach_graph;
   std::set<std::pair<int, int>> vars_heap;
+  std::vector<Lit> conflict_clause_in_proximity;
+
+  bool detect_cycle_in_proximity(int var);
 
 public:
   std::vector<std::vector<Lit>> conflict_clauses;
