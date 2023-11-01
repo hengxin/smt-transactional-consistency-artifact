@@ -238,9 +238,10 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
     Transaction *current = nullptr;
     while (1) {
       char op = read_char(in);
-      if (op == 255) { // the file ends with 255(EOF), but not reach the real end of this file
+      if (op == EOF) { // the file ends with 255(EOF), but not reach the real end of this file
         break;
       }
+      // std::cout << op << std::endl;
       switch (op) {
         case 'S': { 
           // txn start 
@@ -299,7 +300,8 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
           add_event(current, EventType::READ, key, get_cobra_hash({write_id, write_txn_id, value}));
           break;
         }
-        default: throw std::runtime_error{"Invalid history: no opt type is matched!"};
+        default: 
+          throw std::runtime_error{"Invalid history: no opt type is matched!"};
       }
     }
   };
