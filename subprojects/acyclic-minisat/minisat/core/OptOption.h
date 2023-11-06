@@ -3,6 +3,8 @@
 
 // optimization options switch here
 
+// #define CHECK_ACYCLICITY 1
+
 #define SKIP_BRIDGE 1
 
 #define INIT_PAIR_CONFLICT 1

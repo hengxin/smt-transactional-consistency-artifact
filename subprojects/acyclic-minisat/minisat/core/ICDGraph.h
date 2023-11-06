@@ -31,7 +31,9 @@ class ICDGraph {
   std::vector<int> level;
   std::vector<Lit> conflict_clause;
   std::vector<Lit> propagated_lits;
+  int check_cnt = 0;
 
+  bool check_acyclicity();
   bool detect_cycle(int from, int to, int label);
   bool construct_backward_cycle(std::vector<EdgeInfo> &backward_pred, int from, int to, int label);
   bool construct_forward_cycle(std::vector<EdgeInfo> &backward_pred, 

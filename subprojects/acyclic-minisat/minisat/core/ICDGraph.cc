@@ -40,6 +40,14 @@ bool ICDGraph::add_edge(int from, int to, int label, bool need_detect_cycle) {
     if (inactive_edges[from].contains(std::make_pair(to, label))) {
       inactive_edges[from].erase(std::make_pair(to, label));
     }
+
+#ifdef CHECK_ACYCLICITY
+  if (++check_cnt >= 5000) {
+    assert(check_acyclicity());
+    check_cnt = 0;
+  } 
+#endif
+
     return true;
   }
   return false;
@@ -217,6 +225,39 @@ bool ICDGraph::construct_forward_cycle(std::vector<EdgeInfo> &backward_pred,
     conflict_clause.push_back(mkLit(v, false));
   } 
   return true;
+}
+
+bool ICDGraph::check_acyclicity() {
+  std::vector<std::vector<int>> g(n, std::vector<int>());
+  std::unordered_map<int, std::unordered_map<int, bool>> is_exist;
+  for (int from = 0; from < n; from++) {
+    for (const auto &[to, _] : out[from]) {
+      if (is_exist[from][to]) continue;
+      is_exist[from][to] = true;
+      g[from].push_back(to);
+    }
+  }
+  std::vector<int> deg(n, 0);
+  for (int x = 0; x < n; x++) {
+    for (int y : g[x]) {
+      ++deg[y];
+    }
+  }
+
+  std::vector<int> order;
+  std::queue<int> q;
+  for (int x = 0; x < n; x++) {
+    if (!deg[x]) q.push(x);
+  }
+  while (!q.empty()) {
+    int x = q.front(); q.pop();
+    order.push_back(x);
+    for (int y : g[x]) {
+      --deg[y];
+      if (!deg[y]) q.push(y);
+    }
+  }
+  return (int(order.size()) == n); 
 }
 
 } // namespace Minisat
