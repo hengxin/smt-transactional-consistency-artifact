@@ -49,7 +49,7 @@ public:
           if (!deg[y]) q.push(y);
         }
       }
-      assert(order.size() == n_vertices);
+      assert(int(order.size()) == n_vertices);
       std::reverse(order.begin(), order.end());
       return std::move(order);
     }();

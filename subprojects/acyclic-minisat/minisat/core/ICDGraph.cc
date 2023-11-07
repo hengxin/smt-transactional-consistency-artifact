@@ -5,12 +5,15 @@
 #include <iostream>
 #include <queue>
 #include <algorithm>
+#include <random>
+#include <chrono>
 #include <unordered_map>
 
 #include "ICDGraph.h"
 #include "minisat/core/SolverTypes.h"
 #include "minisat/mtl/Vec.h"
 #include "OptOption.h"
+#include "minisat/utils/Monitor.h"
 
 namespace Minisat {
 
@@ -18,12 +21,19 @@ using EdgeInfo = std::pair<int, int>;
 using ICDGraphEdge = std::tuple<int, int, int>;
 
 ICDGraph::ICDGraph() {}
-void ICDGraph::init(int _n_vertices = 0) {
+
+void ICDGraph::init(int _n_vertices = 0, int n_vars = 0) {
+  // note: currently n_vars is useless
   n = _n_vertices, m = max_m = 0;
   level.assign(n, 1);
   in.assign(n, std::unordered_set<EdgeInfo, decltype(edge_info_hash_endpoint)>());
   out.assign(n, std::unordered_set<EdgeInfo, decltype(edge_info_hash_endpoint)>());
   inactive_edges.assign(n, std::unordered_set<EdgeInfo, decltype(edge_info_hash_endpoint)>());
+  is_var_unassigned.assign(n_vars, true);
+}
+
+void ICDGraph::push_into_var_reachsets(const ReachSet &reach_from, const ReachSet &reach_to) {
+  var_reachsets.push_back(std::make_pair(reach_from, reach_to));
 }
 
 void ICDGraph::add_inactive_edge(int from, int to, int label) { inactive_edges[from].insert(std::make_pair(to, label)); }
@@ -146,6 +156,12 @@ bool ICDGraph::detect_cycle(int from, int to, int label) {
 }
 
 void ICDGraph::construct_propagated_lits(std::unordered_set<int> &forward_visited, std::unordered_set<int> &backward_visited) {
+#ifdef MONITOR_ENABLED
+  Monitor::get_monitor()->construct_uep_count++;
+  Monitor::get_monitor()->uep_b_size_sum += backward_visited.size();
+  Monitor::get_monitor()->uep_f_size_sum += forward_visited.size();
+#endif
+
   propagated_lits.clear();
 
 #ifdef EXTEND_VERTICES_IN_UEP
@@ -176,7 +192,34 @@ void ICDGraph::construct_propagated_lits(std::unordered_set<int> &forward_visite
   }
 #endif
 
+#ifdef EXTEND_KG_IN_UEP
+  std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
+  const int n_vars = var_reachsets.size();
+  int v_st = rng() % n_vars, v_steps = n_vars / 8;
+  for (int v = v_st; v < v_st + v_steps && v < n_vars; v++) {
+    if (!is_var_unassigned[v]) continue;
+    const auto &[reach_from, reach_to] = var_reachsets[v];
 
+    // std::cerr << reach_from.count() << " " << reach_to.count() << std::endl;
+    
+    auto intersect_with = [&](std::unordered_set<int> &s1, const ReachSet &s2) -> bool {
+      for (int x : s1) {
+        if (s2.test(x)) return true;
+      }
+      return false;
+    };
+
+    if (intersect_with(backward_visited, reach_to) && intersect_with(forward_visited, reach_from)) {
+#ifdef MONITOR_ENABLED
+      Monitor::get_monitor()->propagated_lit_add_times++;
+#endif      
+      propagated_lits.push_back(mkLit((Var)v, false));
+    }
+  }
+  return;
+#endif
+
+  // ifdef EXTEND_KG_IN_UEP, the rest part of this function would not be executed
   for (int x : forward_visited) {
     for (const auto &[y, label] : inactive_edges[x]) {
       if (backward_visited.contains(y)) {
@@ -259,5 +302,7 @@ bool ICDGraph::check_acyclicity() {
   }
   return (int(order.size()) == n); 
 }
+
+void ICDGraph::set_var_status(int var, bool is_unassgined) { is_var_unassigned[var] = is_unassgined; }
 
 } // namespace Minisat

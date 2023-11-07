@@ -2,16 +2,16 @@ import os
 import subprocess
 from prettytable import PrettyTable
 
-history_type = 'dbcop'
+history_type = 'cobra'
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
-# history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'one-shot-chengRW')
-history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type))
+history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'one-shot-chengRW')
+# history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type))
 print(history_path)
 # checker_path = os.path.join(root_path, 'builddir-debugoptimized', 'checker')
 checker_path = os.path.join(root_path, 'builddir', 'checker')
 table = PrettyTable()
 table.field_names = ['name', '#sessions', '#txns', '#events', '#constrains', 'construct time', 'prune time', 'init time', 'solve time', 'status']
-solver = 'monosat'
+solver = 'acyclic-minisat'
 print('[use] {} as backend solver'.format(solver))
 for history_dir in os.listdir(history_path):
   # if len(history_dir) >= 14 or (history_dir[0] > '9' or history_dir[0] < '0'):
