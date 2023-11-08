@@ -21,7 +21,7 @@ class AcyclicSolverHelper {
 
 public:
   std::vector<std::vector<Lit>> conflict_clauses;
-  std::vector<Lit> propagated_lits;
+  std::vector<std::pair<Lit, std::vector<Lit>>> propagated_lits; // <lit, reason>
   AcyclicSolverHelper(Polygraph *_polygraph);
   void add_var(int var);
   void remove_var(int var);

@@ -81,7 +81,7 @@ void ICDGraph::get_minimal_cycle(std::vector<Lit> &cur_conflict_clauses) {
   conflict_clause.clear();
 }
 
-void ICDGraph::get_propagated_lits(std::vector<Lit> &cur_propagated_lits) {
+void ICDGraph::get_propagated_lits(std::vector<std::pair<Lit, std::vector<Lit>>> &cur_propagated_lits) {
   cur_propagated_lits.clear();
   for (auto lit : propagated_lits) cur_propagated_lits.push_back(lit);
   propagated_lits.clear();
@@ -152,11 +152,15 @@ bool ICDGraph::detect_cycle(int from, int to, int label) {
     }
     forward_visited.insert(x);
   }
-  construct_propagated_lits(forward_visited, backward_visited);
+  construct_propagated_lits(forward_visited, backward_visited, forward_pred, backward_pred, from, to, label);
   return false;
 }
 
-void ICDGraph::construct_propagated_lits(std::unordered_set<int> &forward_visited, std::unordered_set<int> &backward_visited) {
+void ICDGraph::construct_propagated_lits(std::unordered_set<int> &forward_visited, 
+                                         std::unordered_set<int> &backward_visited,
+                                         std::vector<EdgeInfo> &forward_pred,
+                                         std::vector<EdgeInfo> &backward_pred,
+                                         int from, int to, int label) {
 #ifdef MONITOR_ENABLED
   Monitor::get_monitor()->construct_uep_count++;
   Monitor::get_monitor()->uep_b_size_sum += backward_visited.size();
@@ -194,11 +198,33 @@ void ICDGraph::construct_propagated_lits(std::unordered_set<int> &forward_visite
 #endif
 
 #ifdef EXTEND_KG_IN_UEP
-  auto intersect_with = [&](std::unordered_set<int> &s1, const ReachSet &s2) -> bool {
+  auto intersect_node = [&](std::unordered_set<int> &s1, const ReachSet &s2) -> int {
     for (int x : s1) {
-      if (s2.test(x)) return true;
+      if (s2.test(x)) return x;
     }
-    return false;
+    return -1;
+  };
+  auto construct_reason_lits = [&](int b_node, int f_node) -> std::vector<Lit> {
+    std::vector<int> vars;
+    for (int x = b_node; x != from; ) {
+      const auto &[pred, l] = backward_pred[x];
+      if (l != -1) vars.push_back(l);
+      x = pred;
+    }
+    for (int x = f_node; x != to; ) {
+      const auto &[pred, l] = forward_pred[x];
+      if (l != -1) vars.push_back(l);
+      x = pred;
+    }
+    vars.push_back(label);
+    std::sort(vars.begin(), vars.end());
+    vars.erase(std::unique(vars.begin(), vars.end()), vars.end());
+    
+    std::vector<Lit> reason_lits;
+    for (auto v : vars) {
+      reason_lits.push_back(~mkLit(v, false));
+    }
+    return std::move(reason_lits);
   };
 
   // * random version
@@ -219,34 +245,41 @@ void ICDGraph::construct_propagated_lits(std::unordered_set<int> &forward_visite
 
   // * queue version
   
-  for (int cnt = 0; cnt < n_vars / 40; cnt++) {
+  for (int cnt = 0; cnt < n_vars; cnt++) {
     int v = vars_queue.front(); vars_queue.pop();
-    if (!is_var_unassigned[v]) { 
+    if (!is_var_unassigned[v]) {
       vars_queue.push(v);
-      continue; 
+      continue;
     }
     const auto &[reach_from, reach_to] = var_reachsets[v];
-    if (intersect_with(backward_visited, reach_to) && intersect_with(forward_visited, reach_from)) {
-#ifdef MONITOR_ENABLED
-      Monitor::get_monitor()->propagated_lit_add_times++;
-#endif      
-      propagated_lits.push_back(mkLit((Var)v, false));
+    int b_node = intersect_node(backward_visited, reach_to);
+    if (b_node == -1) {
       vars_queue.push(v);
-      break;
+      continue;
     }
+    int f_node = intersect_node(forward_visited, reach_from);
+    if (f_node == -1) {
+      vars_queue.push(v);
+      continue;
+    }
+    // propagate
+    std::vector<Lit> reason_lits = construct_reason_lits(b_node, f_node);
+    propagated_lits.push_back(std::make_pair(~mkLit((Var)v, false), reason_lits));
+
     vars_queue.push(v);
+    break;
   }
   return;
 #endif
 
   // ifdef EXTEND_KG_IN_UEP, the rest part of this function would not be executed
-  for (int x : forward_visited) {
-    for (const auto &[y, label] : inactive_edges[x]) {
-      if (backward_visited.contains(y)) {
-        propagated_lits.push_back(mkLit((Var)label, false)); // sign = false: v, sign = true: ~v
-      }
-    }
-  }
+  // for (int x : forward_visited) {
+  //   for (const auto &[y, label] : inactive_edges[x]) {
+  //     if (backward_visited.contains(y)) {
+  //       propagated_lits.push_back(mkLit((Var)label, false)); // sign = false: v, sign = true: ~v
+  //     }
+  //   }
+  // }
 }
 
 bool ICDGraph::construct_backward_cycle(std::vector<EdgeInfo> &backward_pred, int from, int to, int label) {

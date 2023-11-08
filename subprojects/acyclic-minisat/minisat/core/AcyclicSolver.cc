@@ -20,6 +20,8 @@ CRef AcyclicSolver::propagate() {
   CRef confl = CRef_Undef;
   int num_props = 0;
 
+  std::vector<int> vars_to_add;
+
   while (qhead < trail.size()) {
     Lit p = trail[qhead++]; // 'p' is enqueued fact to propagate.
     vec<Watcher> &ws = watches.lookup(p);
@@ -34,47 +36,52 @@ CRef AcyclicSolver::propagate() {
     solver_helper->add_var(var(p));
     if (value(var(p)) == l_True) {
       int v = var(p);
-      if (!added_var[v]) {
-
-#ifdef MONITOR_ENABLED
-        Monitor::get_monitor()->add_edge_times++;
-#endif
-        // TODO: handle cycle whose width = 2
-        bool cycle = !solver_helper->add_edges_of_var(v);
-        if (cycle) {
-
-#ifdef MONITOR_ENABLED
-          Monitor::get_monitor()->find_cycle_times++;
-#endif
-          auto &conflict_clause = solver_helper->conflict_clauses.back();
-          vec<Lit> clause;
-          for (Lit l : conflict_clause) clause.push(~l);
-
-#ifdef MONITOR_ENABLED
-          Monitor::get_monitor()->cycle_edge_count_sum += clause.size();
-#endif
-
-          // std::cerr << "Adding: " << v << "\n";
-          // for (Lit l : conflict_clause) std::cerr << var(l) << "\n";
-          // std::cerr << "\n";
-
-          confl = ca.alloc(clause, false); 
-          solver_helper->conflict_clauses.pop_back();
-        } else {
-          added_var[v] = true;
-          add_atom(v);
-
-          auto &propagated_lits = solver_helper->propagated_lits;
-          for (Lit l : propagated_lits) {
-            if (value(l) == l_Undef) {
-              propagated_lits_trail.push(l);
-              // uncheckedEnqueue(l);
-            }
-          } 
-          propagated_lits.clear();
-        }
-      } 
+      if (!added_var[v]) { // TODO: this condition may be useless
+        vars_to_add.push_back(v);
+      }
     }
+//     if (value(var(p)) == l_True) {
+//       int v = var(p);
+//       if (!added_var[v]) {
+
+// #ifdef MONITOR_ENABLED
+//         Monitor::get_monitor()->add_edge_times++;
+// #endif
+//         bool cycle = !solver_helper->add_edges_of_var(v);
+//         if (cycle) {
+
+// #ifdef MONITOR_ENABLED
+//           Monitor::get_monitor()->find_cycle_times++;
+// #endif
+//           auto &conflict_clause = solver_helper->conflict_clauses.back();
+//           vec<Lit> clause;
+//           for (Lit l : conflict_clause) clause.push(~l);
+
+// #ifdef MONITOR_ENABLED
+//           Monitor::get_monitor()->cycle_edge_count_sum += clause.size();
+// #endif
+
+//           // std::cerr << "Adding: " << v << "\n";
+//           // for (Lit l : conflict_clause) std::cerr << var(l) << "\n";
+//           // std::cerr << "\n";
+
+//           confl = ca.alloc(clause, false); 
+//           solver_helper->conflict_clauses.pop_back();
+//         } else {
+//           added_var[v] = true;
+//           add_atom(v);
+
+//           auto &propagated_lits = solver_helper->propagated_lits;
+//           for (Lit l : propagated_lits) {
+//             if (value(l) == l_Undef) {
+//               propagated_lits_trail.push(l);
+//               // uncheckedEnqueue(l);
+//             }
+//           } 
+//           propagated_lits.clear();
+//         }
+//       } 
+//     }
 
     // ---addon end---
 
@@ -128,8 +135,64 @@ CRef AcyclicSolver::propagate() {
     }
     ws.shrink(i - j);
   }
+
+  // ---- addon begin ----
+  bool re_propagate = false;
+  if (confl == CRef_Undef) {
+    bool cycle = false;
+    for (const auto &v : vars_to_add) {
+      cycle = !solver_helper->add_edges_of_var(v);
+      if (cycle) {
+#ifdef MONITOR_ENABLED
+        Monitor::get_monitor()->find_cycle_times++;
+#endif
+        auto &conflict_clause = solver_helper->conflict_clauses.back();
+        vec<Lit> clause;
+        for (Lit l : conflict_clause) clause.push(~l);
+
+#ifdef MONITOR_ENABLED
+        Monitor::get_monitor()->cycle_edge_count_sum += clause.size();
+#endif
+
+        // std::cerr << "Adding: " << v << "\n";
+        // for (Lit l : conflict_clause) std::cerr << var(l) << "\n";
+        // std::cerr << "\n";
+
+        confl = ca.alloc(clause, false); 
+        solver_helper->conflict_clauses.pop_back();
+      } else {
+        added_var[v] = true;
+        add_atom(v);
+
+        auto &propagated_lits = solver_helper->propagated_lits;
+        for (const auto &[lit, reason_lits] : propagated_lits) {
+          if (value(lit) == l_Undef) {
+            re_propagate = true;
+            vec<Lit> learnt_clause;
+            learnt_clause.push(lit); // lit is always false
+            for (const auto &l : reason_lits) {
+              if (l != lit) learnt_clause.push(l);
+            }
+            CRef cr = ca.alloc(learnt_clause, true);
+            uncheckedEnqueue(lit, cr);
+#ifdef MONITOR_ENABLED
+            Monitor::get_monitor()->propagated_lit_times++;
+#endif
+          }
+        }
+        propagated_lits.clear();
+    }
+    }
+  }
+  // ---- addon end ----
+
   propagations += num_props;
   simpDB_props -= num_props;
+
+  if (re_propagate) {
+    assert(confl == CRef_Undef);
+    return propagate();
+  }
 
   return confl;
 }
@@ -261,22 +324,16 @@ lbool AcyclicSolver::search(int nof_conflicts) {
         // New variable decision:
         decisions++;
 
-        for (int i = propagated_lits_trail.size() - 1; i >= 0; i--) {
-          Lit &l = propagated_lits_trail[i];
-          if (value(l) == l_Undef) {
-            next = l;
-            break;
-          }
-        }
-
-#ifdef MONITOR_ENABLED
-        if (next != lit_Undef) {
-          Monitor::get_monitor()->propagated_lit_times++;
-        }    
-#endif
+        // for (int i = propagated_lits_trail.size() - 1; i >= 0; i--) {
+        //   Lit &l = propagated_lits_trail[i];
+        //   if (value(l) == l_Undef) {
+        //     next = l;
+        //     break;
+        //   }
+        // }
 
         if (next == lit_Undef) {
-          next = pickBranchLit(); // TODO: propagated vars can be called here
+          next = pickBranchLit();
         }
 
         if (next == lit_Undef)
