@@ -4,6 +4,7 @@
 #include <tuple>
 #include <vector>
 #include <bitset>
+#include <queue>
 #include <unordered_set>
 
 #include "minisat/mtl/Vec.h"
@@ -38,6 +39,7 @@ class ICDGraph {
   int check_cnt = 0;
   std::vector<std::pair<ReachSet, ReachSet>> var_reachsets; // {<reach_from, reach_to>}
   std::vector<bool> is_var_unassigned;
+  std::queue<int> vars_queue;
 
   bool check_acyclicity();
   bool detect_cycle(int from, int to, int label);

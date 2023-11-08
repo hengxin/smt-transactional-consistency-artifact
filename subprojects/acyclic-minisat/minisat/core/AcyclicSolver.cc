@@ -58,7 +58,7 @@ CRef AcyclicSolver::propagate() {
           // for (Lit l : conflict_clause) std::cerr << var(l) << "\n";
           // std::cerr << "\n";
 
-          confl = ca.alloc(clause, false); // TODO: learnt = true, to trigger claBumpActivity()
+          confl = ca.alloc(clause, false); 
           solver_helper->conflict_clauses.pop_back();
         } else {
           added_var[v] = true;
@@ -173,7 +173,7 @@ void AcyclicSolver::cancelUntil(int level) {
   }
 }
 
-lbool AcyclicSolver::search(int nof_conflicts) { // same as Solver.cc
+lbool AcyclicSolver::search(int nof_conflicts) { 
   assert(ok);
   int         backtrack_level;
   int         conflictC = 0;
@@ -240,7 +240,7 @@ lbool AcyclicSolver::search(int nof_conflicts) { // same as Solver.cc
         reduceDB();
 
       Lit next = lit_Undef;
-      // assumptions was cleared before entering solve(), so the following while will not be executed
+      // assumptions was cleared before entering solve(), so the following `while` will never be executed
       while (decisionLevel() < assumptions.size()) {
         // Perform user provided assumption:
         Lit p = assumptions[decisionLevel()];

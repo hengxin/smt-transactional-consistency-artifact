@@ -2,10 +2,10 @@ import os
 import subprocess
 from prettytable import PrettyTable
 
-history_type = 'cobra'
+history_type = 'dbcop'
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
-history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'one-shot-chengRW')
-# history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type))
+# history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'one-shot-chengRW')
+history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type))
 print(history_path)
 # checker_path = os.path.join(root_path, 'builddir-debugoptimized', 'checker')
 checker_path = os.path.join(root_path, 'builddir', 'checker')

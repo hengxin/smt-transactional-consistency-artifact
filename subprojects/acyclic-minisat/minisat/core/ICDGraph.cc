@@ -33,6 +33,7 @@ void ICDGraph::init(int _n_vertices = 0, int n_vars = 0) {
 }
 
 void ICDGraph::push_into_var_reachsets(const ReachSet &reach_from, const ReachSet &reach_to) {
+  vars_queue.push(int(var_reachsets.size()));
   var_reachsets.push_back(std::make_pair(reach_from, reach_to));
 }
 
@@ -193,28 +194,47 @@ void ICDGraph::construct_propagated_lits(std::unordered_set<int> &forward_visite
 #endif
 
 #ifdef EXTEND_KG_IN_UEP
-  std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
+  auto intersect_with = [&](std::unordered_set<int> &s1, const ReachSet &s2) -> bool {
+    for (int x : s1) {
+      if (s2.test(x)) return true;
+    }
+    return false;
+  };
+
+  // * random version
+//   std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
   const int n_vars = var_reachsets.size();
-  int v_st = rng() % n_vars, v_steps = n_vars / 8;
-  for (int v = v_st; v < v_st + v_steps && v < n_vars; v++) {
-    if (!is_var_unassigned[v]) continue;
+//   int v_st = rng() % n_vars, v_steps = n_vars / 6;
+//   for (int v = v_st; v < v_st + v_steps && v < n_vars; v++) {
+//     if (!is_var_unassigned[v]) continue;
+//     const auto &[reach_from, reach_to] = var_reachsets[v];
+//     if (intersect_with(backward_visited, reach_to) && intersect_with(forward_visited, reach_from)) {
+// #ifdef MONITOR_ENABLED
+//       Monitor::get_monitor()->propagated_lit_add_times++;
+// #endif      
+//       propagated_lits.push_back(mkLit((Var)v, false));
+//       break;
+//     }
+//   }
+
+  // * queue version
+  
+  for (int cnt = 0; cnt < n_vars / 40; cnt++) {
+    int v = vars_queue.front(); vars_queue.pop();
+    if (!is_var_unassigned[v]) { 
+      vars_queue.push(v);
+      continue; 
+    }
     const auto &[reach_from, reach_to] = var_reachsets[v];
-
-    // std::cerr << reach_from.count() << " " << reach_to.count() << std::endl;
-    
-    auto intersect_with = [&](std::unordered_set<int> &s1, const ReachSet &s2) -> bool {
-      for (int x : s1) {
-        if (s2.test(x)) return true;
-      }
-      return false;
-    };
-
     if (intersect_with(backward_visited, reach_to) && intersect_with(forward_visited, reach_from)) {
 #ifdef MONITOR_ENABLED
       Monitor::get_monitor()->propagated_lit_add_times++;
 #endif      
       propagated_lits.push_back(mkLit((Var)v, false));
+      vars_queue.push(v);
+      break;
     }
+    vars_queue.push(v);
   }
   return;
 #endif

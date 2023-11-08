@@ -309,10 +309,7 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         assert(confl != CRef_Undef); // (otherwise should be UIP)
         Clause& c = ca[confl];
 
-        if (c.learnt()) {
-            // std::cerr << "111" << std::endl;
-            claBumpActivity(c);
-        }
+        if (c.learnt()) { claBumpActivity(c); }
 
         for (int j = (p == lit_Undef) ? 0 : 1; j < c.size(); j++){
             Lit q = c[j];
