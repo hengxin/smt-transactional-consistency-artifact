@@ -11,6 +11,8 @@
 
 #define MONITOR_ENABLED 1
 
+// #define ENABLE_UEP 1
+
 // #define EXTEND_VERTICES_IN_UEP 1
 
 #define EXTEND_KG_IN_UEP 1

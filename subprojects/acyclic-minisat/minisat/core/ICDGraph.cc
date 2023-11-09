@@ -152,7 +152,9 @@ bool ICDGraph::detect_cycle(int from, int to, int label) {
     }
     forward_visited.insert(x);
   }
+#ifdef ENABLE_UEP
   construct_propagated_lits(forward_visited, backward_visited, forward_pred, backward_pred, from, to, label);
+#endif  
   return false;
 }
 
