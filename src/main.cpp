@@ -88,9 +88,7 @@ auto main(int argc, char **argv) -> int {
   auto history_type = args.get("--history-type");
   const auto all_history_types = std::set<std::string>{"cobra", "dbcop"};
   if (all_history_types.contains(history_type)) {
-    BOOST_LOG_TRIVIAL(debug)
-        << "history type: "
-        << history_type;
+    BOOST_LOG_TRIVIAL(debug) << "history type: " << history_type;
   } else {
     std::ostringstream os;
     os << "Invalid history type '" << history_type << "'";
@@ -125,17 +123,17 @@ auto main(int argc, char **argv) -> int {
 
   // compute known graph (WR edges) and constraints from history
   auto dependency_graph = history::known_graph_of(history);
-  auto constraints = history::constraints_of(history, dependency_graph.wr);
+  auto constraints = history::constraints_of(history);
 
   // std::cout << dependency_graph << std::endl;
 
-  auto display_constraints = [](const std::vector<history::Constraint> &constraints, std::string info = {""}) -> void {
-    if (info != "") std::cout << info << std::endl;
-    for (auto constraint : constraints) {
-      std::cout << constraint << std::endl;
-    }
-    std::cout << std::endl;
-  };
+  // auto display_constraints = [](const history::Constraints &constraints, std::string info = {""}) -> void {
+  //   if (info != "") std::cout << info << std::endl;
+  //   for (auto constraint : constraints) {
+  //     std::cout << constraint << std::endl;
+  //   }
+  //   std::cout << std::endl;
+  // };
   // display_constraints(constraints, "Constraints before Pruning:");
 
   {
@@ -150,9 +148,12 @@ auto main(int argc, char **argv) -> int {
     logger << "history: " << history << "\ndependency graph:\n"
            << dependency_graph;
 
-    for (const auto &c : constraints) {
-      logger << c;
-    }
+    logger << "constraints\n";
+    logger << "ww: \n";
+    const auto &[ww_constraints, wr_constraints] = constraints;
+    for (const auto &c : ww_constraints) { logger << c; }
+    logger << "wr: \n";
+    for (const auto &c : wr_constraints) { logger << c; }
   }
 
   auto accept = true;

@@ -6,13 +6,14 @@
 #include <tuple>
 #include <vector>
 #include <string>
+#include <set>
 
 #include "dependencygraph.h"
 #include "history.h"
 
 namespace checker::history {
 
-struct Constraint {
+struct WWConstraint {
   using Edge = std::tuple<int64_t, int64_t, EdgeInfo>;
 
   int64_t either_txn_id;
@@ -20,12 +21,28 @@ struct Constraint {
   std::vector<Edge> either_edges;
   std::vector<Edge> or_edges;
 
-  friend auto operator<<(std::ostream &os, const Constraint &constraint)
+  friend auto operator<<(std::ostream &os, const WWConstraint &constraint)
       -> std::ostream &;
 };
 
-auto constraints_of(const History &history, const DependencyGraph::SubGraph &wr)
-    -> std::vector<Constraint>;
+struct WRConstraint {
+  using Edge = std::tuple<int64_t, int64_t, EdgeInfo>;
+
+  int64_t key;
+  int64_t read_txn_id;
+  std::unordered_set<int64_t> write_txn_ids;
+
+  friend auto operator<<(std::ostream &os, const WRConstraint &constraint)
+      -> std::ostream &;
+};
+
+using WWConstraints = std::vector<WWConstraint>;
+using WRConstraints = std::vector<WRConstraint>;
+using Constraints = std::pair<WWConstraints, WRConstraints>;
+
+
+auto constraints_of(const History &history)
+    -> Constraints;
 
 }  // namespace checker::history
 

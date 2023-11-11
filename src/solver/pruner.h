@@ -8,7 +8,7 @@
 
 namespace checker::solver {
 auto prune_constraints(history::DependencyGraph &dependency_graph,
-                       std::vector<history::Constraint> &constraints) -> bool;
+                       history::Constraints &constraints) -> bool;
 }
 
 #endif  // CHECKER_SOLVER_PRUNER_H

@@ -54,7 +54,7 @@ using boost::source;
 using boost::target;
 using boost::vecS;
 using boost::vertex_index_t;
-using checker::history::Constraint;
+using checker::history::Constraints;
 using checker::utils::to;
 using std::back_inserter;
 using std::get;
@@ -106,98 +106,106 @@ struct std::equal_to<expr> {
 namespace checker::solver {
 
 Z3Solver::Z3Solver(const history::DependencyGraph &known_graph,
-               const vector<history::Constraint> &constraints)
-    : solver{context, z3::solver::simple{}} {
-  using Graph = adjacency_list<hash_setS, vecS, directedS, int64_t>;
-  using Vertex = Graph::vertex_descriptor;
-  using Edge = Graph::edge_descriptor;
-  using EdgeSet = unordered_set<Edge, boost::hash<Edge>>;
-
-  CHECKER_LOG_COND(trace, logger) {
-    logger << "wr:\n" << known_graph.wr << "cons:\n";
-    for (const auto &c : constraints) {
-      logger << c;
-    }
-  }
-
-  auto polygraph = Graph{};
-  auto vertex_map = unordered_map<int64_t, Vertex>{};
-  auto edge_map = unordered_map<pair<Vertex, Vertex>, Edge>{};
-
-  auto get_vertex = [&](int64_t id) {
-    if (vertex_map.contains(id)) {
-      return vertex_map.at(id);
-    }
-    return vertex_map.try_emplace(id, add_vertex(id, polygraph)).first->second;
-  };
-  auto get_edge = [&](int64_t from, int64_t to) {
-    auto from_desc = get_vertex(from);
-    auto to_desc = get_vertex(to);
-
-    if (auto it = edge_map.find({from_desc, to_desc}); it != edge_map.end()) {
-      return it->second;
-    } else {
-      return edge_map
-          .try_emplace({from_desc, to_desc},
-                       add_edge(from_desc, to_desc, polygraph).first)
-          .first->second;
-    }
-  };
-  auto add_constraint_edge = transform([&](const Constraint::Edge &e) {
-    const auto &[from, to, _] = e;
-    return get_edge(from, to);
-  });
-
-  auto constraint_edges = unordered_map<expr, vector<Edge>>{};
-
-  // use true as a dummy constraint variable for known edges
-  auto z3_true = context.bool_val(true);
-  auto known_edges = EdgeSet{};
-  for (const auto &[from, to, _] : known_graph.edges()) {
-    BOOST_LOG_TRIVIAL(trace) << "known: " << from << "->" << to;
-    known_edges.emplace(get_edge(from, to));
-  }
-  constraint_edges.try_emplace(z3_true, known_edges | to<vector<Edge>>);
-
-  for (const auto &c : constraints) {
-    std::stringstream either_name, or_name;
-    either_name << c.either_txn_id << "->" << c.or_txn_id;
-    or_name << c.or_txn_id << "->" << c.either_txn_id;
-
-    auto either_var = context.bool_const(either_name.str().c_str());
-    auto or_var = context.bool_const(or_name.str().c_str());
-    solver.add(either_var ^ or_var);
-
-    constraint_edges.try_emplace(
-        either_var, c.either_edges | add_constraint_edge | to<vector<Edge>>);
-    constraint_edges.try_emplace(
-        or_var, c.or_edges | add_constraint_edge | to<vector<Edge>>);
-  }
-
-  CHECKER_LOG_COND(trace, logger) {
-    logger << "vertex_map:";
-    for (auto [a, b] : vertex_map) {
-      logger << ' ' << a << ":" << b;
-    }
-  }
-
-  CHECKER_LOG_COND(trace, logger) {
-    logger << "constraint_edges:";
-    for (auto &&[c, v] : constraint_edges) {
-      logger << c.to_string() << '[';
-      for (auto i = 0_uz; i < v.size(); i++) {
-        logger << v[i];
-        if (i != v.size() - 1) {
-          logger << ' ';
-        }
-      }
-      logger << "] ";
-    }
-  }
-
-  user_propagator = std::make_unique<DependencyGraphHasNoCycle>(
-      solver, std::move(polygraph), std::move(constraint_edges));
+                   const history::Constraints &constraints)
+          : solver{context, z3::solver::simple{}} {
+  std::cerr << "Not implemented!" << std::endl;
+  assert(0);
+  // TODO: z3 solver
 }
+
+// Z3Solver::Z3Solver(const history::DependencyGraph &known_graph,
+//                const vector<history::Constraint> &constraints) 
+//     : solver{context, z3::solver::simple{}} {
+//   using Graph = adjacency_list<hash_setS, vecS, directedS, int64_t>;
+//   using Vertex = Graph::vertex_descriptor;
+//   using Edge = Graph::edge_descriptor;
+//   using EdgeSet = unordered_set<Edge, boost::hash<Edge>>;
+
+//   CHECKER_LOG_COND(trace, logger) {
+//     logger << "wr:\n" << known_graph.wr << "cons:\n";
+//     for (const auto &c : constraints) {
+//       logger << c;
+//     }
+//   }
+
+//   auto polygraph = Graph{};
+//   auto vertex_map = unordered_map<int64_t, Vertex>{};
+//   auto edge_map = unordered_map<pair<Vertex, Vertex>, Edge>{};
+
+//   auto get_vertex = [&](int64_t id) {
+//     if (vertex_map.contains(id)) {
+//       return vertex_map.at(id);
+//     }
+//     return vertex_map.try_emplace(id, add_vertex(id, polygraph)).first->second;
+//   };
+//   auto get_edge = [&](int64_t from, int64_t to) {
+//     auto from_desc = get_vertex(from);
+//     auto to_desc = get_vertex(to);
+
+//     if (auto it = edge_map.find({from_desc, to_desc}); it != edge_map.end()) {
+//       return it->second;
+//     } else {
+//       return edge_map
+//           .try_emplace({from_desc, to_desc},
+//                        add_edge(from_desc, to_desc, polygraph).first)
+//           .first->second;
+//     }
+//   };
+//   auto add_constraint_edge = transform([&](const Constraint::Edge &e) {
+//     const auto &[from, to, _] = e;
+//     return get_edge(from, to);
+//   });
+
+//   auto constraint_edges = unordered_map<expr, vector<Edge>>{};
+
+//   // use true as a dummy constraint variable for known edges
+//   auto z3_true = context.bool_val(true);
+//   auto known_edges = EdgeSet{};
+//   for (const auto &[from, to, _] : known_graph.edges()) {
+//     BOOST_LOG_TRIVIAL(trace) << "known: " << from << "->" << to;
+//     known_edges.emplace(get_edge(from, to));
+//   }
+//   constraint_edges.try_emplace(z3_true, known_edges | to<vector<Edge>>);
+
+//   for (const auto &c : constraints) {
+//     std::stringstream either_name, or_name;
+//     either_name << c.either_txn_id << "->" << c.or_txn_id;
+//     or_name << c.or_txn_id << "->" << c.either_txn_id;
+
+//     auto either_var = context.bool_const(either_name.str().c_str());
+//     auto or_var = context.bool_const(or_name.str().c_str());
+//     solver.add(either_var ^ or_var);
+
+//     constraint_edges.try_emplace(
+//         either_var, c.either_edges | add_constraint_edge | to<vector<Edge>>);
+//     constraint_edges.try_emplace(
+//         or_var, c.or_edges | add_constraint_edge | to<vector<Edge>>);
+//   }
+
+//   CHECKER_LOG_COND(trace, logger) {
+//     logger << "vertex_map:";
+//     for (auto [a, b] : vertex_map) {
+//       logger << ' ' << a << ":" << b;
+//     }
+//   }
+
+//   CHECKER_LOG_COND(trace, logger) {
+//     logger << "constraint_edges:";
+//     for (auto &&[c, v] : constraint_edges) {
+//       logger << c.to_string() << '[';
+//       for (auto i = 0_uz; i < v.size(); i++) {
+//         logger << v[i];
+//         if (i != v.size() - 1) {
+//           logger << ' ';
+//         }
+//       }
+//       logger << "] ";
+//     }
+//   }
+
+//   user_propagator = std::make_unique<DependencyGraphHasNoCycle>(
+//       solver, std::move(polygraph), std::move(constraint_edges));
+// }
 
 auto Z3Solver::solve() -> bool { return solver.check() == z3::sat; }
 

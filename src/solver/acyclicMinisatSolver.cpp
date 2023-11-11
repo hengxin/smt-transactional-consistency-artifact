@@ -19,6 +19,13 @@ namespace fs = std::filesystem;
 namespace checker::solver {
 
 AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known_graph,
+                                           const history::Constraints &constraints) {
+  std::cerr << "Not implemented!" << std::endl; // TODO: acyclic-minisat
+  assert(0);
+}
+
+/*
+AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known_graph,
                                            const std::vector<history::Constraint> &constraints) {
   // ? previous version: write to .agnf file
   // agnf_path = fs::current_path();
@@ -147,7 +154,7 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
   //   sub_constraints.emplace_back(std::make_pair(either_, or_));
   // }
 
-}
+} */
 
 auto AcyclicMinisatSolver::solve() -> bool {
   // TODO: call acyclic-minisat as backend solver

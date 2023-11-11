@@ -20,7 +20,7 @@ private:
 public:
     auto make(const std::string &solver_type, 
               const history::DependencyGraph &dependency_graph,
-              const std::vector<history::Constraint> &constraints) -> AbstractSolver * {
+              const history::Constraints &constraints) -> AbstractSolver * {
                 if (solver_type == "z3") {
                   return new Z3Solver{dependency_graph, constraints};
                 } else if (solver_type == "monosat") {

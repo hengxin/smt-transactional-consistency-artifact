@@ -29,7 +29,7 @@ struct AcyclicMinisatSolver : AbstractSolver {
   // std::vector<std::pair<SimplifiedKnownGraph, SimplifiedConstraints>> polygraph_components;
 
   AcyclicMinisatSolver(const history::DependencyGraph &known_graph,
-                       const std::vector<history::Constraint> &constraints);
+                       const history::Constraints &constraints);
 
   auto solve() -> bool override;
 

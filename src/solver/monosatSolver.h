@@ -20,7 +20,7 @@ struct MonosatSolver : AbstractSolver {
   fs::path gnf_path;
 
   MonosatSolver(const history::DependencyGraph &known_graph,
-                const std::vector<history::Constraint> &constraints);
+                const history::Constraints &constraints);
 
   auto solve() -> bool override;
 

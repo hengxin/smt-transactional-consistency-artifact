@@ -21,19 +21,25 @@ namespace fs = std::filesystem;
 namespace checker::solver {
 
 MonosatSolver::MonosatSolver(const history::DependencyGraph &known_graph,
-                            const std::vector<history::Constraint> &constraints) {
-  solver = newSolver();
-  gnf_path = fs::current_path();
-  gnf_path.append("monosat_tmp_input.gnf");
-  try {
-    utils::write_to_gnf_file(gnf_path, known_graph, constraints);
-  } catch (std::runtime_error &e) {
-    // TODO
-  };
-  BOOST_LOG_TRIVIAL(debug)
-  << "generating tmp file "
-  << gnf_path; 
+                             const history::Constraints &constraints) {
+  std::cerr << "Not Implemented!" << std::endl; // TODO: monosat
+  assert(0);
 }
+
+// MonosatSolver::MonosatSolver(const history::DependencyGraph &known_graph,
+//                             const std::vector<history::Constraint> &constraints) {
+//   solver = newSolver();
+//   gnf_path = fs::current_path();
+//   gnf_path.append("monosat_tmp_input.gnf");
+//   try {
+//     utils::write_to_gnf_file(gnf_path, known_graph, constraints);
+//   } catch (std::runtime_error &e) {
+//     // TODO
+//   };
+//   BOOST_LOG_TRIVIAL(debug)
+//   << "generating tmp file "
+//   << gnf_path; 
+// }
 
 auto MonosatSolver::solve() -> bool {
   readGNF(solver, gnf_path.c_str());
