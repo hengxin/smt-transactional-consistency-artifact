@@ -22,8 +22,14 @@ namespace checker::solver {
 
 MonosatSolver::MonosatSolver(const history::DependencyGraph &known_graph,
                              const history::Constraints &constraints) {
-  std::cerr << "Not Implemented!" << std::endl; // TODO: monosat
-  assert(0);
+  // TODO: monosat
+  solver = newSolver();
+  gnf_path = fs::current_path(); gnf_path.append("monosat_tmp_input.gnf");
+  try {
+    utils::write_to_gnf_file(gnf_path, known_graph, constraints);
+  } catch (std::runtime_error &e) {
+    // TODO
+  }
 }
 
 // MonosatSolver::MonosatSolver(const history::DependencyGraph &known_graph,

@@ -36,18 +36,18 @@ using std::ranges::views::transform;
 
 static auto check_history(const History &h) {
   auto depgraph = checker::history::known_graph_of(h);
-  auto cons = checker::history::constraints_of(h, depgraph.wr);
+  auto cons = checker::history::constraints_of(h);
 
   CHECKER_LOG_COND(trace, logger) {
     logger << "history:\n"
            << h << "\ndependency graph:\n"
            << depgraph << "\nconstraints:\n";
-    for (auto &&c : cons) {
-      logger << c << '\n';
-    }
+    // for (auto &&c : cons) {
+    //   logger << c << '\n';
+    // }
   }
-  return checker::solver::prune_constraints(depgraph, cons) &&
-         checker::solver::Z3Solver{depgraph, cons}.solve();
+//   return checker::solver::prune_constraints(depgraph, cons) &&
+    return checker::solver::Z3Solver{depgraph, cons}.solve();
 }
 
 static auto create_history(

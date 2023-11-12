@@ -75,7 +75,7 @@ subdir('src')
 checker_deps = [z3_dep, argparse_dep, boost_dep, monosat_dep, acyclic_minisat_dep]
 checker_opts = ['cpp_std=c++20']
 checker_incs = ['src']
-checker_cflags = ['-Ofast']
+checker_cflags = []
 checker_ldflags = []
 if get_option('buildtype') == 'debug'
   # temporarily disable address sanitizer, for monosat leads to too many mistakes, qaq
@@ -85,6 +85,7 @@ elif get_option('buildtype') == 'debugoptimized'
   checker_ldflags += ['-pg']
 elif get_option('buildtype') == 'release'
   checker_opts += ['b_lto=true']
+  checker_cflags += ['-Ofast']
 endif
 
 checker_common_deps = declare_dependency(

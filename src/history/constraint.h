@@ -18,8 +18,8 @@ struct WWConstraint {
 
   int64_t either_txn_id;
   int64_t or_txn_id;
-  std::vector<Edge> either_edges;
-  std::vector<Edge> or_edges;
+  std::vector<Edge> either_edges; // include (either_txn_id -> or_txn_id)
+  std::vector<Edge> or_edges; // include (or_txn_id -> either_txn_id)
 
   friend auto operator<<(std::ostream &os, const WWConstraint &constraint)
       -> std::ostream &;

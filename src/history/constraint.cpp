@@ -228,15 +228,16 @@ auto constraints_of(const History &history)
       for (const auto &[key, value] : read_txn_events) {
         auto wr_constraint = WRConstraint { .key = key, .read_txn_id = read_txn_id, .write_txn_ids = {} };
         for (const auto &write_txn_id : txns_per_write_event[std::make_pair(key, value)]) {
-          wr_constraint.write_txn_ids.insert(write_txn_id);
+          if (write_txn_id != read_txn_id) wr_constraint.write_txn_ids.insert(write_txn_id);
         }
-        wr_constraints.emplace_back(wr_constraint);
+        if (!wr_constraint.write_txn_ids.empty()) wr_constraints.emplace_back(wr_constraint);
       }
     }
   }
 
-  BOOST_LOG_TRIVIAL(info) << "#ww constraints: " << ww_constraints.size();
-  BOOST_LOG_TRIVIAL(info) << "#wr constraints: " << wr_constraints.size();
+  BOOST_LOG_TRIVIAL(debug) << "#ww constraints: " << ww_constraints.size();
+  BOOST_LOG_TRIVIAL(debug) << "#wr constraints: " << wr_constraints.size();
+  BOOST_LOG_TRIVIAL(info) << "#constraints: " << ww_constraints.size() + wr_constraints.size();
   return std::make_pair(ww_constraints, wr_constraints);
 }
 
