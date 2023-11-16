@@ -116,11 +116,12 @@ auto write_to_gnf_file(fs::path &gnf_path,
     std::unordered_set<std::pair<int64_t, int64_t>, decltype(hash_txns_pair)> reasons; // {<middle, key>}
   };
   auto rw_constraints = [&]() -> std::vector<RWConstraint> {
-    auto n = known_graph.num_vertices();
-    auto ww_edges = std::vector<std::unordered_set<int64_t>>(n, std::unordered_set<int64_t>());
+    auto nodes = std::unordered_set<int64_t>{};
+    auto ww_edges = std::unordered_map<int64_t, std::unordered_set<int64_t>>{};
     auto ww_edge_keys = std::unordered_map<std::pair<int64_t, int64_t>, std::unordered_set<int64_t>, decltype(hash_txns_pair)>{};
     auto add_ww_edge = [&](const history::WWConstraint::Edge &edge) -> void {
       const auto &[from, to, edge_info] = edge;
+      nodes.insert(from), nodes.insert(to);
       ww_edges[from].insert(to);
       for (const auto &key : edge_info.keys) {
         ww_edge_keys[std::make_pair(from, to)].insert(key);
@@ -130,10 +131,12 @@ auto write_to_gnf_file(fs::path &gnf_path,
       add_ww_edge(either_edges.at(0)), add_ww_edge(or_edges.at(0));
     }
 
-    auto wr_edges = std::vector<std::unordered_set<int64_t>>(n, std::unordered_set<int64_t>());
+    auto wr_edges = std::unordered_map<int64_t, std::unordered_set<int64_t>>{};
     auto wr_edge_keys = std::unordered_map<std::pair<int64_t, int64_t>, std::unordered_set<int64_t>, decltype(hash_txns_pair)>{};
     for (const auto &[key, read_txn_id, write_txn_ids] : wr_constraints) {
+      nodes.insert(read_txn_id);
       for (const auto &write_txn_id : write_txn_ids) {
+        nodes.insert(write_txn_id);
         wr_edges[write_txn_id].insert(read_txn_id);
         wr_edge_keys[std::make_pair(write_txn_id, read_txn_id)].insert(key);
       }
@@ -142,7 +145,7 @@ auto write_to_gnf_file(fs::path &gnf_path,
     auto rw_reasons_per_pair = std::unordered_map<std::pair<int64_t, int64_t>, 
                                                   std::unordered_set<std::pair<int64_t, int64_t>, decltype(hash_txns_pair)>, 
                                                   decltype(hash_txns_pair)>{}; // <from, to> -> <middle, key>
-    for (int64_t from = 0; from < n; from++) {
+    for (const auto &from : nodes) {
       for (const auto &wr_to : wr_edges[from]) {
         for (const auto &ww_to : ww_edges[from]) {
           if (wr_to == ww_to) continue;
@@ -163,15 +166,27 @@ auto write_to_gnf_file(fs::path &gnf_path,
                                   .to_txn_id = to,
                                   .reasons = reasons
                                   });
+      
+      std::cerr << "from = " << from << ", to = " << to << ", reasons = {";
+      for (const auto &[middle, key] : reasons) {
+        std::cerr << "(" << middle << ", " << key <<  ") ";
+      }
+      std::cerr << "}\n";
     }
     return rw_constraints;
   }();
 
   // 1. alloc variable ids
-  int n_vars = 0;
+  int n_vars = 0, n_nodes = 0;
+  auto id_of_node = std::unordered_map<int64_t, int>{};
   auto edge_of_id = std::unordered_map<int, std::pair<int64_t, int64_t>>{};
   auto id_of_edge = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{};
+  auto alloc_node_id = [&](int64_t node) -> void {
+    if (id_of_node.contains(node)) return;
+    id_of_node[node] = n_nodes++;
+  };
   auto alloc_edge_id = [&](int64_t from, int64_t to) -> void {
+    alloc_node_id(from), alloc_node_id(to);
     if (id_of_edge.contains(std::make_pair(from, to))) return;
     id_of_edge[std::make_pair(from, to)] = ++n_vars;
     edge_of_id[n_vars] = std::make_pair(from, to);
@@ -194,7 +209,7 @@ auto write_to_gnf_file(fs::path &gnf_path,
   // 1.1.4 RW edges
   for (const auto &[from, to, _] : rw_constraints) { alloc_edge_id(from, to); }
 
-  // 1.2 SO, WW, WR(i, j), RW(k, i, j)
+  // 1.2 SO, WW, RW(i, j), WR(k, i, j)
   auto so_edge_id = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{};
   auto ww_edge_id = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{};
   auto rw_edge_id = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{};
@@ -202,7 +217,7 @@ auto write_to_gnf_file(fs::path &gnf_path,
                                            std::unordered_map<int64_t, int>, 
                                            decltype(hash_txns_pair)>{};
   auto alloc_type_edge_id = [&n_vars](std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)> &type_edge_map, 
-                              int64_t from, int64_t to) -> void {
+                                      int64_t from, int64_t to) -> void {
     if (type_edge_map.contains(std::make_pair(from, to))) return;
     type_edge_map[std::make_pair(from, to)] = ++n_vars;
   };
@@ -239,7 +254,7 @@ auto write_to_gnf_file(fs::path &gnf_path,
   // 2. construct logical clauses
   auto clauses = std::vector<std::vector<int>>{};
   auto add_clause = [&clauses](std::vector<int> clause) { clauses.emplace_back(clause); };
-  // 2.1 (SO, WW, WR, RW(i, j)) <=> e(i, j)
+  // 2.1 (SO, WW, RW(i, j), WR(k, i, j)) <=> e(i, j)
   for (const auto &[edge, edge_id] : id_of_edge) {
     add_clause({edge_id, -so_edge_id[edge]});
     add_clause({edge_id, -ww_edge_id[edge]});
@@ -279,12 +294,14 @@ auto write_to_gnf_file(fs::path &gnf_path,
           }
         }
       }
-      for (const auto &[from, to, _] : edges) {
-        assert(id_of_edge.contains(std::make_pair(from, to)));
-        int edge_id = id_of_edge[std::make_pair(from, to)];
-        last_clause.emplace_back(-edge_id);
-        add_clause({-v, edge_id});
-      }
+
+      // for (const auto &[from, to, _] : edges) {
+      //   assert(id_of_edge.contains(std::make_pair(from, to)));
+      //   int edge_id = id_of_edge[std::make_pair(from, to)];
+      //   last_clause.emplace_back(-edge_id);
+      //   add_clause({-v, edge_id});
+      // }
+
       add_clause(last_clause);
     }; // bind variable v with edge set, add the logical formula into clauses 
     bind_edge_set(either_var, either_edges), bind_edge_set(or_var, or_edges);
@@ -330,7 +347,8 @@ auto write_to_gnf_file(fs::path &gnf_path,
   ofs << "digraph int " << known_graph.num_vertices() << " " << edge_of_id.size() << " 0\n";
   for (const auto &[edge, id] : id_of_edge) {
     const auto &[from, to] = edge;
-    ofs << "edge 0 " << from << " " << to << " " << id << "\n";
+    assert(id_of_node.contains(from) && id_of_node.contains(to));
+    ofs << "edge 0 " << id_of_node.at(from) << " " << id_of_node.at(to) << " " << id << "\n";
   }
   ofs << "acyclic 0 " << acyclicity_var << "\n";
   ofs.close();

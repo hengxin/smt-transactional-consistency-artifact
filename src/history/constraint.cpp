@@ -12,6 +12,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <cassert>
 
 #include "dependencygraph.h"
 #include "history.h"
@@ -230,7 +231,8 @@ auto constraints_of(const History &history)
         for (const auto &write_txn_id : txns_per_write_event[std::make_pair(key, value)]) {
           if (write_txn_id != read_txn_id) wr_constraint.write_txn_ids.insert(write_txn_id);
         }
-        if (!wr_constraint.write_txn_ids.empty()) wr_constraints.emplace_back(wr_constraint);
+        assert(!wr_constraint.write_txn_ids.empty());
+        wr_constraints.emplace_back(wr_constraint);
       }
     }
   }
