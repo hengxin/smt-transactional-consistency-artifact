@@ -94,7 +94,6 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
     
     // std::cerr << reach_from << " " << reach_to << std::endl;
   }
-
 #endif
 
 }

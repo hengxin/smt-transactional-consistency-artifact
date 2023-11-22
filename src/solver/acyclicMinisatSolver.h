@@ -5,17 +5,21 @@
 #include <utility>
 #include <filesystem>
 
+#include <acyclic_minisat.h>
+
 #include "abstractSolver.h"
 
 #include "history/constraint.h"
 #include "history/dependencygraph.h"
+
+using checker::history::EdgeType;
 
 namespace fs = std::filesystem;
 
 namespace checker::solver {
 
 struct AcyclicMinisatSolver : AbstractSolver {
-  using SimplifiedEdge = std::pair<int, int>;
+  using SimplifiedEdge = std::tuple<int, int, Minisat::EdgeType>;
   using SimplifiedKnownGraph = std::vector<SimplifiedEdge>;
   using SimplifiedEdgeSet = std::vector<SimplifiedEdge>;
   using SimplifiedConstraint = std::pair<SimplifiedEdgeSet, SimplifiedEdgeSet>;
@@ -24,8 +28,9 @@ struct AcyclicMinisatSolver : AbstractSolver {
   fs::path agnf_path;
 
   int n_vertices;
-  SimplifiedKnownGraph no_bridge_known_graph;
-  SimplifiedConstraints no_bridge_constraints;
+
+  SimplifiedKnownGraph simplified_known_graph;
+  SimplifiedConstraints simplified_constraints;
   // std::vector<std::pair<SimplifiedKnownGraph, SimplifiedConstraints>> polygraph_components;
 
   AcyclicMinisatSolver(const history::DependencyGraph &known_graph,

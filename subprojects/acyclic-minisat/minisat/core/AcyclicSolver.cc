@@ -143,9 +143,11 @@ CRef AcyclicSolver::propagate() {
     for (const auto &v : vars_to_add) {
       cycle = !solver_helper->add_edges_of_var(v);
       if (cycle) {
+
 #ifdef MONITOR_ENABLED
         Monitor::get_monitor()->find_cycle_times++;
 #endif
+
         auto &conflict_clause = solver_helper->conflict_clauses.back();
         vec<Lit> clause;
         for (Lit l : conflict_clause) clause.push(~l);
@@ -153,10 +155,6 @@ CRef AcyclicSolver::propagate() {
 #ifdef MONITOR_ENABLED
         Monitor::get_monitor()->cycle_edge_count_sum += clause.size();
 #endif
-
-        // std::cerr << "Adding: " << v << "\n";
-        // for (Lit l : conflict_clause) std::cerr << var(l) << "\n";
-        // std::cerr << "\n";
 
         confl = ca.alloc(clause, false); 
         solver_helper->conflict_clauses.pop_back();
@@ -175,13 +173,14 @@ CRef AcyclicSolver::propagate() {
             }
             CRef cr = ca.alloc(learnt_clause, true);
             uncheckedEnqueue(lit, cr);
+
 #ifdef MONITOR_ENABLED
             Monitor::get_monitor()->propagated_lit_times++;
 #endif
           }
         }
         propagated_lits.clear();
-    }
+      }
     }
   }
   // ---- addon end ----
@@ -211,14 +210,6 @@ void AcyclicSolver::cancelUntil(int level) {
       // --- addon end ---
     }
 
-    // if (level == 0 && trail_lim[level] != 0) {
-    //   std::cerr << "aaa" << "\n";
-    //   std::cerr << trail_lim[level] << "\n";
-    //   // for (int i = 0; i < trail_lim.size(); i++) std::cerr << trail_lim[i] << " ";
-    //   std::cerr << "\n"; 
-    // }
-
-    qhead = trail_lim[level];
     trail.shrink(trail.size() - trail_lim[level]);
     trail_lim.shrink(trail_lim.size() - level);
 
@@ -230,8 +221,6 @@ void AcyclicSolver::cancelUntil(int level) {
     }
     atom_trail.shrink(atom_trail.size() - atom_trail_lim[level]);
     atom_trail_lim.shrink(atom_trail_lim.size() - level);
-    propagated_lits_trail.shrink(propagated_lits_trail.size() - propagated_lits_trail_lim[level]);
-    propagated_lits_trail_lim.shrink(propagated_lits_trail_lim.size() - level);
     // ---addon end---
   }
 }
@@ -249,12 +238,7 @@ lbool AcyclicSolver::search(int nof_conflicts) {
     if (confl != CRef_Undef) {
       // CONFLICT
       conflicts++; conflictC++;
-      if (decisionLevel() == 0) {
-        // for (int i = qhead_backup; i < trail.size(); i++) {
-        //   std::cerr << var(trail[i]) << " " << std::boolalpha << (value(var(trail[i])) == l_True) << "\n";
-        // }
-        return l_False;
-      } 
+      if (decisionLevel() == 0) { return l_False; } 
 
       learnt_clause.clear();
       analyze(confl, learnt_clause, backtrack_level);
@@ -323,22 +307,8 @@ lbool AcyclicSolver::search(int nof_conflicts) {
       if (next == lit_Undef){
         // New variable decision:
         decisions++;
-
-        // for (int i = propagated_lits_trail.size() - 1; i >= 0; i--) {
-        //   Lit &l = propagated_lits_trail[i];
-        //   if (value(l) == l_Undef) {
-        //     next = l;
-        //     break;
-        //   }
-        // }
-
-        if (next == lit_Undef) {
-          next = pickBranchLit();
-        }
-
-        if (next == lit_Undef)
-          // Model found:
-          return l_True;
+        if (next == lit_Undef) { next = pickBranchLit(); }
+        if (next == lit_Undef) return l_True; // Model found
       }
 
       // Increase decision level and enqueue 'next'

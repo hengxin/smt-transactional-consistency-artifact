@@ -1,9 +1,4 @@
 #include "minisat/api/acyclic_minisat.h"
-#include "minisat/core/Solver.h"
-#include "minisat/core/Polygraph.h"
-#include "minisat/core/AcyclicSolver.h"
-#include "minisat/core/AcyclicSolverHelper.h"
-#include "minisat/core/Constructor.h"
 
 namespace Minisat {
 
@@ -22,7 +17,7 @@ bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &
   delete polygraph;
 
 #ifdef MONITOR_ENABLED
-        Monitor::get_monitor()->show_statistics();
+  Monitor::get_monitor()->show_statistics();
 #endif
 
   return accept;

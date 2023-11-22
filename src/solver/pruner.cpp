@@ -124,8 +124,8 @@ auto prune_constraints(DependencyGraph &dependency_graph,
     }();
 
     auto pred_edges = vector<dynamic_bitset<>>{n, dynamic_bitset<>{n}};
-    for (const auto &&edge : as_range(edges(known_induced_graph))) {
-      auto from = source(edge, known_induced_graph), to = target(edge, known_induced_graph);
+    for (const auto &&edge : as_range(edges(dep_graph))) {
+      auto from = source(edge, dep_graph), to = target(edge, dep_graph);
       pred_edges.at(to).set(from);
     }
 
