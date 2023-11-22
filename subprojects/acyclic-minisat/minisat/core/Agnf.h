@@ -22,6 +22,8 @@ namespace fs = std::filesystem;
 
 namespace Minisat {
 
+// ! warning: this implementation is full of bugs
+
 // constuct polygraph and make vars in sat solver
 Polygraph *construct(const fs::path &agnf_path, Solver &solver) {
 #ifdef USE_FSTREAM
@@ -92,7 +94,7 @@ Polygraph *construct(const fs::path &agnf_path, Solver &solver) {
     } 
 #endif
 
-    polygraph->add_known_edge(x, y);
+    polygraph->add_known_edge(x, y, EdgeType::WW); // bug 
   }
 
   // polygraph->rebuild_known_edges();
@@ -113,10 +115,9 @@ Polygraph *construct(const fs::path &agnf_path, Solver &solver) {
       } 
 #endif
 
-      polygraph->add_constraint_edge(i, from, to);
+      polygraph->add_constraint_edge(i, from, to, EdgeType::WW); // bug
     } 
 
-    // TODO: eliminate vars which contains zero edges
     if (i & 1) {
       solver.newVar(), solver.newVar();
       int v1 = i - 1, v2 = i;

@@ -14,7 +14,6 @@
 
 namespace Minisat {
 
-enum class EdgeType { WW, RW, WR, SO };
 
 class Polygraph {
 public:

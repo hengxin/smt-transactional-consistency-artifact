@@ -4,15 +4,14 @@
 #include <utility>
 #include <vector>
 
-#include "minisat/core/Solver.h"
-#include "minisat/core/Polygraph.h"
-#include "minisat/core/AcyclicSolver.h"
-#include "minisat/core/AcyclicSolverHelper.h"
-#include "minisat/core/Constructor.h"
-
 namespace Minisat {
 
-using Edge = std::tuple<int, int, EdgeType>;
+using Edge = std::tuple<int, int, int>; // <from, to, type>
+// here type should be positioned as c++ enum, but a severe problem was encountered when acyclic-minisat was being compiled as a shared lib, so a bad implementation was used instead
+// SO: 0
+// WW: 1
+// WR: 2
+// RW: 3
 using KnownGraph = std::vector<Edge>;
 using EdgeSet = std::vector<Edge>;
 using Constraint = std::pair<EdgeSet, EdgeSet>;

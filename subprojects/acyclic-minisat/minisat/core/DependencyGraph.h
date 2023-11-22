@@ -7,11 +7,11 @@
 
 namespace Minisat {
 
-constexpr static auto hash_pair = [](const auto &t) {
-  auto &[t1, t2] = t;
-  std::hash<int> h;
-  return h(t1) ^ h(t2); 
-};
+// constexpr static auto hash_pair = [](const auto &t) {
+//   auto &[t1, t2] = t;
+//   std::hash<int> h;
+//   return h(t1) ^ h(t2); 
+// };
 
 struct DependencyGraph {
   int n;

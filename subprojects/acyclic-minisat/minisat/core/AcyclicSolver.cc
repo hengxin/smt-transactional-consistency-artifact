@@ -33,7 +33,6 @@ CRef AcyclicSolver::propagate() {
 #endif
 
     // ---addon begin---
-    solver_helper->add_var(var(p));
     if (value(var(p)) == l_True) {
       int v = var(p);
       if (!added_var[v]) { // TODO: this condition may be useless
@@ -162,24 +161,24 @@ CRef AcyclicSolver::propagate() {
         added_var[v] = true;
         add_atom(v);
 
-        auto &propagated_lits = solver_helper->propagated_lits;
-        for (const auto &[lit, reason_lits] : propagated_lits) {
-          if (value(lit) == l_Undef) {
-            re_propagate = true;
-            vec<Lit> learnt_clause;
-            learnt_clause.push(lit); // lit is always false
-            for (const auto &l : reason_lits) {
-              if (l != lit) learnt_clause.push(l);
-            }
-            CRef cr = ca.alloc(learnt_clause, true);
-            uncheckedEnqueue(lit, cr);
+//         auto &propagated_lits = solver_helper->propagated_lits;
+//         for (const auto &[lit, reason_lits] : propagated_lits) {
+//           if (value(lit) == l_Undef) {
+//             re_propagate = true;
+//             vec<Lit> learnt_clause;
+//             learnt_clause.push(lit); // lit is always false
+//             for (const auto &l : reason_lits) {
+//               if (l != lit) learnt_clause.push(l);
+//             }
+//             CRef cr = ca.alloc(learnt_clause, true);
+//             uncheckedEnqueue(lit, cr);
 
-#ifdef MONITOR_ENABLED
-            Monitor::get_monitor()->propagated_lit_times++;
-#endif
-          }
-        }
-        propagated_lits.clear();
+// #ifdef MONITOR_ENABLED
+//             Monitor::get_monitor()->propagated_lit_times++;
+// #endif
+//           }
+//         }
+        // propagated_lits.clear();
       }
     }
   }
@@ -204,10 +203,6 @@ void AcyclicSolver::cancelUntil(int level) {
       if (phase_saving > 1 || ((phase_saving == 1) && c > trail_lim.last()))
         polarity[x] = sign(trail[c]);
       insertVarOrder(x);
-
-      // --- addon begin ---
-      solver_helper->remove_var(x);
-      // --- addon end ---
     }
 
     trail.shrink(trail.size() - trail_lim[level]);

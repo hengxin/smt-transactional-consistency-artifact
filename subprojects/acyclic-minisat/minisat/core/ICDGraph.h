@@ -6,6 +6,7 @@
 #include <bitset>
 #include <queue>
 #include <unordered_set>
+#include <unordered_map>
 
 #include "minisat/mtl/Vec.h"
 #include "minisat/core/SolverTypes.h"

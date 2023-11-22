@@ -1,3 +1,10 @@
+#include "minisat/core/EdgeType.h"
+#include "minisat/core/Constructor.h"
+#include "minisat/core/Solver.h"
+#include "minisat/core/Polygraph.h"
+#include "minisat/core/AcyclicSolver.h"
+#include "minisat/core/AcyclicSolverHelper.h"
+
 #include "minisat/api/acyclic_minisat.h"
 
 namespace Minisat {

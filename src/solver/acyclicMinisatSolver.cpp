@@ -18,13 +18,12 @@ namespace checker::solver {
 
 AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known_graph,
                                            const std::vector<history::Constraint> &constraints) {
-  // TODO: construct simplified_known_graph and simplified_constraints
-  auto get_minisat_edgetype = [](EdgeType t) -> Minisat::EdgeType {
+  auto get_minisat_edgetype = [](EdgeType t) -> int {
     switch (t) {
-      case EdgeType::SO: return Minisat::EdgeType::SO;
-      case EdgeType::WW: return Minisat::EdgeType::WW;
-      case EdgeType::WR: return Minisat::EdgeType::WR;
-      case EdgeType::RW: return Minisat::EdgeType::RW;
+      case EdgeType::SO: return 0;
+      case EdgeType::WW: return 1;
+      case EdgeType::WR: return 2;
+      case EdgeType::RW: return 3;
     }
     assert(0);
   };

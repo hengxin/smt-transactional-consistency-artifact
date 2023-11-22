@@ -18,6 +18,7 @@ namespace Minisat {
 AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   polygraph = _polygraph;
   auto n = polygraph->n_vertices;
+  induced_graph.init(n, polygraph->edges.size());
   dep_graph.init(n), antidep_graph.init(n);
   for (int i = 0; i < n; i++) antidep_graph.add_edge(i, i, /* var = */ -1); // init relexive closure of antidep_graph
 

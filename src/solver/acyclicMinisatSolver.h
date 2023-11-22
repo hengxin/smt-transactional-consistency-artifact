@@ -19,7 +19,7 @@ namespace fs = std::filesystem;
 namespace checker::solver {
 
 struct AcyclicMinisatSolver : AbstractSolver {
-  using SimplifiedEdge = std::tuple<int, int, Minisat::EdgeType>;
+  using SimplifiedEdge = std::tuple<int, int, int>;
   using SimplifiedKnownGraph = std::vector<SimplifiedEdge>;
   using SimplifiedEdgeSet = std::vector<SimplifiedEdge>;
   using SimplifiedConstraint = std::pair<SimplifiedEdgeSet, SimplifiedEdgeSet>;
