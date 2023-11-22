@@ -9,7 +9,6 @@
 #include "minisat/core/ICDGraph.h"
 #include "minisat/core/SolverTypes.h"
 #include "minisat/mtl/Vec.h"
-#include "minisat/core/DependencyGraph.h"
 
 // manage polygraph and ICDGraph
 
@@ -17,17 +16,19 @@ namespace Minisat {
 
 class AcyclicSolverHelper {
   Polygraph *polygraph;
-  ICDGraph induced_graph;
-  DependencyGraph dep_graph, antidep_graph;
-
-  bool add_dep_edge(int from, int to, EdgeType type, int var, bool is_known_edge = false);
-  void remove_dep_edge(int from, int to, EdgeType type, int var);
+  ICDGraph icd_graph;
+  std::set<std::pair<int, int>> vars_heap;
 
 public:
   std::vector<std::vector<Lit>> conflict_clauses;
+  std::vector<std::pair<Lit, std::vector<Lit>>> propagated_lits; // <lit, reason>
   AcyclicSolverHelper(Polygraph *_polygraph);
+  void add_var(int var);
+  void remove_var(int var);
   bool add_edges_of_var(int var);
   void remove_edges_of_var(int var);
+  Var get_var_represents_max_edges();
+  Var get_var_represents_min_edges();
 
 }; // class AcyclicSolverHelper
 
