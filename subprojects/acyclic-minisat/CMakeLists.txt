@@ -36,6 +36,7 @@ include_directories(${minisat_SOURCE_DIR})
 # Compile flags:
 
 add_definitions(-D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS)
+add_compile_options(-g)
 # add_compile_options(-Ofast -g -pg)
 
 #--------------------------------------------------------------------------------------------------

@@ -41,10 +41,12 @@ bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int fro
     const auto &pred = backward_pred[x];
     assert(!edge_reasons[x][pred].empty());
     add_var(*edge_reasons[x][pred].begin());
+    x = pred;
   }
   add_var(std::make_pair(ww_reason, rw_reason));
   std::sort(vars.begin(), vars.end());
   vars.erase(std::unique(vars.begin(), vars.end()), vars.end());
+  conflict_clause.clear();
   for (auto v : vars) conflict_clause.emplace_back(mkLit(v, false));
   return true;
 }
@@ -52,7 +54,6 @@ bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int fro
 bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred, 
                                std::vector<int> &forward_pred, 
                                int from, int to, int ww_reason, int rw_reason, int middle) {
-  // TODO
   // always return true
   std::vector<int> vars;
   auto add_var = [&vars](const std::pair<int, int> reason) -> bool {
@@ -66,15 +67,18 @@ bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred,
     const auto &pred = forward_pred[x];
     assert(!edge_reasons[pred][x].empty());
     add_var(*edge_reasons[pred][x].begin());
+    x = pred;
   }
   for (int x = middle; x != from; ) {
     const auto &pred = backward_pred[x];
     assert(!edge_reasons[x][pred].empty());
     add_var(*edge_reasons[x][pred].begin()); 
+    x = pred;
   }
   add_var(std::make_pair(ww_reason, rw_reason));
   std::sort(vars.begin(), vars.end());
   vars.erase(std::unique(vars.begin(), vars.end()), vars.end());
+  conflict_clause.clear();
   for (auto v : vars) conflict_clause.emplace_back(mkLit(v, false));
   return true;
 }
@@ -176,7 +180,7 @@ bool ICDGraph::add_edge(int from, int to, int ww_reason, int rw_reason) {
 
 void ICDGraph::remove_edge(int from, int to, int ww_reason, int rw_reason) {
   auto &reasons = edge_reasons[from][to];
-  assert(reasons.contains(std::make_pair(ww_reason, rw_reason)));
+  if (!reasons.contains(std::make_pair(ww_reason, rw_reason))) return;
   reasons.erase(reasons.find(std::make_pair(ww_reason, rw_reason)));
   if (reasons.empty()) { // reasons contains exactly 1 reason, delete this edge of (in & out)
     if (out[from].contains(to)) out[from].erase(to);

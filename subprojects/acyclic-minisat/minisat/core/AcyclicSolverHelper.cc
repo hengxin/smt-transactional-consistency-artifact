@@ -96,7 +96,7 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
   const auto &edges_of_var = polygraph->edges[var];
   for (const auto &[from, to, type] : edges_of_var) {
     cycle = !add_dep_edge(from, to, type, var);
-    if (!cycle) break;
+    if (cycle) break;
     added_dep_edges.push((DepGraphEdge){from, to, type, var});
   }
   if (!cycle) return true;

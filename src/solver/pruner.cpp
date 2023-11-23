@@ -2,7 +2,6 @@
 
 #include <boost/dynamic_bitset.hpp>
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/adjacency_matrix.hpp>
 #include <boost/graph/topological_sort.hpp>
 #include <boost/log/trivial.hpp>
 #include <cstdint>
@@ -12,6 +11,7 @@
 #include <ranges>
 #include <unordered_set>
 #include <vector>
+#include <queue>
 #include <cassert>
 #include <iostream>
 
@@ -20,15 +20,16 @@
 #include "utils/log.h"
 #include "utils/ranges.h"
 #include "utils/to_container.h"
+#include "utils/literal.h"
 
 using boost::add_edge;
 using boost::adjacency_list;
-using boost::adjacency_matrix;
 using boost::dynamic_bitset;
 using boost::no_named_parameters;
 using boost::not_a_dag;
 using boost::out_edges;
 using boost::edges;
+using boost::source;
 using boost::target;
 using boost::topological_sort;
 using checker::history::Constraint;
@@ -52,8 +53,7 @@ auto prune_constraints(DependencyGraph &dependency_graph,
   auto n = dependency_graph.num_vertices();
   auto &&vertex_map = dependency_graph.rw.vertex_map.left;
   auto pruned_constraints = unordered_set<Constraint *>{};
-  auto not_pruned =
-      filter([&](auto &&c) { return !pruned_constraints.contains(&c); });
+  auto not_pruned = filter([&](auto &&c) { return !pruned_constraints.contains(&c); });
   bool changed = true;
   
   CHECKER_LOG_COND(trace, logger) {
@@ -64,6 +64,8 @@ auto prune_constraints(DependencyGraph &dependency_graph,
   }
 
   while (changed) {
+    BOOST_LOG_TRIVIAL(trace) << "new pruning pass:";
+
     changed = false;
 
     auto dep_graph = adjacency_list<>{n}, anti_dep_graph = adjacency_list<>{n}, known_induced_graph = adjacency_list<>{n};
@@ -84,18 +86,32 @@ auto prune_constraints(DependencyGraph &dependency_graph,
       }
     }
 
+    CHECKER_LOG_COND(trace, logger) {
+      logger << "dep_graph:\n";
+      for (const auto &&e : as_range(edges(dep_graph))) {
+        auto from = source(e, dep_graph), to = target(e, dep_graph);
+        logger << from << " " << to << "\n"; 
+      }
+      logger << "antidep_graph:\n";
+      for (const auto &&e : as_range(edges(anti_dep_graph))) {
+        auto from = source(e, anti_dep_graph), to = target(e, anti_dep_graph);
+        logger << from << " " << to << "\n"; 
+      }
+      logger << "known_induced_graph:\n";
+      for (const auto &&e : as_range(edges(known_induced_graph))) {
+        auto from = source(e, known_induced_graph), to = target(e, known_induced_graph);
+        logger << from << " " << to << "\n"; 
+      }
+    }
+
     auto reverse_topo_order =
         [&]() -> optional<vector<adjacency_list<>::vertex_descriptor>> {
-
-
       auto v = vector<adjacency_list<>::vertex_descriptor>(n);
-
       try {
         topological_sort(known_induced_graph, v.begin(), no_named_parameters());
       } catch (not_a_dag &e) {
         return nullopt;
       }
-
       return {std::move(v)};
     }();
 
@@ -137,7 +153,7 @@ auto prune_constraints(DependencyGraph &dependency_graph,
               return false;
             }
           } else { // RW
-            if ((pred_edges.at(vertex_map.at(from)) & reachability.at(to)).any()) {
+            if ((pred_edges.at(vertex_map.at(from)) & reachability.at(vertex_map.at(to))).any()) {
               return false;
             }
           }

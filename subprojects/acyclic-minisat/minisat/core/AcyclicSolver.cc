@@ -23,7 +23,7 @@ CRef AcyclicSolver::propagate() {
   std::vector<int> vars_to_add;
 
   while (qhead < trail.size()) {
-    Lit p = trail[qhead++]; // 'p' is enqueued fact to propagate.
+    Lit p = trail[qhead++]; // 'p' is the enqueued fact to propagate.
     vec<Watcher> &ws = watches.lookup(p);
     Watcher *i, *j, *end;
     num_props++;

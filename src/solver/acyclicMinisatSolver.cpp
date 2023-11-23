@@ -42,6 +42,7 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
     };
     add_simplified_edges(simplified_either_edges, either_edges);
     add_simplified_edges(simplified_or_edges, or_edges);
+    simplified_constraints.emplace_back(std::make_pair(simplified_either_edges, simplified_or_edges));
   }
 }
 
