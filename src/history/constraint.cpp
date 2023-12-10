@@ -146,11 +146,42 @@ namespace checker::history {
 
 auto constraints_of(const History &history)
     -> std::pair<std::vector<WWConstraint>, std::vector<WRConstraint>> {
+  // 0. construct useful events(the first READ and the last WRITE per key) for each txn
+  auto useful_writes = std::vector<Event>{}, useful_reads = std::vector<Event>{};
+  {
+    for (const auto &session : history.sessions) {
+      for (const auto &txn : session.transactions) {
+        auto cur_value = std::unordered_map<int64_t, int64_t>{}; // key -> value (for current txn)
+        for (const auto &event : txn.events) {
+          const auto &[key, value, type, txn_id] = event;
+          if (type == EventType::READ) {
+            if (!cur_value.contains(key)) {
+              useful_reads.emplace_back(event);
+            } else {
+              if (cur_value[key] != value) 
+                throw std::runtime_error{"exception found in 1 txn."}; // violate ser
+            }
+          } else { // EventType::WRITE
+            cur_value[key] = value;
+          }
+        }
+        for (const auto &[key, value] : cur_value) {
+          useful_writes.emplace_back((Event) {
+            .key = key, 
+            .value = value, 
+            .type = EventType::WRITE, 
+            .transaction_id = txn.id
+          });
+        }
+      }
+    }
+  }
+  
   // 1. add ww constraints
   auto ww_constraints = std::vector<WWConstraint>{};
   {
     auto write_txns_per_key = unordered_map<int64_t, unordered_set<int64_t>>{};
-    for (const auto &event : history.events() | filter_write_event) {
+    for (const auto &event : useful_writes) {
       write_txns_per_key[event.key].emplace(event.transaction_id);
     }
 
@@ -217,12 +248,12 @@ auto constraints_of(const History &history)
   {
     // for each read event, find all write events that write the same value for each key 
     auto read_events_per_txn = std::unordered_map<int64_t, std::unordered_set<std::pair<int64_t, int64_t>, decltype(hash_txns_pair)>>{}; // txn_id -> <key, value>
-    for (const auto &event : history.events() | filter_read_event) {
+    for (const auto &event : useful_reads) {
       read_events_per_txn[event.transaction_id].insert(std::make_pair(event.key, event.value));
     }
     auto txns_per_write_event = std::unordered_map<std::pair<int64_t, int64_t>, std::unordered_set<int64_t>, decltype(hash_txns_pair)>{};
     // <key, value> -> txn_id, here hash_txns_pair is borrowed.
-    for (const auto &event : history.events() | filter_write_event) {
+    for (const auto &event : useful_writes) {
       txns_per_write_event[std::make_pair(event.key, event.value)].insert(event.transaction_id);
     }
     for (const auto &[read_txn_id, read_txn_events] : read_events_per_txn) {
@@ -231,7 +262,8 @@ auto constraints_of(const History &history)
         for (const auto &write_txn_id : txns_per_write_event[std::make_pair(key, value)]) {
           if (write_txn_id != read_txn_id) wr_constraint.write_txn_ids.insert(write_txn_id);
         }
-        assert(!wr_constraint.write_txn_ids.empty());
+        if (wr_constraint.write_txn_ids.empty()) 
+          throw std::runtime_error {"exception found in construct wr constraint: no matched value write"};
         wr_constraints.emplace_back(wr_constraint);
       }
     }

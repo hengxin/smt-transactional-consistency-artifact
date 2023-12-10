@@ -167,11 +167,11 @@ auto write_to_gnf_file(fs::path &gnf_path,
                                   .reasons = reasons
                                   });
       
-      std::cerr << "from = " << from << ", to = " << to << ", reasons = {";
-      for (const auto &[middle, key] : reasons) {
-        std::cerr << "(" << middle << ", " << key <<  ") ";
-      }
-      std::cerr << "}\n";
+      // std::cerr << "from = " << from << ", to = " << to << ", reasons = {";
+      // for (const auto &[middle, key] : reasons) {
+      //   std::cerr << "(" << middle << ", " << key <<  ") ";
+      // }
+      // std::cerr << "}\n";
     }
     return rw_constraints;
   }();

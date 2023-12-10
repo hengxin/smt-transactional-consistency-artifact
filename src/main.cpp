@@ -123,7 +123,15 @@ auto main(int argc, char **argv) -> int {
 
   // compute known graph (WR edges) and constraints from history
   auto dependency_graph = history::known_graph_of(history);
-  auto constraints = history::constraints_of(history);
+  auto constraints = std::pair<std::vector<history::WWConstraint>, std::vector<history::WRConstraint>>{};
+  try {
+    constraints = history::constraints_of(history); 
+  } catch (std::runtime_error &e) {
+    std::cerr << e.what() << std::endl;
+    auto accept = false;
+    std::cout << "accept: " << std::boolalpha << accept << std::endl;
+    return 0;
+  }
 
   // std::cout << dependency_graph << std::endl;
 
