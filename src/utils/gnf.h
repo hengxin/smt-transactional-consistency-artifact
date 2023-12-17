@@ -130,6 +130,9 @@ auto write_to_gnf_file(fs::path &gnf_path,
     for (const auto &[either_txn_id, or_txn_id, either_edges, or_edges] : ww_constraints) {
       add_ww_edge(either_edges.at(0)), add_ww_edge(or_edges.at(0));
     }
+    for (const auto &e : known_graph.ww.edges()) {
+      add_ww_edge(e);
+    }
 
     auto wr_edges = std::unordered_map<int64_t, std::unordered_set<int64_t>>{};
     auto wr_edge_keys = std::unordered_map<std::pair<int64_t, int64_t>, std::unordered_set<int64_t>, decltype(hash_txns_pair)>{};
@@ -139,6 +142,14 @@ auto write_to_gnf_file(fs::path &gnf_path,
         nodes.insert(write_txn_id);
         wr_edges[write_txn_id].insert(read_txn_id);
         wr_edge_keys[std::make_pair(write_txn_id, read_txn_id)].insert(key);
+      }
+    }
+    for (const auto &e : known_graph.wr.edges()) {
+      const auto &[from, to, info] = e;
+      nodes.insert(from), nodes.insert(to);
+      wr_edges[from].insert(to);
+      for (const auto &key : info.get().keys) {
+        wr_edge_keys[std::make_pair(from, to)].insert(key);
       }
     }
 
@@ -162,9 +173,9 @@ auto write_to_gnf_file(fs::path &gnf_path,
     for (const auto &[rw_edge, reasons] : rw_reasons_per_pair) {
       const auto &[from, to] = rw_edge;
       rw_constraints.emplace_back(RWConstraint{
-                                  .from_txn_id = from, 
-                                  .to_txn_id = to,
-                                  .reasons = reasons
+                                    .from_txn_id = from, 
+                                    .to_txn_id = to,
+                                    .reasons = reasons
                                   });
       
       // std::cerr << "from = " << from << ", to = " << to << ", reasons = {";
@@ -193,7 +204,7 @@ auto write_to_gnf_file(fs::path &gnf_path,
   };
 
   // 1.1 e(i, j)
-  // 1.1.1 SO edges
+  // 1.1.1 SO edges, and other possible edges in known graph(caused by pruning)
   for (const auto &[from, to, _] : known_graph.edges()) { alloc_edge_id(from, to); } 
   // 1.1.2 WW edges
   for (const auto &[either_txn_id, or_txn_id, _1, _2] : ww_constraints) {
@@ -236,6 +247,13 @@ auto write_to_gnf_file(fs::path &gnf_path,
       alloc_wr_key_edge_id(write_txn_id, read_txn_id, key);
     }
   }
+  for (const auto &e : known_graph.wr.edges()) {
+    const auto &[from, to, info] = e;
+    for (const auto &key : info.get().keys) {
+      alloc_wr_key_edge_id(from, to, key);
+    }
+  }
+
   // 1.3 edge sets of WW and RW edges
   auto either_edge_set_of_ww_constraint = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{}; 
   auto or_edge_set_of_ww_constraint = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{}; 
