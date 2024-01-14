@@ -52,10 +52,8 @@ Some histories are included in `history`, to check a history:
 Dbcop is used to generate histories. For example:
 
 ```sh
-# clone dbcop from https://github.com/CzxingcHen/dbcop
+# clone dbcop from https://github.com/amnore/dbcop
 docker-compose up -d -f docker/postgres/docker-compose.yml
-# or use (-f means --file, -d is an option for up)
-sudo docker-compose -f docker/postgres/docker-compose.yml up -d
 
 # build dbcop...
 
