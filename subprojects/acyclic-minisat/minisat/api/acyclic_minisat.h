@@ -4,13 +4,9 @@
 #include <utility>
 #include <vector>
 
-namespace Minisat {
+#include "minisat/api/acyclic_minisat_types.h"
 
-using Edge = std::pair<int, int>;
-using KnownGraph = std::vector<Edge>;
-using EdgeSet = std::vector<Edge>;
-using Constraint = std::pair<EdgeSet, EdgeSet>;
-using Constraints = std::vector<Constraint>;
+namespace Minisat {
 
 // precondition: known_graph and constraints must be remapped
 bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &constraints);

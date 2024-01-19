@@ -15,18 +15,19 @@ namespace fs = std::filesystem;
 namespace checker::solver {
 
 struct AcyclicMinisatSolver : AbstractSolver {
-  using SimplifiedEdge = std::pair<int, int>;
-  using SimplifiedKnownGraph = std::vector<SimplifiedEdge>;
-  using SimplifiedEdgeSet = std::vector<SimplifiedEdge>;
-  using SimplifiedConstraint = std::pair<SimplifiedEdgeSet, SimplifiedEdgeSet>;
-  using SimplifiedConstraints = std::vector<SimplifiedConstraint>;
+  using AMEdge = std::tuple<int, int, int, std::vector<int64_t>>; // <type, from, to, keys>
+                                                                  // see specific type info in "acyclic_minisat_types.h"
+  using AMKnownGraph = std::vector<AMEdge>;
+
+  using AMWWConstraint = std::tuple<int, int, std::vector<int64_t>>; // <either, or, keys>
+  using AMWRConstraint = std::tuple<int, std::vector<int>, int64_t>; // <read, write(s), key> 
+  using AMConstraints = std::pair<std::vector<AMWWConstraint>, std::vector<AMWRConstraint>>;
 
   fs::path agnf_path;
 
   int n_vertices;
-  SimplifiedKnownGraph no_bridge_known_graph;
-  SimplifiedConstraints no_bridge_constraints;
-  // std::vector<std::pair<SimplifiedKnownGraph, SimplifiedConstraints>> polygraph_components;
+  AMKnownGraph am_known_graph;
+  AMConstraints am_constraints;
 
   AcyclicMinisatSolver(const history::DependencyGraph &known_graph,
                        const history::Constraints &constraints);

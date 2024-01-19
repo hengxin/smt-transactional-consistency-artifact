@@ -279,7 +279,7 @@ auto prune_constraints(DependencyGraph &dependency_graph,
           if (auto e = dependency_graph.wr.edge(from, to); e) {
             copy(info.keys, back_inserter(e.value().get().keys));
           } else {
-            dependency_graph.rw.add_edge(from, to, info);
+            dependency_graph.wr.add_edge(from, to, info);
           }
           break;
         default:

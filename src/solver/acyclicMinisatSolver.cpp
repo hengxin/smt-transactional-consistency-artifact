@@ -15,13 +15,50 @@
 #include "utils/tarjan_graph.h"
 
 namespace fs = std::filesystem;
+using EdgeType = checker::history::EdgeType;
 
 namespace checker::solver {
 
 AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known_graph,
                                            const history::Constraints &constraints) {
-  std::cerr << "Not implemented!" << std::endl; // TODO: acyclic-minisat
-  assert(0);
+  // TODO: acyclic-minisat
+  auto node_id = std::unordered_map<int64_t, int>{};
+  auto nodes_cnt = 0;
+  auto remap = [&node_id, &nodes_cnt](int64_t x) -> int {
+    if (node_id.contains(x)) return node_id.at(x);
+    return node_id[x] = nodes_cnt++;
+  };
+
+  // 1. construct am_known_graph
+  for (const auto &[from, to, info] : known_graph.edges()) {
+    int t = -1;
+    switch (info.get().type) {
+      case EdgeType::SO : t = 0; break;
+      case EdgeType::WW : t = 1; break;
+      case EdgeType::WR : t = 2; break;
+      case EdgeType::RW : t = 3; break;
+      default: assert(false);
+    }
+    assert(t != -1);
+    am_known_graph.emplace_back(AMEdge{t, remap(from), remap(to), info.get().keys});
+  }
+
+  // 2. construct am_constraints
+  const auto &[ww_cons, wr_cons] = constraints;
+  auto &[am_ww_cons, am_wr_cons] = am_constraints;
+  // 2.1 construct ww_constraints
+  for (const auto &[either_, or_, either_edges, or_edges] : ww_cons) {
+    am_ww_cons.emplace_back(AMWWConstraint{remap(either_), remap(or_), get<2>(either_edges.at(0)).keys}); // edge info
+    // assert(either_edges.info.keys == or_edges.info.keys);
+  }
+  // 2.2 construct wr_constraints
+  for (const auto &[key, read_txn_id, write_txn_ids] : wr_cons) {
+    auto new_write_txn_ids = std::vector<int>();
+    std::transform(write_txn_ids.begin(), write_txn_ids.end(),
+                   new_write_txn_ids.begin(),
+                   remap);
+    am_wr_cons.emplace_back(AMWRConstraint{remap(read_txn_id), new_write_txn_ids, key});
+  }
 }
 
 /*
@@ -158,50 +195,7 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
 
 auto AcyclicMinisatSolver::solve() -> bool {
   // TODO: call acyclic-minisat as backend solver
-  // ? a toy implementation: call acyclic-minisat as a subprocess
-  // auto obuf = subprocess::check_output({"/home/rikka/acyclic-minisat/build/minisat_core", agnf_path});
-  // BOOST_LOG_TRIVIAL(debug) << "stdout of acyclic-minisat length: " << obuf.length;
-  // std::string output = "";
-  // for (char ch : obuf.buf) output += ch;
-  // output = output.substr(0, output.length() - 1); // delete last '\n'
-  // BOOST_LOG_TRIVIAL(debug) << "stdout of acyclic-minisat: " << output;
-  // return output == "SAT";
-
-  // auto remap = [](SimplifiedKnownGraph &known_graph, SimplifiedConstraints &constraints) -> int {
-  //   std::unordered_map<int, int> node_id;
-  //   int node_count = 0;
-  //   auto get_node_id = [&](int x) -> int {
-  //     if (!node_id.contains(x)) node_id[x] = node_count++;
-  //     return node_id.at(x);
-  //   };
-  //   for (auto &[from, to] : known_graph) {
-  //     from = get_node_id(from), to = get_node_id(to);
-  //   }
-  //   for (auto &[either_, or_] : constraints) {
-  //     for (auto &[from, to] : either_) {
-  //       from = get_node_id(from), to = get_node_id(to);
-  //     }
-  //     for (auto &[from, to] : or_) {
-  //       from = get_node_id(from), to = get_node_id(to);
-  //     }
-  //   }
-  //   return node_count;
-  // };
-
-  // bool accept = true;
-  // for (auto &[known_graph, constraints] : polygraph_components) {
-  //   if (constraints.empty()) continue;
-  //   int n_vertices = remap(known_graph, constraints);
-  //   BOOST_LOG_TRIVIAL(trace) 
-  //     << "solving for component, " 
-  //     << "#vertices: " << n_vertices << "; " 
-  //     << "#constraints: " << constraints.size();
-  //   accept &= Minisat::am_solve(n_vertices, known_graph, constraints);
-  //   if (!accept) return false;
-  // }
-  // return accept; // always true here
-
-  return Minisat::am_solve(n_vertices, no_bridge_known_graph, no_bridge_constraints);
+  return Minisat::am_solve(n_vertices, am_known_graph, am_constraints);
 }
 
 AcyclicMinisatSolver::~AcyclicMinisatSolver() = default;
