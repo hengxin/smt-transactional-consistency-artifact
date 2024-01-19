@@ -13,8 +13,44 @@
 namespace Minisat {
 
 Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constraints &constraints, Solver &solver) {
-  // TODO: construct
-  return nullptr;
+  // TODO: test construct()
+  // 1. construct known graph
+  Polygraph *polygraph = new Polygraph(n_vertices, /* n_vars = */ 0); // unused n_vars
+  for (const auto &[type, from, to, keys] : known_graph) {
+    polygraph->add_known_edge(from, to, type, keys);
+  }
+
+  int var_count = 0;
+  const auto &[ww_cons, wr_cons] = constraints;
+  // 2.1 construct WW constraint
+  for (const auto &[either_, or_, keys] : ww_cons) {
+    solver.newVar(), solver.newVar();
+    int v1 = var_count++, v2 = var_count++;
+
+    polygraph->map_ww_var(v1, either_, or_, keys);
+    polygraph->map_ww_var(v2, or_, either_, keys);
+
+    vec<Lit> lits; // v1 + v2 = 1 => (v1 | v2) & ((~v1) | (~v2))
+    lits.push(mkLit(v1)), lits.push(mkLit(v2));
+    solver.addClause_(lits); // (v1 | v2)
+    lits.clear(), lits.push(~mkLit(v1)), lits.push(~mkLit(v2));
+    solver.addClause_(lits); // ((~v1) | (~v2))
+  }
+  // 2.2 construct WR constraint 
+  for (const auto &[read, writes, key] : wr_cons) {
+    vec<Lit> lits;
+    for (const auto &write : writes) {
+      solver.newVar();
+      int v = var_count++; // WR(k)
+      polygraph->map_wr_var(v, write, read, key);
+      lits.push(mkLit(v));
+    }
+    solver.addClause_(lits); // v1 | v2 | ... | vn
+    // TODO: in fact, v1 + v2 + ... + vn = 1,
+    //       here we only consider the v1 + v2 + ... + vn >= 1 half,
+    //       another part which may introduce great power of unit propagate 
+  }
+  return polygraph;
 }
 
 // Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constraints &constraints, Solver &solver) {

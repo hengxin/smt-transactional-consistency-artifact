@@ -15,13 +15,13 @@
 #include "utils/tarjan_graph.h"
 
 namespace fs = std::filesystem;
+
 using EdgeType = checker::history::EdgeType;
 
 namespace checker::solver {
 
 AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known_graph,
                                            const history::Constraints &constraints) {
-  // TODO: acyclic-minisat
   auto node_id = std::unordered_map<int64_t, int>{};
   auto nodes_cnt = 0;
   auto remap = [&node_id, &nodes_cnt](int64_t x) -> int {

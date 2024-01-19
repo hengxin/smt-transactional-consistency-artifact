@@ -1,6 +1,10 @@
 #ifndef MINISAT_POLYGRAPH_H
 #define MINISAT_POLYGRAPH_H
 
+#include <cstdint>
+#include <set>
+#include <map>
+#include <unordered_map>
 #include <queue>
 #include <vector>
 #include <bitset>
@@ -14,64 +18,42 @@
 namespace Minisat {
 
 class Polygraph {
+  using WWVarInfo = std::tuple<int, int, std::vector<int64_t>>; // <from, to, keys>
+  using WRVarInfo = std::tuple<int, int, int64_t>; // <from, to, key>
+
 public:
   int n_vertices; // indexed in [0, n_vertices - 1]
   std::vector<std::pair<int, int>> known_edges;
   std::vector<std::vector<std::pair<int, int>>> edges; // if var i is assigned true, all edges in edges[i] must be added into the graph while keeping acyclicity
   
+  std::unordered_map<int, WWVarInfo> ww_info;
+  std::unordered_map<int, WRVarInfo> wr_info; // for solver vars
+
+  std::unordered_map<int, std::unordered_map<int, std::set<int64_t>>> ww_keys; 
+  std::unordered_map<int, std::unordered_map<int, std::set<int64_t>>> wr_keys; // for known graph
+
   Polygraph(int _n_vertices = 0, int _n_vars = 0) {
     n_vertices = _n_vertices;
     edges.assign(_n_vars, std::vector<std::pair<int, int>>());
   }
 
-  void add_known_edge(int from, int to) { known_edges.push_back(std::make_pair(from, to)); }
-
-  void rebuild_known_edges() {
-    static const int MAX_N_VERTICES = 100000;
-    auto reachablity = std::vector<std::bitset<MAX_N_VERTICES>>(n_vertices, std::bitset<MAX_N_VERTICES>());
-    auto graph = std::vector<std::vector<int>>(n_vertices, std::vector<int>());
-    for (const auto &[from, to] : known_edges) graph[from].push_back(to);
-    auto reversed_topo_order = [&]() {
-      std::vector<int> order;
-      std::vector<int> deg(n_vertices, 0);
-      for (int x = 0; x < n_vertices; x++) {
-        for (int y : graph[x]) ++deg[y];
-      }
-      std::queue<int> q;
-      for (int x = 0; x < n_vertices; x++) {
-        if (!deg[x]) q.push(x);
-      }
-      while (!q.empty()) {
-        int x = q.front(); q.pop();
-        order.push_back(x);
-        for (int y : graph[x]) {
-          --deg[y];
-          if (!deg[y]) q.push(y);
-        }
-      }
-      assert(int(order.size()) == n_vertices);
-      std::reverse(order.begin(), order.end());
-      return std::move(order);
-    }();
-
-    for (int x : reversed_topo_order) {
-      reachablity.at(x).set(x);
-      for (int y : graph[x]) {
-        reachablity.at(x) |= reachablity.at(y);
-      }
+  void add_known_edge(int from, int to, int type, const std::vector<int64_t> &keys) { 
+    known_edges.push_back(std::make_pair(from, to));
+    if (type == 1) { // WW
+      ww_keys[from][to].insert(keys.begin(), keys.end());
+    } else if (type == 2) { // WR
+      wr_keys[from][to].insert(keys.begin(), keys.end());
     }
+  }
 
-    std::vector<std::pair<int, int>> new_known_edges;
-    for (int x = 0; x < n_vertices; x++) {
-      for (int y = 0; y < n_vertices; y++) {
-        if (x == y) continue;
-        if (reachablity.at(x).test(y)) {
-          new_known_edges.push_back(std::make_pair(x, y));
-        } 
-      }
-    }
-    std::swap(known_edges, new_known_edges);
-    std::cerr << "size of new_known_edges: " << known_edges.size() << std::endl;
+  void map_wr_var(int var, int from, int to, int64_t key) {
+    assert(!wr_info.contains(var));
+    wr_info[var] = WRVarInfo{from, to, key};
+  }
+
+  void map_ww_var(int var, int from, int to, const std::vector<int64_t> &keys) {
+    assert(!ww_info.contains(var));
+    ww_info[var] = WWVarInfo{from, to, keys};
   }
 
   void add_constraint_edge(int var, int from, int to) { edges[var].push_back(std::make_pair(from, to)); }
