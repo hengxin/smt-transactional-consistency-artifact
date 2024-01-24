@@ -86,7 +86,7 @@ auto main(int argc, char **argv) -> int {
   }
 
   auto history_type = args.get("--history-type");
-  const auto all_history_types = std::set<std::string>{"cobra", "dbcop"};
+  const auto all_history_types = std::set<std::string>{"cobra", "dbcop", "text", "elle"};
   if (all_history_types.contains(history_type)) {
     BOOST_LOG_TRIVIAL(debug)
         << "history type: "
@@ -94,7 +94,7 @@ auto main(int argc, char **argv) -> int {
   } else {
     std::ostringstream os;
     os << "Invalid history type '" << history_type << "'";
-    os << "All valid history types: 'dpcop' or 'cobra'";
+    os << "All valid history types: 'dpcop' or 'cobra' or 'text' or 'elle'";
     throw std::invalid_argument{os.str()};
   }
 
@@ -119,6 +119,24 @@ auto main(int argc, char **argv) -> int {
       std::cerr << e.what() << std::endl;
       return 1;
     }
+  } else if (history_type == "text") {
+      auto history_file = std::ifstream{args.get("history")};
+      if (!history_file.is_open()) {
+          std::ostringstream os;
+          os << "Cannot open file '" << args.get("history") << "'";
+          throw std::runtime_error{os.str()};
+      }
+
+      history = history::parse_text_history(history_file);
+  } else if (history_type == "elle") {
+      auto history_file = std::ifstream{args.get("history")};
+      if (!history_file.is_open()) {
+          std::ostringstream os;
+          os << "Cannot open file '" << args.get("history") << "'";
+          throw std::runtime_error{os.str()};
+      }
+
+      history = history::parse_elle_history(history_file);
   } else {
     assert(0);
   }
