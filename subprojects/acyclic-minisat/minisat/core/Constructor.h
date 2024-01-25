@@ -15,7 +15,7 @@ namespace Minisat {
 Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constraints &constraints, Solver &solver) {
   // TODO: test construct()
   // 1. construct known graph
-  Polygraph *polygraph = new Polygraph(n_vertices, /* n_vars = */ 0); // unused n_vars
+  Polygraph *polygraph = new Polygraph(n_vertices); // unused n_vars
   for (const auto &[type, from, to, keys] : known_graph) {
     polygraph->add_known_edge(from, to, type, keys);
   }
@@ -50,6 +50,7 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
     //       here we only consider the v1 + v2 + ... + vn >= 1 half,
     //       another part which may introduce great power of unit propagate is to be considered
   }
+  polygraph->set_n_vars(var_count);
   return polygraph;
 }
 

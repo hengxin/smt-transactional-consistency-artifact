@@ -23,8 +23,9 @@ class Polygraph {
 
 public:
   int n_vertices; // indexed in [0, n_vertices - 1]
+  int n_vars; // indexed in [0, n_vars - 1]
+  
   std::vector<std::pair<int, int>> known_edges;
-  std::vector<std::vector<std::pair<int, int>>> edges; // if var i is assigned true, all edges in edges[i] must be added into the graph while keeping acyclicity
   
   std::unordered_map<int, WWVarInfo> ww_info;
   std::unordered_map<int, WRVarInfo> wr_info; // for solver vars
@@ -32,10 +33,7 @@ public:
   std::unordered_map<int, std::unordered_map<int, std::set<int64_t>>> ww_keys; 
   std::unordered_map<int, std::unordered_map<int, std::set<int64_t>>> wr_keys; // for known graph
 
-  Polygraph(int _n_vertices = 0, int _n_vars = 0) {
-    n_vertices = _n_vertices;
-    edges.assign(_n_vars, std::vector<std::pair<int, int>>());
-  }
+  Polygraph(int _n_vertices = 0) { n_vertices = _n_vertices, n_vars = 0; }
 
   void add_known_edge(int from, int to, int type, const std::vector<int64_t> &keys) { 
     known_edges.push_back(std::make_pair(from, to));
@@ -56,8 +54,8 @@ public:
     ww_info[var] = WWVarInfo{from, to, keys};
   }
 
-  // deprecated add_constraint_edge()
-  void add_constraint_edge(int var, int from, int to) { edges[var].push_back(std::make_pair(from, to)); }
+  void set_n_vars(int n) { n_vars = n; }
+
 };
 
 } // namespace Minisat

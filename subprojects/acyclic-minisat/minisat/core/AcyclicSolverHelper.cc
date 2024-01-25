@@ -16,7 +16,7 @@ namespace Minisat {
 
 AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   polygraph = _polygraph;
-  icd_graph.init(polygraph->n_vertices, polygraph->edges.size());
+  icd_graph.init(polygraph->n_vertices, polygraph->n_vars);
   conflict_clauses.clear();
   bool cycle = false;
   for (const auto &[from, to] : polygraph->known_edges) {
@@ -27,10 +27,11 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   }
 
   // initialize vars_heap, sorting by n_edges_of_var
-  int n_vars = polygraph->edges.size();
-  for (int i = 0; i < n_vars; i++) vars_heap.insert(std::make_pair(polygraph->edges[i].size(), i));
+  int n_vars = polygraph->n_vars;
+  for (int i = 0; i < n_vars; i++) vars_heap.insert(std::make_pair(/* edge(s) of each var = */ 1, i));
 
 #ifdef EXTEND_KG_IN_UEP
+  // ! deprecated
   if (polygraph->n_vertices > MAX_N) {
     std::cerr << "skip extending known graph in unit edge propagation for n = " 
               << polygraph->n_vertices << " > MAX_N" << std::endl;
@@ -100,57 +101,31 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
 }
 
 void AcyclicSolverHelper::add_var(int var) {
-  int n_edges = polygraph->edges[var].size();
-  if (vars_heap.contains(std::make_pair(n_edges, var))) {
-    vars_heap.erase(std::make_pair(n_edges, var));
-    icd_graph.set_var_status(var, /* is_unassigned = */ false);
-  }
+  // TODO later: add_var
 } 
 
 void AcyclicSolverHelper::remove_var(int var) {
-  int n_edges = polygraph->edges[var].size();
-  vars_heap.insert(std::make_pair(n_edges, var));
-  icd_graph.set_var_status(var, /* is_unassigned = */ true);
+  // TODO later: remove_var
 }
 
 bool AcyclicSolverHelper::add_edges_of_var(int var) { 
   // return true if edge is successfully added into the graph, i.e. no cycle is detected 
-  const auto &edges_of_var = polygraph->edges[var];
-  bool cycle = false;
-  std::vector<std::tuple<int, int, int>> added_edges;
-  for (const auto &[from, to] : edges_of_var) {
-    cycle = !icd_graph.add_edge(from, to, /* label = */ var);
-    if (cycle) break;
-    added_edges.push_back(std::make_tuple(from, to, var));
-  }
-  if (!cycle) {
-    icd_graph.get_propagated_lits(propagated_lits);
-    return true;
-  } else {
-    std::vector<Lit> cur_conflict_clause;
-    icd_graph.get_minimal_cycle(cur_conflict_clause);
-    conflict_clauses.push_back(cur_conflict_clause);
-    for (const auto &[from, to, label] : added_edges) {
-      icd_graph.remove_edge(from, to, label);
-    }
-    return false;
-  }
+  // TODO: add edge(s) of var
 } 
 
 void AcyclicSolverHelper::remove_edges_of_var(int var) {
-  const auto &edges_of_vars = polygraph->edges[var];
-  for (const auto &[from, to] : edges_of_vars) {
-    icd_graph.remove_edge(from, to, /* label = */ var);
-  }
+  // TODO: remove edge(s) of var
 }
 
 Var AcyclicSolverHelper::get_var_represents_max_edges() {
+  // ! deprecated
   if (vars_heap.empty()) return var_Undef;
   auto it = --vars_heap.end();
   return Var(it->second);
 }
 
 Var AcyclicSolverHelper::get_var_represents_min_edges() {
+  // ! deprecated
   if (vars_heap.empty()) return var_Undef;
   auto it = vars_heap.begin();
   return Var(it->second);
