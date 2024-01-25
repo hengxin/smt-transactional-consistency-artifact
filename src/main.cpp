@@ -25,6 +25,8 @@ namespace history = checker::history;
 namespace solver = checker::solver;
 namespace chrono = std::chrono;
 
+extern std::vector<int64_t> conflict_cycle;
+
 auto main(int argc, char **argv) -> int {
   // handle cmdline args, see checker --help
   auto args = argparse::ArgumentParser{"checker", "0.0.1"};
@@ -42,6 +44,9 @@ auto main(int argc, char **argv) -> int {
   args.add_argument("--history-type")
       .help("History type")
       .default_value(std::string{"dbcop"});
+  args.add_argument("--dot")
+      .help("Print bug cycle in DOT format")
+      .default_value(true);
 
   try {
     args.parse_args(argc, argv);
@@ -209,6 +214,67 @@ auto main(int argc, char **argv) -> int {
       BOOST_LOG_TRIVIAL(info)
           << "solve time: "
           << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+    }
+
+    if (!accept && args["--dot"] == true) {
+        std::string dot = "digraph {\n";
+        // nodes
+        for (auto txn_id : conflict_cycle) {
+            auto it = std::ranges::find_if(history.transactions().begin(), history.transactions().end(),
+                                   [txn_id](const history::Transaction& txn) { return txn.id == txn_id; });
+            if (it == history.transactions().end()) {
+                BOOST_LOG_TRIVIAL(error) << "txn_id not found: " << txn_id;
+            }
+            dot += "\"Transaction(id=" + std::to_string(txn_id) + ")\" [ops=\"";
+            for (std::size_t i = 0; const auto& event : it->events) {
+                dot += "Operation(type=" + (event.type == history::EventType::READ ? std::string("READ") : std::string("WRITE"))  +
+                        ", key=" + std::to_string(event.key) + ", value=" + std::to_string(event.value) +
+                        ", transaction=Transaction(id=" + std::to_string(txn_id) + "), id=" + std::to_string(i++) + "), ";
+            }
+            dot.erase(dot.size() - 2);
+            dot += "\"]\n";
+        }
+
+        // edges
+        std::unordered_map<std::pair<int64_t, int64_t>, checker::history::EdgeInfo, decltype([](const std::pair<int64_t, int64_t> &p) {
+            std::hash<int64_t> h;
+            return h(p.first) ^ h(p.second);
+        })> edge_map;
+        for (const auto &[from, to, e] : dependency_graph.edges()) {
+            edge_map[{from, to}] = e;
+        }
+
+        auto getEdgeType = [&](int64_t from, int64_t to) -> checker::history::EdgeInfo {
+            if (edge_map.contains({from, to})) {
+                return edge_map[{from, to}];
+            }
+            for (auto& constraint : constraints) {
+                auto it = std::find_if(constraint.either_edges.begin(), constraint.either_edges.end(), [&](const auto& edge) { return std::get<0>(edge) == from && std::get<1>(edge) == to; });
+                if (it != constraint.either_edges.end()) {
+                    for (auto& edge : constraint.either_edges) {
+                        edge_map[{std::get<0>(edge), std::get<1>(edge)}] = std::get<2>(edge);
+                    }
+                }
+            }
+            if (edge_map.contains({from, to})) {
+                return edge_map[{from, to}];
+            } else {
+                BOOST_LOG_TRIVIAL(error) << "edge not found: " << from << " " << to;
+            }
+            return checker::history::EdgeInfo{};
+        };
+
+        conflict_cycle.push_back(conflict_cycle.front());
+        for (auto it = conflict_cycle.begin(); it != conflict_cycle.end() && it + 1 != conflict_cycle.end(); ++it) {
+            std::ostringstream oss;
+            oss << getEdgeType(*it, *(it + 1));
+            auto edge_info = oss.str();
+            auto new_end = std::remove_if(edge_info.begin(), edge_info.end(), [](char c) { return c == '(' || c == ')'; });
+            edge_info.erase(new_end, edge_info.end());
+            dot += "\"Transaction(id=" + std::to_string(*it) + ")\" -> \"Transaction(id=" + std::to_string(*(it + 1)) + ")\" [label=\"" + edge_info + "\"]\n";
+        }
+        dot += "}";
+        BOOST_LOG_TRIVIAL(info) << std::endl << "dot output:" << std::endl << dot << std::endl;
     }
 
     delete solver;
