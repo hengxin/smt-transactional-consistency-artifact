@@ -48,7 +48,7 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
     solver.addClause_(lits); // v1 | v2 | ... | vn
     // TODO: in fact, v1 + v2 + ... + vn = 1,
     //       here we only consider the v1 + v2 + ... + vn >= 1 half,
-    //       another part which may introduce great power of unit propagate 
+    //       another part which may introduce great power of unit propagate is to be considered
   }
   return polygraph;
 }

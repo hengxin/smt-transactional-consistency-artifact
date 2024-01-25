@@ -24,6 +24,7 @@ namespace Minisat {
 
 // constuct polygraph and make vars in sat solver
 Polygraph *construct(const fs::path &agnf_path, Solver &solver) {
+  // !FIXME: construct is now out of date
 #ifdef USE_FSTREAM
   std::ifstream ifs;
   ifs.open(agnf_path);

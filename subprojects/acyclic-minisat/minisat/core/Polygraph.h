@@ -56,6 +56,7 @@ public:
     ww_info[var] = WWVarInfo{from, to, keys};
   }
 
+  // deprecated add_constraint_edge()
   void add_constraint_edge(int var, int from, int to) { edges[var].push_back(std::make_pair(from, to)); }
 };
 
