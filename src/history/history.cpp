@@ -417,17 +417,17 @@ auto n_written_key_txns_of(History &history) -> std::unordered_map<int64_t, int>
 }
 
 auto parse_text_history(std::ifstream &is) -> History {
-    constexpr int64_t init_session_id = 0;
-    constexpr int64_t init_txn_id = 0;
+    constexpr int64_t init_session_id = -1;
+    constexpr int64_t init_txn_id = -1;
 
     auto history = History{};
     auto keys = std::unordered_set<int64_t>{};
 
     std::string line;
     std::regex regex("([rw])\\((\\d++),(\\d++),(\\d++),(-?\\d++)\\)");
-    std::unordered_map<int64_t, int64_t> sessionIdMap;
-    std::unordered_map<int64_t, std::unordered_map<int64_t, Transaction>> transactionsMap;
-    int64_t minSessionId = 1;
+    std::map<int64_t, int64_t> sessionIdMap;
+    std::map<int64_t, std::map<int64_t, Transaction>> transactionsMap;
+    int64_t minSessionId = 0;
 
     while (getline(is, line)) {
         std::smatch match;
@@ -440,7 +440,7 @@ auto parse_text_history(std::ifstream &is) -> History {
         keys.insert(key);
         int64_t value = std::stol(match[3].str());
         int64_t sessionId = std::stol(match[4].str());
-        std::cout << key << "," << value << "," << sessionId << std::endl;
+
         if (sessionIdMap.find(sessionId) != sessionIdMap.end()) {
             sessionId = sessionIdMap[sessionId];
         } else {
