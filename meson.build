@@ -112,6 +112,15 @@ executable(
   link_args: checker_ldflags,
 )
 
+shared_library(
+  'smtchecker',
+  files('src/api/smtchecker.cpp'),
+  dependencies: checker_common_deps,
+  override_options: checker_opts,
+  cpp_args: checker_cflags,
+  link_args: checker_ldflags,
+)
+
 foreach f : checker_test_srcs
   test(
     fs.stem(f),
