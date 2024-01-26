@@ -22,6 +22,9 @@ namespace checker::solver {
 
 AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known_graph,
                                            const history::Constraints &constraints) {
+  // 0. touch n_vertices
+  n_vertices = known_graph.num_vertices();
+
   auto node_id = std::unordered_map<int64_t, int>{};
   auto nodes_cnt = 0;
   auto remap = [&node_id, &nodes_cnt](int64_t x) -> int {
@@ -55,7 +58,7 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
   for (const auto &[key, read_txn_id, write_txn_ids] : wr_cons) {
     auto new_write_txn_ids = std::vector<int>();
     std::transform(write_txn_ids.begin(), write_txn_ids.end(),
-                   new_write_txn_ids.begin(),
+                   std::back_inserter(new_write_txn_ids),
                    remap);
     am_wr_cons.emplace_back(AMWRConstraint{remap(read_txn_id), new_write_txn_ids, key});
   }

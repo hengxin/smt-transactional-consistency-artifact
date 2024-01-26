@@ -147,6 +147,10 @@ CRef AcyclicSolver::propagate() {
         Monitor::get_monitor()->find_cycle_times++;
 #endif
         auto &conflict_clause = solver_helper->conflict_clauses.back();
+
+        for (Lit l : conflict_clause) std::cerr << var(l) << "\n";
+        std::cerr << "\n";
+
         vec<Lit> clause;
         for (Lit l : conflict_clause) clause.push(~l);
 

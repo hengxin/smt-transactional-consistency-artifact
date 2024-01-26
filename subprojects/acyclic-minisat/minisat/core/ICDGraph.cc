@@ -15,6 +15,8 @@
 #include "OptOption.h"
 #include "minisat/utils/Monitor.h"
 
+// TODO!: implement verbose log(#define MY_VERBOSE), important
+
 namespace Minisat {
 
 ICDGraph::ICDGraph() {}
@@ -181,6 +183,7 @@ bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int fro
     assert(reasons_of.contains(x) && reasons_of[x].contains(pred) && !reasons_of[x][pred].empty());
     const auto [reason1, reason2] = *reasons_of[x][pred].begin();
     add_var(reason1), add_var(reason2);
+    x = pred;
   }
 
   {
@@ -192,7 +195,9 @@ bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int fro
   vars.erase(std::unique(vars.begin(), vars.end()), vars.end());
   for (auto v : vars) {
     conflict_clause.emplace_back(mkLit(v));
+    // std::cerr << v << " ";
   }
+  // std::cerr << std::endl;
   return true;  // always returns true
 }
 
@@ -203,7 +208,7 @@ bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred,
   auto vars = std::vector<int>{};
 
   auto add_var = [&vars](int v) -> bool {
-    if (!v) return false;
+    if (v == -1) return false;
     vars.emplace_back(v);
     return true;
   };
@@ -213,6 +218,7 @@ bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred,
     assert(reasons_of.contains(pred) && reasons_of[pred].contains(x) && !reasons_of[pred][x].empty());
     const auto [reason1, reason2] = *reasons_of[pred][x].begin();
     add_var(reason1), add_var(reason2);
+    x = pred;
   }
 
   for (int x = middle; x != from; ) {
@@ -220,6 +226,7 @@ bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred,
     assert(reasons_of.contains(x) && reasons_of[x].contains(pred) && !reasons_of[x][pred].empty());
     const auto [reason1, reason2] = *reasons_of[x][pred].begin();
     add_var(reason1), add_var(reason2);
+    x = pred;
   }
 
   {
@@ -227,12 +234,13 @@ bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred,
     add_var(reason1), add_var(reason2);
   }
 
-
   std::sort(vars.begin(), vars.end());
   vars.erase(std::unique(vars.begin(), vars.end()), vars.end());
   for (auto v : vars) {
     conflict_clause.emplace_back(mkLit(v));
+    // std::cerr << v << " ";
   }
+  // std::cerr << std::endl;
   return true; // always returns true
 }
 

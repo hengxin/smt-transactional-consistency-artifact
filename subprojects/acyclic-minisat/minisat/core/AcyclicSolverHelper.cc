@@ -143,7 +143,7 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
     const auto &[from, to, keys] = polygraph->ww_info[var];
     // 1. add itself, ww
     cycle = !icd_graph.add_edge(from, to, {var, -1});
-    if (cycle) return false;
+    if (cycle) goto conflict; // bad implementation
     added_edges.push({from, to, {var, -1}});
     
     // 2. add induced rw edges
@@ -161,7 +161,7 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
     const auto &[from, to, key] = polygraph->wr_info[var];
     // 1. add itself, wr
     cycle = !icd_graph.add_edge(from, to, {-1, var});
-    if (cycle) return false;
+    if (cycle) goto conflict; // bad implementation
     added_edges.push({from, to, {-1, var}});
 
     // 2. add induced rw edges
@@ -181,16 +181,22 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
   }
 
   if (!cycle) return true;
-  // generate conflict clause
-  std::vector<Lit> cur_conflict_clause;
-  icd_graph.get_minimal_cycle(cur_conflict_clause);
-  conflict_clauses.emplace_back(cur_conflict_clause);
-  while (!added_edges.empty()) {
-    const auto &[from, to, reason] = added_edges.top();
-    icd_graph.remove_edge(from, to, reason);
-    added_edges.pop();
-  }
-  return false;
+
+  conflict:
+    // generate conflict clause
+    std::vector<Lit> cur_conflict_clause;
+    icd_graph.get_minimal_cycle(cur_conflict_clause);
+
+    // for (Lit l : cur_conflict_clause) std::cerr << l.x << " ";
+    // std::cerr << std::endl;
+
+    conflict_clauses.emplace_back(cur_conflict_clause);
+    while (!added_edges.empty()) {
+      const auto &[from, to, reason] = added_edges.top();
+      icd_graph.remove_edge(from, to, reason);
+      added_edges.pop();
+    }
+    return false;
 } 
 
 void AcyclicSolverHelper::remove_edges_of_var(int var) {
