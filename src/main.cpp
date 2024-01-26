@@ -47,6 +47,9 @@ auto main(int argc, char **argv) -> int {
   args.add_argument("--dot")
       .help("Print bug cycle in DOT format")
       .default_value(true);
+  args.add_argument("--dot-path")
+      .help("DOT file path")
+      .default_value(std::string{"./conflict.dot"});
 
   try {
     args.parse_args(argc, argv);
@@ -275,8 +278,15 @@ auto main(int argc, char **argv) -> int {
         }
         dot += "}";
         BOOST_LOG_TRIVIAL(info) << std::endl << "dot output:" << std::endl << dot << std::endl;
+        std::ofstream dot_file(args.get("--dot-path"));
+        if (!dot_file.is_open()) {
+            BOOST_LOG_TRIVIAL(error) << "failed to open dot file: " << args.get("--dot-path");
+        } else {
+            dot_file << dot;
+            dot_file.close();
+            BOOST_LOG_TRIVIAL(info) << "dot file saved: " << args.get("--dot-path");
+        }
     }
-
     delete solver;
   }
   std::cout << "accept: " << std::boolalpha << accept << std::endl;
