@@ -33,7 +33,7 @@ void ICDGraph::add_inactive_edge(int from, int to, std::pair<int, int> reason) {
 bool ICDGraph::add_known_edge(int from, int to) { // reason default set to (-1, -1)
   // TODO: test add known edge
   // add_known_edge should not be called after initialisation
-  if (!reasons_of[from][to].empty()) return;
+  if (!reasons_of[from][to].empty()) return true;
   reasons_of[from][to].insert({-1, -1});
   out[from].insert(to);
   if (level[from] == level[to]) in[to].insert(from);
@@ -238,6 +238,7 @@ bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred,
 
 bool ICDGraph::check_acyclicity() {
   // TODO later: check acyclicity, toposort
+  return true;
 }
 
 void ICDGraph::set_var_status(int var, bool is_unassgined) { is_var_unassigned[var] = is_unassgined; }

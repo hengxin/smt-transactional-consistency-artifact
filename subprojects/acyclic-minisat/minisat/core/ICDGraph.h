@@ -12,7 +12,7 @@
 
 namespace Minisat {
 
-constexpr static auto pair_hash_endpoint = [](const auto &t) {
+constexpr static auto pair_hash_endpoint2 = [](const auto &t) {
   auto &[t1, t2] = t;
   std::hash<int> h;
   return h(t1) ^ h(t2); 
@@ -29,7 +29,7 @@ class ICDGraph {
   
   int n, max_m, m; // n_vertices, n_edges
   std::vector<std::unordered_set<int>> in, out; // in[from], out[from] = {(to, label)}
-  std::unordered_map<int, std::unordered_map<int, std::unordered_set<std::pair<int, int>>>> reasons_of; // (from, to) -> {(ww_reason, wr_reason)}
+  std::unordered_map<int, std::unordered_map<int, std::unordered_set<std::pair<int, int>, decltype(pair_hash_endpoint2)>>> reasons_of; // (from, to) -> {(ww_reason, wr_reason)}
   std::vector<int> level;
   std::vector<Lit> conflict_clause;
   std::vector<std::pair<Lit, std::vector<Lit>>> propagated_lits;

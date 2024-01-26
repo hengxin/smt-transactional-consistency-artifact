@@ -27,8 +27,9 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
     solver.newVar(), solver.newVar();
     int v1 = var_count++, v2 = var_count++;
 
-    polygraph->map_ww_var(v1, either_, or_, keys);
-    polygraph->map_ww_var(v2, or_, either_, keys);
+    auto keys_set = std::set(keys.begin(), keys.end());
+    polygraph->map_ww_var(v1, either_, or_, keys_set);
+    polygraph->map_ww_var(v2, or_, either_, keys_set);
 
     vec<Lit> lits; // v1 + v2 = 1 => (v1 | v2) & ((~v1) | (~v2))
     lits.push(mkLit(v1)), lits.push(mkLit(v2));

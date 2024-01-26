@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <set>
+#include <unordered_set>
+#include <unordered_map>
 #include <utility>
 
 #include "minisat/core/Polygraph.h"
@@ -14,14 +16,24 @@
 
 namespace Minisat {
 
+constexpr static auto pair_hash_endpoint = [](const auto &t) {
+  auto &[t1, t2] = t;
+  std::hash<int> h;
+  return h(t1) ^ h(t2); 
+};
+
 class AcyclicSolverHelper {
   Polygraph *polygraph;
   ICDGraph icd_graph;
   std::set<std::pair<int, int>> vars_heap;
+  std::unordered_map<int, std::unordered_map<int, std::set<int64_t>>> ww_keys; // (from, to) -> { keys }
+  std::vector<std::unordered_set<int>> ww_to;
+  std::vector<std::unordered_set<std::pair<int, int>, decltype(pair_hash_endpoint)>> wr_to; // <to, key>
 
 public:
   std::vector<std::vector<Lit>> conflict_clauses;
   std::vector<std::pair<Lit, std::vector<Lit>>> propagated_lits; // <lit, reason>
+
   AcyclicSolverHelper(Polygraph *_polygraph);
   void add_var(int var);
   void remove_var(int var);
