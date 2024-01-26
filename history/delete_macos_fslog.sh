@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# by chatgpt
+
 # 指定文件夹路径
 folder_path="."
 
