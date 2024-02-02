@@ -44,8 +44,8 @@ static auto check_history(const History &h) {
     //   logger << c << '\n';
     // }
   }
-//   return checker::solver::prune_constraints(depgraph, cons) &&
-    return checker::solver::MonosatSolver{depgraph, cons}.solve();
+  return checker::solver::prune_constraints(depgraph, cons) &&
+    checker::solver::MonosatSolver{depgraph, cons}.solve();
 }
 
 static auto create_history(

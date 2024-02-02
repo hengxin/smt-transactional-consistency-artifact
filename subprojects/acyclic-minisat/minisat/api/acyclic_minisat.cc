@@ -4,10 +4,12 @@
 #include "minisat/core/AcyclicSolver.h"
 #include "minisat/core/AcyclicSolverHelper.h"
 #include "minisat/core/Constructor.h"
+#include "minisat/core/Logger.h"
 
 namespace Minisat {
 
 bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &constraints) {
+  Logger::log("[Acyclic Minisat QxQ]");
   AcyclicSolver S;
   Polygraph *polygraph = construct(n_vertices, known_graph, constraints, S);
   AcyclicSolverHelper *solver_helper = nullptr;

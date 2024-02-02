@@ -9,6 +9,8 @@ Artifact for the "smt-transactional-consistency" project
 sudo apt update && sudo apt install g++-12 git pkg-config cmake meson ninja-build libboost-log-dev libboost-test-dev libboost-graph-dev
 ```
 
+  - `subprojects/acyclic-minisat` requires [`fmt 10.2.0`](https://fmt.dev/latest/index.html) to record logs, see [fmt:usage](https://fmt.dev/latest/usage.html#building) to install.
+
 - Clone this repo
 
 ```sh

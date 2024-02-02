@@ -12,6 +12,8 @@
 
 #define MONITOR_ENABLED 1
 
+#define LOGGER_ENABLED 1
+
 // #define ENABLE_UEP 1
 // !NOT Implemented
 

@@ -102,7 +102,7 @@ public:
       }
       assert(int(order.size()) == n_vertices);
       std::reverse(order.begin(), order.end());
-      return std::move(order);
+      return order;
     }();
 
     for (int x : reversed_topo_order) {

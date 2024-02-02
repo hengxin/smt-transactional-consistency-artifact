@@ -37,12 +37,15 @@ static auto check_history(const History &h) {
   auto cons = checker::history::constraints_of(h);
 
   CHECKER_LOG_COND(trace, logger) {
-    logger << "history:\n"
-           << h << "\ndependency graph:\n"
-           << depgraph << "\nconstraints:\n";
-    // for (auto &&c : cons) {
-    //   logger << c << '\n';
-    // }
+    logger << "history: " << h << "\ndependency graph:\n"
+           << depgraph;
+
+    logger << "constraints\n";
+    logger << "ww: \n";
+    const auto &[ww_constraints, wr_constraints] = cons;
+    for (const auto &c : ww_constraints) { logger << c; }
+    logger << "wr: \n";
+    for (const auto &c : wr_constraints) { logger << c; }
   }
 //   return checker::solver::prune_constraints(depgraph, cons) &&
     return checker::solver::AcyclicMinisatSolver{depgraph, cons}.solve();

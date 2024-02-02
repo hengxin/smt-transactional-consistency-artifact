@@ -2,6 +2,7 @@
 #define MINISAT_CONSTRCUTOR_H
 
 #include <cassert>
+#include <fmt/format.h>
 
 #include "minisat/core/Polygraph.h"
 #include "minisat/core/SolverTypes.h"
@@ -9,20 +10,25 @@
 #include "minisat/core/Solver.h"
 #include "minisat/core/PairConflict.h"
 #include "minisat/core/OptOption.h"
+#include "minisat/core/Logger.h"
 
 namespace Minisat {
 
 Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constraints &constraints, Solver &solver) {
   // TODO: test construct()
-  // 1. construct known graph
   Polygraph *polygraph = new Polygraph(n_vertices); // unused n_vars
+
+  Logger::log("[Known Graph]");
+  Logger::log(fmt::format("n = {}", n_vertices));
   for (const auto &[type, from, to, keys] : known_graph) {
     polygraph->add_known_edge(from, to, type, keys);
+    Logger::log(fmt::format("{}: {} -> {}, keys = {{}}", Logger::type2str(type), from, to, Logger::vector2str(keys)));
   }
 
+  Logger::log("[Constraints]");
   int var_count = 0;
   const auto &[ww_cons, wr_cons] = constraints;
-  // 2.1 construct WW constraint
+  Logger::log("[1. WW Constraints]");
   for (const auto &[either_, or_, keys] : ww_cons) {
     solver.newVar(), solver.newVar();
     int v1 = var_count++, v2 = var_count++;
@@ -34,10 +40,12 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
     vec<Lit> lits; // v1 + v2 = 1 => (v1 | v2) & ((~v1) | (~v2))
     lits.push(mkLit(v1)), lits.push(mkLit(v2));
     solver.addClause_(lits); // (v1 | v2)
+    Logger::log(Logger::lits2str(lits));
     lits.clear(), lits.push(~mkLit(v1)), lits.push(~mkLit(v2));
     solver.addClause_(lits); // ((~v1) | (~v2))
+    Logger::log(Logger::lits2str(lits));
   }
-  // 2.2 construct WR constraint 
+  Logger::log("[2. WR Constraints]");
   for (const auto &[read, writes, key] : wr_cons) {
     vec<Lit> lits;
     for (const auto &write : writes) {
@@ -50,8 +58,23 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
     // TODO: in fact, v1 + v2 + ... + vn = 1,
     //       here we only consider the v1 + v2 + ... + vn >= 1 half,
     //       another part which may introduce great power of unit propagate is to be considered
+    Logger::log(Logger::lits2str(lits));
   }
   polygraph->set_n_vars(var_count);
+
+  Logger::log("[Var to Theory Interpretion]");
+  for (int v = 0; v < var_count; v++) {
+    if (polygraph->is_ww_var(v)) {
+      const auto &[from, to, keys] = polygraph->ww_info[v];
+      Logger::log(fmt::format("{}: WW, {} -> {}, keys = {{}}", v, from, to, Logger::set2str(keys)));
+    } else if (polygraph->is_wr_var(v)) {
+      const auto &[from, to, key] = polygraph->wr_info[v];
+      Logger::log(fmt::format("{}: WR({}), {} -> {}", v, key, from, to));
+    } else {
+      assert(false);
+    }
+  }
+
   return polygraph;
 }
 

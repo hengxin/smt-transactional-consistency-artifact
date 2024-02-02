@@ -32,6 +32,8 @@ find_package(ZLIB)
 include_directories(${ZLIB_INCLUDE_DIR})
 include_directories(${minisat_SOURCE_DIR})
 
+find_package(fmt)
+
 #--------------------------------------------------------------------------------------------------
 # Compile flags:
 
@@ -57,6 +59,9 @@ add_library(minisat-lib-shared SHARED ${MINISAT_LIB_SOURCES})
 
 target_link_libraries(minisat-lib-shared ${ZLIB_LIBRARY})
 target_link_libraries(minisat-lib-static ${ZLIB_LIBRARY})
+
+target_link_libraries(minisat-lib-shared fmt::fmt)
+target_link_libraries(minisat-lib-static fmt::fmt)
 
 add_executable(minisat_core minisat/core/Main.cc)
 add_executable(minisat_simp minisat/simp/Main.cc)
