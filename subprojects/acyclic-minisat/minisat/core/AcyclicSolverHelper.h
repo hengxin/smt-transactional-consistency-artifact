@@ -5,6 +5,7 @@
 #include <set>
 #include <unordered_set>
 #include <unordered_map>
+#include <sstream>
 #include <utility>
 
 #include "minisat/core/Polygraph.h"
@@ -18,8 +19,8 @@ namespace Minisat {
 
 constexpr static auto pair_hash_endpoint = [](const auto &t) {
   auto &[t1, t2] = t;
-  std::hash<int> h;
-  return h(t1) ^ h(t2); 
+  std::hash<int64_t> h;
+  return h(int64_t(t1)) ^ h(t2); 
 };
 
 class AcyclicSolverHelper {
@@ -28,7 +29,7 @@ class AcyclicSolverHelper {
   std::set<std::pair<int, int>> vars_heap;
   std::unordered_map<int, std::unordered_map<int, std::set<int64_t>>> ww_keys; // (from, to) -> { keys }
   std::vector<std::unordered_set<int>> ww_to;
-  std::vector<std::unordered_set<std::pair<int, int>, decltype(pair_hash_endpoint)>> wr_to; // <to, key>
+  std::vector<std::unordered_set<std::pair<int, int64_t>, decltype(pair_hash_endpoint)>> wr_to; // <to, key>
 
 public:
   std::vector<std::vector<Lit>> conflict_clauses;
@@ -44,6 +45,11 @@ public:
 
 }; // class AcyclicSolverHelper
 
-} // namespace Minisat
+namespace Logger {
 
+auto wr_to2str(const std::unordered_set<std::pair<int, int64_t>, decltype(pair_hash_endpoint)> &wr_to_of_from) -> std::string;
+
+}; // namespace Minisat::Logger
+
+}
 #endif // MINISAT_ACYCLICSOLVER_HELPER

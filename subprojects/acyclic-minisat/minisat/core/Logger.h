@@ -7,34 +7,32 @@
 #include <cassert>
 #include <vector>
 #include <set>
+#include <unordered_set>
 
 #include "minisat/core/OptOption.h"
 #include "minisat/core/SolverTypes.h"
 
 namespace Minisat::Logger {
 
-auto log(std::string str, std::string end = "\n") -> bool {
+auto log(std::string str, std::string end = "\n") -> bool;
 
-#ifdef LOGGER_ENABLED
-  std::cout << str << end;
-  return true;
-#else
-  return false;
-#endif
+auto type2str(int type) -> std::string;
 
-}
+// auto wr_to2str() 
+// note: the definition of this function is in AcyclicHelper.h, for wr_to uses an anonymous namespace in its declaration
+// ! This is a VERY BAD implementation, see related warning(s) for more details
 
-auto type2str(int type) -> std::string {
-  std::string ret = "";
-  switch (type) {
-    case 0: ret = "SO"; break;
-    case 1: ret = "WW"; break;
-    case 2: ret = "WR"; break;
-    case 3: ret = "RW"; break;
-    default: assert(false);
-  } 
-  return ret;
-}
+template<typename T>
+typename std::enable_if<std::is_same<T, int>::value || std::is_same<T, int64_t>::value, std::string>::type 
+vector2str(const std::vector<T> &vec);
+
+template<typename T>
+typename std::enable_if<std::is_same<T, int>::value || std::is_same<T, int64_t>::value, std::string>::type 
+set2str(const std::set<T> &s);
+
+template<typename T>
+typename std::enable_if<std::is_same<T, int>::value || std::is_same<T, int64_t>::value, std::string>::type 
+urdset2str(const std::unordered_set<T> &s);
 
 template<typename T>
 typename std::enable_if<std::is_same<T, int>::value || std::is_same<T, int64_t>::value, std::string>::type 
@@ -52,23 +50,46 @@ typename std::enable_if<std::is_same<T, int>::value || std::is_same<T, int64_t>:
 set2str(const std::set<T> &s) {
   if (s.empty()) return std::string{""};
   auto os = std::ostringstream{};
-  for (auto i : s) os << std::to_string(i) << ", ";
+  for (auto i : s) {
+    // std::cout << std::to_string(i) << std::endl;
+    os << std::to_string(i) << ", ";
+  } 
   auto ret = os.str();
   ret.erase(ret.length() - 2); // delete last ", "
+  // std::cout << "\"" << ret << "\"" << std::endl;
   return ret; 
 }
 
-auto lits2str(vec<Lit> &lits) -> std::string {
+template<typename T>
+typename std::enable_if<std::is_same<T, int>::value || std::is_same<T, int64_t>::value, std::string>::type 
+urdset2str(const std::unordered_set<T> &s) {
+  if (s.empty()) return std::string{""};
   auto os = std::ostringstream{};
-  for (int i = 0; i < lits.size(); i++) {
-    const Lit &l = lits[i];
-    int x = l.x >> 1;
-    if (l.x & 1) os << "-";
-    os << std::to_string(x);
-    if (i + 1 != lits.size()) os << ", ";
-  }
-  return os.str(); 
+  for (auto i : s) {
+    // std::cout << std::to_string(i) << std::endl;
+    os << std::to_string(i) << ", ";
+  } 
+  auto ret = os.str();
+  ret.erase(ret.length() - 2); // delete last ", "
+  // std::cout << "\"" << ret << "\"" << std::endl;
+  return ret; 
 }
+
+// has been moved into AcyclicSolverHelper.h
+// auto wr_to2str(const std::unordered_set<std::pair<int, int64_t>, decltype(pair_hash_endpoint)> &s) -> std::string {
+//   if (s.empty()) return std::string{""};
+//   auto os = std::ostringstream{};
+//   for (auto [x, y] : s) {
+//     // std::cout << std::to_string(i) << std::endl;
+//     os << "{" << std::to_string(x) << ", " << std::to_string(y) << "}, ";
+//   } 
+//   auto ret = os.str();
+//   ret.erase(ret.length() - 2); // delete last ", "
+//   // std::cout << "\"" << ret << "\"" << std::endl;
+//   return ret; 
+// }
+
+auto lits2str(vec<Lit> &lits) -> std::string;
 
 
 } // namespace Minisat::Logger

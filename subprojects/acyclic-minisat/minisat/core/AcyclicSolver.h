@@ -33,6 +33,8 @@ protected:
 public:
   AcyclicSolver();
   void init(AcyclicSolverHelper *_solver_helper);
+  bool addClause_(vec<Lit>& ps);  // same as Solver.h, but will not call proper propagate()
+  bool simplify(); // same as Solver.h, but will not call proper propagate()
   lbool solve_(); // same as Solver.h
   bool solve();
   ~AcyclicSolver();

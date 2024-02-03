@@ -1,4 +1,6 @@
-#include "AcyclicSolverHelper.h"
+// FIXME: see google cpp standard to reorder head files
+
+#include "AcyclicSolverHelper.h" 
 
 #include <iostream>
 #include <vector>
@@ -6,12 +8,14 @@
 #include <tuple>
 #include <stack>
 #include <cassert>
+#include <fmt/format.h>
 
 #include "minisat/core/Polygraph.h"
 #include "minisat/core/ICDGraph.h"
 #include "minisat/core/SolverTypes.h"
 #include "minisat/mtl/Vec.h"
 #include "minisat/core/OptOption.h"
+#include "minisat/core/Logger.h"
 
 namespace Minisat {
 
@@ -140,10 +144,16 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
   bool cycle = false;
 
   if (polygraph->is_ww_var(var)) {
+    Logger::log(fmt::format("- adding {}, type = WW", var));
     const auto &[from, to, keys] = polygraph->ww_info[var];
     // 1. add itself, ww
+    Logger::log(fmt::format(" - WW: {} -> {}, reason = ({}, {}), ", from, to, var, -1), "");
     cycle = !icd_graph.add_edge(from, to, {var, -1});
-    if (cycle) goto conflict; // bad implementation
+    if (cycle) {
+      Logger::log("conflict!");
+      goto conflict; // bad implementation
+    } 
+    Logger::log("success");
     added_edges.push({from, to, {var, -1}});
     
     // 2. add induced rw edges
@@ -152,16 +162,30 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
       if (!keys.contains(key2)) continue;
       // RW: to2 -> to
       auto var2 = polygraph->wr_var_of[from][to2][key2];
+      Logger::log(fmt::format(" - WR: {} -> {}, reason = ({}, {})", to2, to, var, var2));
       cycle = !icd_graph.add_edge(to2, to, {var, var2});
-      if (cycle) break;
+      if (cycle) {
+        Logger::log("conflict!");
+        break;
+      } 
+      Logger::log("success");
       added_edges.push({to2, to, {var, var2}});
     }
-    if (!cycle) ww_to[from].insert(to);
+    if (!cycle) {
+      ww_to[from].insert(to);
+      Logger::log(fmt::format(" - inserting {} -> {} into ww_to, now ww_to[{}] = {} ", from, to, from, Logger::urdset2str(ww_to[from])));
+    } 
   } else if (polygraph->is_wr_var(var)) {
+    Logger::log(fmt::format("- adding {}, type = WR", var));
     const auto &[from, to, key] = polygraph->wr_info[var];
     // 1. add itself, wr
+    Logger::log(fmt::format(" - WR: {} -> {}, reason = ({}, {}), ", from, to, -1, var), "");
     cycle = !icd_graph.add_edge(from, to, {-1, var});
-    if (cycle) goto conflict; // bad implementation
+    if (cycle) {
+      Logger::log("conflict!");
+      goto conflict; // bad implementation
+    } 
+    Logger::log("success");
     added_edges.push({from, to, {-1, var}});
 
     // 2. add induced rw edges
@@ -171,18 +195,31 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
       if (!key2s.contains(key)) continue;
       // RW: to -> to2
       auto var2 = polygraph->ww_var_of[from][to2];
+      Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {}), ", to, to2, var2, var), "");
       cycle = !icd_graph.add_edge(to, to2, {var2, var});
-      if (cycle) break;
+      if (cycle) {
+        Logger::log("conflict!");
+        break;
+      } 
+      Logger::log("success");
       added_edges.push({to, to2, {var2, var}});
     }
-    if (!cycle) wr_to[from].insert({to, key});
+    if (!cycle) {
+      wr_to[from].insert({to, key});
+      Logger::log(fmt::format(" - inserting ({} -> {}, key = {}) into wr_to, now wr_to[{}] = {}", from, to, key, from, Logger::wr_to2str(wr_to[from])));
+    } 
   } else {
     assert(false);
   }
 
-  if (!cycle) return true;
+  if (!cycle) {
+    Logger::log(fmt::format(" - {} is successfully added", var));
+    return true;
+  } 
 
   conflict:
+    Logger::log(fmt::format(" - conflict found! reverting adding edges of {}", var));
+
     // generate conflict clause
     std::vector<Lit> cur_conflict_clause;
     icd_graph.get_minimal_cycle(cur_conflict_clause);
@@ -193,17 +230,22 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
     conflict_clauses.emplace_back(cur_conflict_clause);
     while (!added_edges.empty()) {
       const auto &[from, to, reason] = added_edges.top();
+      Logger::log(fmt::format(" - removing edge {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
       icd_graph.remove_edge(from, to, reason);
       added_edges.pop();
     }
+    Logger::log(fmt::format(" - {} is not been added", var));
     return false;
 } 
 
 void AcyclicSolverHelper::remove_edges_of_var(int var) {
   // TODO: test remove edge(s) of var
+  // TODO: record changes of ww_to and wr_to and sink it into logs
   if (polygraph->is_ww_var(var)) {
+    Logger::log(fmt::format("- removing {}, type = WW", var));
     const auto &[from, to, keys] = polygraph->ww_info[var];
     // 1. remove itself, ww
+    Logger::log(fmt::format(" - WW: {} -> {}, reason = ({}, {})", from, to, var, -1));
     icd_graph.remove_edge(from, to, {var, -1});
     // 2. remove induced rw edges
     for (const auto &[to2, key2] : wr_to[from]) {
@@ -211,13 +253,17 @@ void AcyclicSolverHelper::remove_edges_of_var(int var) {
       if (!keys.contains(key2)) continue;
       // RW: to2 -> to
       auto var2 = polygraph->wr_var_of[from][to2][key2];
+      Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {})", to2, to, var, var2));
       icd_graph.remove_edge(to2, to, {var, var2});
     }
     assert(ww_to[from].contains(to));
     ww_to[from].erase(to);
+    Logger::log(fmt::format(" - deleting {} -> {} into ww_to, now ww_to[{}] = {} ", from, to, from, Logger::urdset2str(ww_to[from])));
   } else if (polygraph->is_wr_var(var)) {
+    Logger::log(fmt::format("- removing {}, type = WR", var));
     const auto &[from, to, key] = polygraph->wr_info[var];
     // 1. remove itself, wr
+    Logger::log(fmt::format(" - WR: {} -> {}, reason = ({}, {})", from, to, -1, var));
     icd_graph.remove_edge(from, to, {-1, var});
     // 2. add induced rw edges
     for (const auto &to2 : ww_to[from]) {
@@ -226,10 +272,12 @@ void AcyclicSolverHelper::remove_edges_of_var(int var) {
       if (!key2s.contains(key)) continue;
       // RW: to -> to2
       auto var2 = polygraph->ww_var_of[from][to2];
+      Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {})", to, to2, var2, var));
       icd_graph.remove_edge(to, to2, {var2, var});
     }
     assert(wr_to[from].contains({to, key}));
     wr_to[from].erase({to, key});
+    Logger::log(fmt::format(" - deleting ({} -> {}, key = {}) into wr_to, now wr_to[{}] = {}", from, to, key, from, Logger::wr_to2str(wr_to[from])));
   } else {
     assert(false);
   }
@@ -248,5 +296,23 @@ Var AcyclicSolverHelper::get_var_represents_min_edges() {
   auto it = vars_heap.begin();
   return Var(it->second);
 }
+
+namespace Logger {
+
+// ! This is a VERY BAD implementation, see Logger.h for more details
+auto wr_to2str(const std::unordered_set<std::pair<int, int64_t>, decltype(pair_hash_endpoint)> &s) -> std::string {
+  if (s.empty()) return std::string{""};
+  auto os = std::ostringstream{};
+  for (const auto &[x, y] : s) {
+    // std::cout << std::to_string(i) << std::endl;
+    os << "{" << std::to_string(x) << ", " << std::to_string(y) << "}, ";
+  } 
+  auto ret = os.str();
+  ret.erase(ret.length() - 2); // delete last ", "
+  // std::cout << "\"" << ret << "\"" << std::endl;
+  return ret; 
+}
+
+} // namespace Minisat::Logger
 
 } // namespace Minisat

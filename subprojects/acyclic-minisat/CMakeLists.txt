@@ -52,6 +52,7 @@ set(MINISAT_LIB_SOURCES
     minisat/core/AcyclicSolver.cc
     minisat/core/AcyclicSolverHelper.cc
     minisat/core/ICDGraph.cc
+    minisat/core/Logger.cc
     minisat/simp/SimpSolver.cc)
 
 add_library(minisat-lib-static STATIC ${MINISAT_LIB_SOURCES})

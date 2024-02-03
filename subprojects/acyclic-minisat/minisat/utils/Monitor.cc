@@ -24,6 +24,7 @@ Monitor *Monitor::get_monitor() {
 }
 
 void Monitor::show_statistics() {
+  std::cerr << "[Monitor]" << "\n";
   std::cerr << "find_cycle_times: " << find_cycle_times << "\n";
   std::cerr << "propagated_lit_times: " << propagated_lit_times << "\n";
   std::cerr << "add_edge_times: " << add_edge_times << "\n";
@@ -36,7 +37,6 @@ void Monitor::show_statistics() {
               << "avg f size = " << 1.0 * uep_f_size_sum / construct_uep_count << "\n";
   }
   std::cerr << "#propagated lits add times = " << propagated_lit_add_times << std::endl;
-  // TODO
 }
 
 } // namespace Minisat::Monitor

@@ -1,10 +1,13 @@
 #include "AcyclicSolver.h"
 
 #include <iostream>
+#include <fmt/format.h>
 
+#include "minisat/mtl/Sort.h"
 #include "minisat/core/OptOption.h"
 #include "minisat/core/SolverTypes.h"
 #include "minisat/utils/Monitor.h"
+#include "minisat/core/Logger.h"
 
 namespace Minisat {
 
@@ -33,6 +36,7 @@ CRef AcyclicSolver::propagate() {
 #endif
 
     // ---addon begin---
+    Logger::log(fmt::format("- try assigning {} to {}", var(p), (value(var(p)) == l_True)));
     solver_helper->add_var(var(p));
     if (value(var(p)) == l_True) {
       int v = var(p);
@@ -148,8 +152,8 @@ CRef AcyclicSolver::propagate() {
 #endif
         auto &conflict_clause = solver_helper->conflict_clauses.back();
 
-        for (Lit l : conflict_clause) std::cerr << var(l) << "\n";
-        std::cerr << "\n";
+        // for (Lit l : conflict_clause) std::cerr << var(l) << "\n";
+        // std::cerr << "\n";
 
         vec<Lit> clause;
         for (Lit l : conflict_clause) clause.push(~l);
@@ -465,6 +469,83 @@ bool AcyclicSolver::solve() {
   budgetOff();
   assumptions.clear();
   return solve_() == l_True;
+}
+
+bool AcyclicSolver::addClause_(vec<Lit>& ps)
+{
+    assert(decisionLevel() == 0);
+    if (!ok) return false;
+
+    // Check if clause is satisfied and remove false/duplicate literals:
+    sort(ps);
+    Lit p; int i, j;
+    for (i = j = 0, p = lit_Undef; i < ps.size(); i++)
+        if (value(ps[i]) == l_True || ps[i] == ~p)
+            return true;
+        else if (value(ps[i]) != l_False && ps[i] != p)
+            ps[j++] = p = ps[i];
+    ps.shrink(i - j);
+
+    if (ps.size() == 0)
+        return ok = false;
+    else if (ps.size() == 1){
+        // * note: we have to prevent reaching here in Constructor, for the delayed initilization
+        uncheckedEnqueue(ps[0]);
+        return ok = (propagate() == CRef_Undef);
+    }else{
+        CRef cr = ca.alloc(ps, false);
+        clauses.push(cr);
+        attachClause(cr);
+    }
+
+    return true;
+}
+
+bool AcyclicSolver::simplify()
+{
+    assert(decisionLevel() == 0);
+
+    if (!ok || propagate() != CRef_Undef)
+        return ok = false;
+
+    if (nAssigns() == simpDB_assigns || (simpDB_props > 0))
+        return true;
+
+    // Remove satisfied clauses:
+    removeSatisfied(learnts);
+    if (remove_satisfied){       // Can be turned off.
+        removeSatisfied(clauses);
+
+        // TODO: what todo in if 'remove_satisfied' is false?
+
+        // Remove all released variables from the trail:
+        for (int i = 0; i < released_vars.size(); i++){
+            assert(seen[released_vars[i]] == 0);
+            seen[released_vars[i]] = 1;
+        }
+
+        int i, j;
+        for (i = j = 0; i < trail.size(); i++)
+            if (seen[var(trail[i])] == 0)
+                trail[j++] = trail[i];
+        trail.shrink(i - j);
+        //printf("trail.size()= %d, qhead = %d\n", trail.size(), qhead);
+        qhead = trail.size();
+
+        for (int i = 0; i < released_vars.size(); i++)
+            seen[released_vars[i]] = 0;
+
+        // Released variables are now ready to be reused:
+        append(released_vars, free_vars);
+        released_vars.clear();
+    }
+    checkGarbage();
+    rebuildOrderHeap();
+
+    simpDB_assigns = nAssigns();
+    simpDB_props   = clauses_literals + learnts_literals;   // (shouldn't depend on stats really, but it will do for now)
+
+    return true;
 }
 
 AcyclicSolver::~AcyclicSolver() { delete solver_helper; }
