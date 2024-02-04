@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <random>
 #include <chrono>
+#include <fmt/format.h>
 #include <unordered_map>
 
 #include "ICDGraph.h"
@@ -14,8 +15,8 @@
 #include "minisat/mtl/Vec.h"
 #include "OptOption.h"
 #include "minisat/utils/Monitor.h"
+#include "minisat/core/Logger.h"
 
-// TODO!: implement verbose log(#define MY_VERBOSE), important
 
 namespace Minisat {
 
@@ -46,28 +47,47 @@ bool ICDGraph::add_known_edge(int from, int to) { // reason default set to (-1, 
 bool ICDGraph::add_edge(int from, int to, std::pair<int, int> reason) { 
   // if a cycle is detected, the edge will not be added into the graph
   // TODO: test add edge
+  Logger::log(fmt::format("   - ICDGraph: adding {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
   if (reasons_of.contains(from) && reasons_of[from].contains(to) && !reasons_of[from][to].empty()) {
     reasons_of[from][to].insert(reason);
+    Logger::log(fmt::format("   - existing {} -> {}, adding ({}, {}) into reasons", from, to, reason.first, reason.second));
+    Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
     return true;
   }
+  Logger::log(fmt::format("   - new edge {} -> {}, detecting cycle", from, to));
   if (!detect_cycle(from, to, reason)) {
+    Logger::log("   - no cycle, ok to add edge");
     reasons_of[from][to].insert(reason);
+    Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
+
+    {
+      // record levels
+      Logger::log("   - now level: ", "");
+      for (auto x : level) Logger::log(fmt::format("{}", x), ", ");
+      Logger::log("");
+    }
+
     out[from].insert(to);
     if (level[from] == level[to]) in[to].insert(from);
     if (++m > max_m) max_m = m;
     return true;
   }
+  Logger::log("   - cycle! edge is not added");
   return false;
 }
 
 void ICDGraph::remove_edge(int from, int to, std::pair<int, int> reason) {
   // TODO: test remove edge
+  Logger::log(fmt::format("   - ICDGraph: removing {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
   assert(reasons_of.contains(from));
   assert(reasons_of[from].contains(to));
   auto &reasons = reasons_of[from][to];
   assert(reasons.contains(reason));
   reasons.erase(reason);
+  Logger::log(fmt::format("   - removing reasons ({}, {}) in reasons_of[{}][{}]", reason.first, reason.second, from, to));
+  Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
   if (reasons.empty()) {
+    Logger::log(fmt::format("   - empty reasons! removing {} -> {}", from, to));
     if (out[from].contains(to)) out[from].erase(to);
     if (in[to].contains(from)) in[to].erase(from);
     --m;
@@ -96,6 +116,27 @@ bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
   // TODO: test detect cycle
   if (level[from] < level[to]) return false;
 
+  // adding a conflict edge(which introduces a cycle) may violate the pseudo topoorder 'level', we have to revert them.
+  auto level_backup = std::vector<int>(n, 0);
+  auto level_changed_nodes = std::unordered_set<int>{};
+  auto update_level = [&level_backup, &level_changed_nodes](int x, int new_level, std::vector<int> &level) -> bool {
+    if (level_changed_nodes.contains(x)) {
+      level[x] = new_level;
+      return false; // * note: upd_level will return if x is been added into changed_nodes, not success of update
+    }
+    level_backup[x] = level[x];
+    level_changed_nodes.insert(x);
+    level[x] = new_level;
+    return true;
+  };
+  auto revert_level = [&level_backup, &level_changed_nodes](std::vector<int> &level) -> bool {
+    // always returns true
+    for (auto x : level_changed_nodes) {
+      level[x] = level_backup[x];
+    }
+    return true;
+  };
+  
   // step 1. search backward
   std::vector<int> backward_pred(n);
   std::unordered_set<int> backward_visited;
@@ -119,10 +160,12 @@ bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
   if (visited_cnt < delta) {
     if (level[from] == level[to]) return false;
     if (level[from] > level[to]) { // must be true
-      level[to] = level[from];
+      // level[to] = level[from];
+      update_level(to, level[from], level);
     }
   } else { // traverse at least delta arcs
-    level[to] = level[from] + 1;
+    // level[to] = level[from] + 1;
+    update_level(to, level[from] + 1, level);
     backward_visited.clear();
     backward_visited.insert(from);
   }
@@ -139,12 +182,13 @@ bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
     for (const auto &y : out[x]) {
       if (backward_visited.contains(y)) {
         forward_pred[y] = x;
-        return construct_forward_cycle(backward_pred, forward_pred, from, to, reason, y);
+        return revert_level(level) && construct_forward_cycle(backward_pred, forward_pred, from, to, reason, y);
       }
       if (level[x] == level[y]) {
         in[y].insert(x);
       } else if (level[y] < level[x]) {
-        level[y] = level[x];
+        // level[y] = level[x];
+        update_level(y, level[x], level);
         in[y].clear();
         in[y].insert(x);
         forward_pred[y] = x;
@@ -252,3 +296,19 @@ bool ICDGraph::check_acyclicity() {
 void ICDGraph::set_var_status(int var, bool is_unassgined) { is_var_unassigned[var] = is_unassgined; }
 
 } // namespace Minisat
+
+namespace Minisat::Logger {
+
+// ! This is a VERY BAD implementation, see Logger.h for more details
+auto reasons2str(const std::unordered_set<std::pair<int, int>, decltype(pair_hash_endpoint2)> &s) -> std::string {
+  if (s.empty()) return std::string{""};
+  auto os = std::ostringstream{};
+  for (const auto &[x, y] : s) {
+    os << "{" << std::to_string(x) << ", " << std::to_string(y) << "}, ";
+  } 
+  auto ret = os.str();
+  ret.erase(ret.length() - 2); // delete last ", "
+  return ret; 
+}
+
+} // namespace Minisat::Logger

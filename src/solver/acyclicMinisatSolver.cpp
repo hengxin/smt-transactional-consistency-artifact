@@ -62,6 +62,14 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
                    remap);
     am_wr_cons.emplace_back(AMWRConstraint{remap(read_txn_id), new_write_txn_ids, key});
   }
+
+  CHECKER_LOG_COND(trace, logger) {
+    logger << "node map: ";
+    for (const auto &[k, v] : node_id) {
+      logger << "(" << k << ", " << v << "), ";
+    }
+    logger << "\n";
+  }
 }
 
 /*

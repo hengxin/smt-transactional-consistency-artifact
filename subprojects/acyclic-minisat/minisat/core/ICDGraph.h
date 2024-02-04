@@ -64,6 +64,13 @@ public:
   void set_var_status(int var, bool is_unassigned); 
   // * note: this is a bad implementation, for ICDGraph's original responsibility prevent itself from seeing these info.
 };
-}
+
+} // namespace Minisat
+
+namespace Minisat::Logger {
+
+auto reasons2str(const std::unordered_set<std::pair<int, int>, decltype(pair_hash_endpoint2)> &s) -> std::string;
+
+} // namespace Minisat::Logger
 
 #endif // MINISAT_ICDGRAPH_H

@@ -20,7 +20,11 @@ auto type2str(int type) -> std::string;
 
 // auto wr_to2str() 
 // note: the definition of this function is in AcyclicHelper.h, for wr_to uses an anonymous namespace in its declaration
+
+// auto reasons2str() -> std::string;
+// note: the definition of this function is in ICDGraph.h, for reasons_of uses an anonymous namespace in its declaration
 // ! This is a VERY BAD implementation, see related warning(s) for more details
+
 
 template<typename T>
 typename std::enable_if<std::is_same<T, int>::value || std::is_same<T, int64_t>::value, std::string>::type 

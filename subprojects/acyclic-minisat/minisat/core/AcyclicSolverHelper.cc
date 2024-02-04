@@ -43,7 +43,6 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   for (int v = 0; v < polygraph->n_vars; v++) { // move ww keys (in constraints) into a unified position
     if (polygraph->is_ww_var(v)) {
       const auto &[from, to, keys] = polygraph->ww_info[v];
-      ww_to[from].insert(to);
       ww_keys[from][to].insert(keys.begin(), keys.end());
     }
   }
@@ -147,13 +146,13 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
     Logger::log(fmt::format("- adding {}, type = WW", var));
     const auto &[from, to, keys] = polygraph->ww_info[var];
     // 1. add itself, ww
-    Logger::log(fmt::format(" - WW: {} -> {}, reason = ({}, {}), ", from, to, var, -1), "");
+    Logger::log(fmt::format(" - WW: {} -> {}, reason = ({}, {})", from, to, var, -1));
     cycle = !icd_graph.add_edge(from, to, {var, -1});
     if (cycle) {
-      Logger::log("conflict!");
+      Logger::log(" - conflict!");
       goto conflict; // bad implementation
     } 
-    Logger::log("success");
+    Logger::log(" - success");
     added_edges.push({from, to, {var, -1}});
     
     // 2. add induced rw edges
@@ -162,13 +161,13 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
       if (!keys.contains(key2)) continue;
       // RW: to2 -> to
       auto var2 = polygraph->wr_var_of[from][to2][key2];
-      Logger::log(fmt::format(" - WR: {} -> {}, reason = ({}, {})", to2, to, var, var2));
+      Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {})", to2, to, var, var2));
       cycle = !icd_graph.add_edge(to2, to, {var, var2});
       if (cycle) {
-        Logger::log("conflict!");
+        Logger::log(" - conflict!");
         break;
       } 
-      Logger::log("success");
+      Logger::log(" - success");
       added_edges.push({to2, to, {var, var2}});
     }
     if (!cycle) {
@@ -179,13 +178,13 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
     Logger::log(fmt::format("- adding {}, type = WR", var));
     const auto &[from, to, key] = polygraph->wr_info[var];
     // 1. add itself, wr
-    Logger::log(fmt::format(" - WR: {} -> {}, reason = ({}, {}), ", from, to, -1, var), "");
+    Logger::log(fmt::format(" - WR: {} -> {}, reason = ({}, {})", from, to, -1, var));
     cycle = !icd_graph.add_edge(from, to, {-1, var});
     if (cycle) {
-      Logger::log("conflict!");
+      Logger::log(" - conflict!");
       goto conflict; // bad implementation
     } 
-    Logger::log("success");
+    Logger::log(" - success");
     added_edges.push({from, to, {-1, var}});
 
     // 2. add induced rw edges
@@ -195,13 +194,13 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
       if (!key2s.contains(key)) continue;
       // RW: to -> to2
       auto var2 = polygraph->ww_var_of[from][to2];
-      Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {}), ", to, to2, var2, var), "");
+      Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {})", to, to2, var2, var));
       cycle = !icd_graph.add_edge(to, to2, {var2, var});
       if (cycle) {
-        Logger::log("conflict!");
+        Logger::log(" - conflict!");
         break;
       } 
-      Logger::log("success");
+      Logger::log(" - success");
       added_edges.push({to, to2, {var2, var}});
     }
     if (!cycle) {
@@ -240,7 +239,6 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
 
 void AcyclicSolverHelper::remove_edges_of_var(int var) {
   // TODO: test remove edge(s) of var
-  // TODO: record changes of ww_to and wr_to and sink it into logs
   if (polygraph->is_ww_var(var)) {
     Logger::log(fmt::format("- removing {}, type = WW", var));
     const auto &[from, to, keys] = polygraph->ww_info[var];
