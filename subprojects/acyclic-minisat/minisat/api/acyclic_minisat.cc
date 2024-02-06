@@ -14,15 +14,16 @@ bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &
   Logger::log("[Acyclic Minisat QxQ]");
   AcyclicSolver S;
 
-  auto show_model = [&S]() -> void {
-    Logger::log("[Model]");
+  auto show_model = [&S](std::string model_name = "Model") -> void {
+    Logger::log(fmt::format("[{}]", model_name));
+    bool all_undef = false;
     for (int i = 0; i < S.nVars(); i++) {
       if (S.value(i) != l_Undef) {
         Logger::log(fmt::format("- {} = {}", i, (S.value(i) == l_True)));
-      } else {
-        Logger::log(fmt::format("- {} remains UNDEF", i));
+        all_undef = true;
       }
     }
+    if (all_undef) Logger::log("all vars remain UNDEF");
   };
 
   auto unit_lits = std::vector<Lit>{};
@@ -49,7 +50,7 @@ bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &
     Logger::log(fmt::format("[Accept = {}]", false));
     return false; // UNSAT, decided by unit propagation
   } 
-  show_model();
+  show_model("Model after simplify()");
   Logger::log("[Search Traits]");
   bool accept = S.solve();
   delete polygraph;

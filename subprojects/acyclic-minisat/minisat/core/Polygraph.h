@@ -42,8 +42,10 @@ public:
     known_edges.push_back({from, to, type});
     if (type == 1) { // WW
       ww_keys[from][to].insert(keys.begin(), keys.end());
+      ww_var_of[from][to] = -1; // set known edge implier -1
     } else if (type == 2) { // WR
       wr_keys[from][to].insert(keys.begin(), keys.end());
+      for (const auto &key : keys) wr_var_of[from][to][key] = -1;
     }
   }
 

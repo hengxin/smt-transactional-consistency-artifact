@@ -82,8 +82,12 @@ void ICDGraph::remove_edge(int from, int to, std::pair<int, int> reason) {
   assert(reasons_of.contains(from));
   assert(reasons_of[from].contains(to));
   auto &reasons = reasons_of[from][to];
+  if (!reasons.contains(reason)) {
+    Logger::log(fmt::format("   - !assertion failed, now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
+    std::cout << std::endl; // force to flush
+  }
   assert(reasons.contains(reason));
-  reasons.erase(reason);
+  reasons.erase(reasons.find(reason));
   Logger::log(fmt::format("   - removing reasons ({}, {}) in reasons_of[{}][{}]", reason.first, reason.second, from, to));
   Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
   if (reasons.empty()) {
@@ -300,7 +304,7 @@ void ICDGraph::set_var_status(int var, bool is_unassgined) { is_var_unassigned[v
 namespace Minisat::Logger {
 
 // ! This is a VERY BAD implementation, see Logger.h for more details
-auto reasons2str(const std::unordered_set<std::pair<int, int>, decltype(pair_hash_endpoint2)> &s) -> std::string {
+auto reasons2str(const std::unordered_multiset<std::pair<int, int>, decltype(pair_hash_endpoint2)> &s) -> std::string {
   if (s.empty()) return std::string{""};
   auto os = std::ostringstream{};
   for (const auto &[x, y] : s) {

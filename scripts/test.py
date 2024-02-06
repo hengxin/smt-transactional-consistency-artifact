@@ -12,12 +12,12 @@ checker_path = os.path.join(root_path, 'builddir', 'checker')
 table = PrettyTable()
 # table.field_names = ['name', '#sessions', '#txns', '#events', '#constraints', 'construct time', 'prune time', 'init time', 'solve time', 'status']
 table.field_names = ['name', '#sessions', '#txns', '#events', '#constraints', 'construct time', 'init time', 'solve time', 'status']
-solver = 'monosat'
+solver = 'acyclic-minisat'
 print('[use] {} as backend solver'.format(solver))
 for history_dir in os.listdir(history_path):
-  # if len(history_dir) >= 14 or (history_dir[0] > '9' or history_dir[0] < '0'):
-  #   print('[skip] ./history/{}/'.format(history_dir))
-  #   continue
+  if len(history_dir) >= 14 or (history_dir[0] > '9' or history_dir[0] < '0'):
+    print('[skip] ./history/{}/'.format(history_dir))
+    continue
   print('[running checker] of {}'.format(history_dir))
   if history_type == 'cobra':
     bincode_path = str(os.path.join(history_path, history_dir)) + '/'

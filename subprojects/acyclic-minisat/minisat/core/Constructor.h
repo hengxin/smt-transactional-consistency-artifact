@@ -45,7 +45,6 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
     Logger::log(Logger::lits2str(lits));
     lits.clear(), lits.push(~mkLit(v1)), lits.push(~mkLit(v2));
     solver.addClause_(lits); // ((~v1) | (~v2))
-    Logger::log(Logger::lits2str(lits));
   }
   Logger::log("[2. WR Constraints]");
   assert(unit_lits.empty());

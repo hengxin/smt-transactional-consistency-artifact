@@ -29,7 +29,13 @@ class ICDGraph {
   
   int n, max_m, m; // n_vertices, n_edges
   std::vector<std::unordered_set<int>> in, out; // in[from], out[from] = {(to, label)}
-  std::unordered_map<int, std::unordered_map<int, std::unordered_set<std::pair<int, int>, decltype(pair_hash_endpoint2)>>> reasons_of; // (from, to) -> {(ww_reason, wr_reason)}
+  std::unordered_map<int, std::unordered_map<int, std::unordered_multiset<std::pair<int, int>, decltype(pair_hash_endpoint2)>>> reasons_of; // (from, to) -> {(ww_reason, wr_reason)}
+  // "multi" is used to handle conflict drived by known edges, for example, 
+  // known graph contains edge WR: 1 -> 2, keys = {1, 2}
+  // In some pass, variable v: (WW: 1 -> 3, keys = {1, 2}) is decided to be added,
+  // then 2 RW edges are implied, but both reasons is (v, -1), 
+  // however, (v, -1) is able to be added into the reasons only once
+  // when we decided to remove v from traits, (v, -1) will be removed twice, which drives to conflict
   std::vector<int> level;
   std::vector<Lit> conflict_clause;
   std::vector<std::pair<Lit, std::vector<Lit>>> propagated_lits;
@@ -69,7 +75,7 @@ public:
 
 namespace Minisat::Logger {
 
-auto reasons2str(const std::unordered_set<std::pair<int, int>, decltype(pair_hash_endpoint2)> &s) -> std::string;
+auto reasons2str(const std::unordered_multiset<std::pair<int, int>, decltype(pair_hash_endpoint2)> &s) -> std::string;
 
 } // namespace Minisat::Logger
 

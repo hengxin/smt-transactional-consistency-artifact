@@ -47,8 +47,8 @@ static auto check_history(const History &h) {
     logger << "wr: \n";
     for (const auto &c : wr_constraints) { logger << c; }
   }
-//   return checker::solver::prune_constraints(depgraph, cons) &&
-    return checker::solver::AcyclicMinisatSolver{depgraph, cons}.solve();
+  return checker::solver::prune_constraints(depgraph, cons) &&
+    checker::solver::AcyclicMinisatSolver{depgraph, cons}.solve();
 }
 
 static auto create_history(
