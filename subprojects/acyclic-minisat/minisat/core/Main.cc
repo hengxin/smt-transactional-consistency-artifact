@@ -75,7 +75,6 @@ int main(int argc, char** argv)
         
         parseOptions(argc, argv, true);
 
-        // Solver S; // TODO: implement and then alter to Acyclic Solver
         AcyclicSolver S;
 
         double initial_time = cpuTime();

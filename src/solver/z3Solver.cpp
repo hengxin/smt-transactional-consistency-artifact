@@ -110,7 +110,6 @@ Z3Solver::Z3Solver(const history::DependencyGraph &known_graph,
           : solver{context, z3::solver::simple{}} {
   std::cerr << "Not implemented!" << std::endl;
   assert(0);
-  // TODO: z3 solver
 }
 
 // Z3Solver::Z3Solver(const history::DependencyGraph &known_graph,

@@ -2,11 +2,19 @@ import os
 import subprocess
 from prettytable import PrettyTable
 from rich.progress import track
+import sys
 
-history_type = 'cobra'
+history_type = 'dbcop'
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
-history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'one-shot-chengRW')
-# history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
+
+if history_type == 'cobra':
+  history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'one-shot-chengRW')
+elif history_type == 'dbcop':
+  history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
+else:
+  print('unknown history_type, expect "cobra" or "dbcop", now "{}"'.format(history_type))
+  sys.exit(1)
+
 print(history_path)
 # checker_path = os.path.join(root_path, 'builddir-debugoptimized', 'checker')
 checker_path = os.path.join(root_path, 'builddir', 'checker')

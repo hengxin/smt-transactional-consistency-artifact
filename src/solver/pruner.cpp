@@ -188,7 +188,6 @@ namespace checker::solver {
 
 auto prune_constraints(DependencyGraph &dependency_graph,
                        Constraints &constraints) -> bool {
-  // TODO: pruning
   auto &[ww_constraints, wr_constraints] = constraints;
   auto &&vertex_map = dependency_graph.rw.vertex_map.left;
   auto pruned_ww_constraints = unordered_set<WWConstraint *>{};

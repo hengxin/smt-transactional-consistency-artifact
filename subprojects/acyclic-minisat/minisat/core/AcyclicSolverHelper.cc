@@ -138,7 +138,6 @@ void AcyclicSolverHelper::remove_var(int var) {
 
 bool AcyclicSolverHelper::add_edges_of_var(int var) { 
   // return true if edge is successfully added into the graph, i.e. no cycle is detected 
-  // TODO: test add edge(s) of var
   std::stack<std::tuple<int, int, std::pair<int, int>>> added_edges;
   bool cycle = false;
 
@@ -238,7 +237,6 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
 } 
 
 void AcyclicSolverHelper::remove_edges_of_var(int var) {
-  // TODO: test remove edge(s) of var
   if (polygraph->is_ww_var(var)) {
     Logger::log(fmt::format("- removing {}, type = WW", var));
     const auto &[from, to, keys] = polygraph->ww_info[var];

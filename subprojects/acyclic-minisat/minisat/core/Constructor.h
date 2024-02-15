@@ -16,7 +16,6 @@
 namespace Minisat {
 
 Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constraints &constraints, AcyclicSolver &solver, std::vector<Lit> &unit_lits) {
-  // TODO: test construct()
   Polygraph *polygraph = new Polygraph(n_vertices); // unused n_vars
 
   Logger::log("[Known Graph]");

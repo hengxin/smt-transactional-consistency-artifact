@@ -34,7 +34,6 @@ void ICDGraph::add_inactive_edge(int from, int to, std::pair<int, int> reason) {
 }
 
 bool ICDGraph::add_known_edge(int from, int to) { // reason default set to (-1, -1)
-  // TODO: test add known edge
   // add_known_edge should not be called after initialisation
   if (!reasons_of[from][to].empty()) return true;
   reasons_of[from][to].insert({-1, -1});
@@ -46,7 +45,6 @@ bool ICDGraph::add_known_edge(int from, int to) { // reason default set to (-1, 
 
 bool ICDGraph::add_edge(int from, int to, std::pair<int, int> reason) { 
   // if a cycle is detected, the edge will not be added into the graph
-  // TODO: test add edge
   Logger::log(fmt::format("   - ICDGraph: adding {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
   if (reasons_of.contains(from) && reasons_of[from].contains(to) && !reasons_of[from][to].empty()) {
     reasons_of[from][to].insert(reason);
@@ -77,7 +75,6 @@ bool ICDGraph::add_edge(int from, int to, std::pair<int, int> reason) {
 }
 
 void ICDGraph::remove_edge(int from, int to, std::pair<int, int> reason) {
-  // TODO: test remove edge
   Logger::log(fmt::format("   - ICDGraph: removing {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
   assert(reasons_of.contains(from));
   assert(reasons_of[from].contains(to));
@@ -117,7 +114,6 @@ bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
     conflict_clause.clear();
   }
 
-  // TODO: test detect cycle
   if (level[from] < level[to]) return false;
 
   // adding a conflict edge(which introduces a cycle) may violate the pseudo topoorder 'level', we have to revert them.
@@ -217,7 +213,6 @@ void ICDGraph::construct_propagated_lits(std::unordered_set<int> &forward_visite
 }
 
 bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int from, int to, std::pair<int, int> reason) {
-  // TODO: test construct backward cycle
   auto vars = std::vector<int>{};
 
   auto add_var = [&vars](int v) -> bool {
@@ -252,7 +247,6 @@ bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int fro
 bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred, 
                                        std::vector<int> &forward_pred, 
                                        int from, int to, std::pair<int, int> reason, int middle) {
-  // TODO: test construct forward cycle
   auto vars = std::vector<int>{};
 
   auto add_var = [&vars](int v) -> bool {

@@ -22,7 +22,6 @@ namespace checker::solver {
 
 MonosatSolver::MonosatSolver(const history::DependencyGraph &known_graph,
                              const history::Constraints &constraints) {
-  // TODO: monosat
   solver = newSolver();
   gnf_path = fs::current_path(); gnf_path.append("monosat_tmp_input.gnf");
   try {

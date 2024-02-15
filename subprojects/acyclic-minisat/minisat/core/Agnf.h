@@ -56,7 +56,6 @@ Polygraph *construct(const fs::path &agnf_path, Solver &solver) {
 //       polygraph->add_constraint_edge(i, from, to);
 //     } 
 
-//     // TODO: eliminate vars which contains zero edges
 //     if (i & 1) {
 //       solver.newVar(), solver.newVar();
 //       int v1 = i - 1, v2 = i;
@@ -121,7 +120,6 @@ Polygraph *construct(const fs::path &agnf_path, Solver &solver) {
 //       polygraph->add_constraint_edge(i, from, to);
 //     } 
 
-//     // TODO: eliminate vars which contains zero edges
 //     if (i & 1) {
 //       solver.newVar(), solver.newVar();
 //       int v1 = i - 1, v2 = i;

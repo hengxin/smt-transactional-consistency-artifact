@@ -205,7 +205,6 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
 } */
 
 auto AcyclicMinisatSolver::solve() -> bool {
-  // TODO: call acyclic-minisat as backend solver
   return Minisat::am_solve(n_vertices, am_known_graph, am_constraints);
 }
 
