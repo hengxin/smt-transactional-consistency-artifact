@@ -295,11 +295,13 @@ Var AcyclicSolverHelper::get_var_represents_min_edges() {
   return Var(it->second);
 }
 
+Polygraph *AcyclicSolverHelper::get_polygraph() { return polygraph; }
+
 namespace Logger {
 
 // ! This is a VERY BAD implementation, see Logger.h for more details
 auto wr_to2str(const std::unordered_set<std::pair<int, int64_t>, decltype(pair_hash_endpoint)> &s) -> std::string {
-  if (s.empty()) return std::string{""};
+  if (s.empty()) return std::string{"null"};
   auto os = std::ostringstream{};
   for (const auto &[x, y] : s) {
     // std::cout << std::to_string(i) << std::endl;

@@ -123,6 +123,12 @@ auto main(int argc, char **argv) -> int {
 
   // compute known graph (WR edges) and constraints from history
   auto dependency_graph = history::known_graph_of(history);
+
+  CHECKER_LOG_COND(trace, logger) {
+    logger << "history: " << history << "\ndependency graph:\n"
+           << dependency_graph;
+  }
+
   auto constraints = std::pair<std::vector<history::WWConstraint>, std::vector<history::WRConstraint>>{};
   try {
     constraints = history::constraints_of(history); 
@@ -153,8 +159,8 @@ auto main(int argc, char **argv) -> int {
   }
 
   CHECKER_LOG_COND(trace, logger) {
-    logger << "history: " << history << "\ndependency graph:\n"
-           << dependency_graph;
+    // logger << "history: " << history << "\ndependency graph:\n"
+    //        << dependency_graph;
 
     logger << "constraints\n";
     logger << "ww: \n";

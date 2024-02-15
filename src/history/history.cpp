@@ -238,7 +238,7 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
     Transaction *current = nullptr;
     while (1) {
       char op = read_char(in);
-      if (op == EOF) { // the file ends with 255(EOF), but not reach the real end of this file
+      if (op == 255) { // the file ends with 255(EOF), but not reach the real end of this file
         break;
       }
       // std::cout << op << std::endl;
@@ -290,6 +290,7 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
               write_txn_id = INIT_TXN_ID;
               if (!init_writes.contains(key)) {
                 init_writes[key] = get_cobra_hash({key, INIT_TXN_ID, value});
+                // std::cout << "R (" << key << ", " << value << ")" << std::endl;
               }
               // TODO: init_writes.computeIfAbsent(key, k -> new CobraValue(key, INIT_TXN_ID, value))
             } else if ((write_id != GC_WID_FALSE && write_id != GC_WID_TRUE) || write_txn_id != INIT_TXN_ID) {

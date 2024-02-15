@@ -1,6 +1,7 @@
 import os
 import subprocess
 from prettytable import PrettyTable
+from rich.progress import track
 
 history_type = 'cobra'
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
@@ -10,18 +11,18 @@ print(history_path)
 # checker_path = os.path.join(root_path, 'builddir-debugoptimized', 'checker')
 checker_path = os.path.join(root_path, 'builddir', 'checker')
 table = PrettyTable()
-# table.field_names = ['name', '#sessions', '#txns', '#events', '#constraints', 'construct time', 'prune time', 'init time', 'solve time', 'status']
-table.field_names = ['name', '#sessions', '#txns', '#events', '#constraints', 'construct time', 'init time', 'solve time', 'status']
+table.field_names = ['name', '#sessions', '#txns', '#events', '#constraints', 'construct time', 'prune time', 'init time', 'solve time', 'status']
+# table.field_names = ['name', '#sessions', '#txns', '#events', '#constraints', 'construct time', 'init time', 'solve time', 'status']
 solver = 'acyclic-minisat'
 print('[use] {} as backend solver'.format(solver))
-for history_dir in os.listdir(history_path):
-  if len(history_dir) >= 14 or (history_dir[0] > '9' or history_dir[0] < '0'):
-    print('[skip] ./history/{}/'.format(history_dir))
-    continue
+for history_dir in track(os.listdir(history_path)):
+  # if len(history_dir) >= 14 or (history_dir[0] > '9' or history_dir[0] < '0'):
+  #   print('[skip] ./history/{}/'.format(history_dir))
+  #   continue
   print('[running checker] of {}'.format(history_dir))
   if history_type == 'cobra':
     bincode_path = str(os.path.join(history_path, history_dir)) + '/'
-    result = subprocess.run([checker_path, bincode_path, '--solver', solver, '--history-type', history_type], capture_output=True, text=True)
+    result = subprocess.run([checker_path, bincode_path, '--solver', solver, '--history-type', history_type, '--pruning'], capture_output=True, text=True)
   else: # dbcop
     bincode_path = os.path.join(history_path, history_dir, 'hist-00000', 'history.bincode')
     result = subprocess.run([checker_path, bincode_path, '--solver', solver, '--history-type', history_type, '--pruning'], capture_output=True, text=True)
@@ -55,5 +56,5 @@ for history_dir in os.listdir(history_path):
   if len(table_line) == len(table.field_names):
     table.add_row(table_line)
   else:
-    print('Parse failed, name = {}'.format(history_dir))
+    print('Parse failed, name = {}, logs = {}'.format(history_dir, logs))
 print(table) 

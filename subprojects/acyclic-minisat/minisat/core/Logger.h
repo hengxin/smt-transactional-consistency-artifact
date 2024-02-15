@@ -41,7 +41,7 @@ urdset2str(const std::unordered_set<T> &s);
 template<typename T>
 typename std::enable_if<std::is_same<T, int>::value || std::is_same<T, int64_t>::value, std::string>::type 
 vector2str(const std::vector<T> &vec) {
-  if (vec.empty()) return std::string{""};
+  if (vec.empty()) return std::string{"null"};
   auto os = std::ostringstream{};
   for (auto i : vec) os << std::to_string(i) << ", ";
   auto ret = os.str();
@@ -52,7 +52,7 @@ vector2str(const std::vector<T> &vec) {
 template<typename T>
 typename std::enable_if<std::is_same<T, int>::value || std::is_same<T, int64_t>::value, std::string>::type 
 set2str(const std::set<T> &s) {
-  if (s.empty()) return std::string{""};
+  if (s.empty()) return std::string{"null"};
   auto os = std::ostringstream{};
   for (auto i : s) {
     // std::cout << std::to_string(i) << std::endl;
@@ -67,7 +67,7 @@ set2str(const std::set<T> &s) {
 template<typename T>
 typename std::enable_if<std::is_same<T, int>::value || std::is_same<T, int64_t>::value, std::string>::type 
 urdset2str(const std::unordered_set<T> &s) {
-  if (s.empty()) return std::string{""};
+  if (s.empty()) return std::string{"null"};
   auto os = std::ostringstream{};
   for (auto i : s) {
     // std::cout << std::to_string(i) << std::endl;

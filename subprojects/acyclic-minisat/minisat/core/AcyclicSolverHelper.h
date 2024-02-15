@@ -43,6 +43,9 @@ public:
   Var get_var_represents_max_edges();
   Var get_var_represents_min_edges();
 
+  // getter
+  Polygraph *get_polygraph();
+
 }; // class AcyclicSolverHelper
 
 namespace Logger {

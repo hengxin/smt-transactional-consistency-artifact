@@ -38,6 +38,10 @@ public:
   lbool solve_(); // same as Solver.h
   bool solve();
   ~AcyclicSolver();
+
+  // getter
+  AcyclicSolverHelper *get_solver_helper();
+  Polygraph *get_polygraph();
 };
 } // namespace Minisat
 

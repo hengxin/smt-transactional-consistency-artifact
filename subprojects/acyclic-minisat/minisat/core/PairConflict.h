@@ -3,14 +3,68 @@
 
 #include <iostream>
 
+#include <fmt/format.h>
+
 #include "minisat/core/Polygraph.h"
 #include "minisat/core/SolverTypes.h"
 #include "minisat/core/Solver.h"
+#include "minisat/core/AcyclicSolver.h"
 #include "minisat/core/Graph.h"
+#include "minisat/core/Logger.h"
 
 namespace Minisat {
 
-void init_pair_conflict(Polygraph *polygraph, Solver &solver) {
+bool init_pair_conflict(AcyclicSolver &solver) {
+  Logger::log("[Init Pair Conflict]");
+  Polygraph *polygraph = solver.get_polygraph();
+  if (polygraph->n_vertices > 100000) {
+    Logger::log(fmt::format(" - failed!  polygraph has {} vertices, > limit 100000", polygraph->n_vertices));
+    return false;
+  }
+  if (polygraph->n_vars > 10000) {
+    Logger::log(fmt::format(" - failed! solver has {} vars, > limit 10000", polygraph->n_vars));
+    return false;
+  }
+
+  Graph graph = Graph(polygraph->n_vertices);
+  for (const auto &[from, to, _] : polygraph->known_edges) {
+    graph.add_edge(from, to); // Graph helps handle duplicated edges
+  }
+
+  auto conflict = [&polygraph, &graph](int v1, int v2) -> bool {
+    auto &&edge = [&polygraph](int v) -> std::pair<int, int> {
+      // * note: hard to extend to RW edges
+      if (polygraph->is_ww_var(v)) {
+        auto &[from, to, _] = polygraph->ww_info[v];
+        return {from, to};
+      } else if (polygraph->is_wr_var(v)) {
+        auto &&[from, to, _] = polygraph->wr_info[v];
+        return {from, to};
+      }
+      assert(false);
+    };
+
+    auto [from1, to1] = edge(v1);
+    auto [from2, to2] = edge(v2);
+
+    return graph.reachable(to1, from2) && graph.reachable(to2, from1); 
+  };
+
+  for (int v1 = 0; v1 < polygraph->n_vars; v1++) {
+    for (int v2 = v1 + 1; v2 < polygraph->n_vars; v2++) {
+      if (conflict(v1, v2)) {
+        vec<Lit> lits;
+        lits.push(~mkLit(v1)), lits.push(~mkLit(v2));
+        solver.addClause_(lits); 
+        Logger::log(Logger::lits2str(lits));
+      }
+    }
+  }
+
+  return true;
+}
+
+// void init_pair_conflict(Polygraph *polygraph, Solver &solver) {
   // TODO: init pair conflict
   // ! deprecated
   // if (polygraph->n_vertices > 100000)  {
@@ -66,7 +120,7 @@ void init_pair_conflict(Polygraph *polygraph, Solver &solver) {
   //     }
   //   }
   // }
-}
+// }
 
 } // namespace Minisat
 

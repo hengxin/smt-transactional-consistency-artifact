@@ -262,8 +262,12 @@ auto constraints_of(const History &history)
         for (const auto &write_txn_id : txns_per_write_event[std::make_pair(key, value)]) {
           if (write_txn_id != read_txn_id) wr_constraint.write_txn_ids.insert(write_txn_id);
         }
-        if (wr_constraint.write_txn_ids.empty()) 
+        if (wr_constraint.write_txn_ids.empty()) {
+          std::cerr << "read txn id = " << read_txn_id << ", " 
+                    << "key = " << key << ", " 
+                    << "value = " << value << std::endl;
           throw std::runtime_error {"exception found in construct wr constraint: no matched value write"};
+        } 
         wr_constraints.emplace_back(wr_constraint);
       }
     }

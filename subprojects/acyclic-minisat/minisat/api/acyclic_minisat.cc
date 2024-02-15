@@ -16,14 +16,14 @@ bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &
 
   auto show_model = [&S](std::string model_name = "Model") -> void {
     Logger::log(fmt::format("[{}]", model_name));
-    bool all_undef = false;
+    bool all_undef = true;
     for (int i = 0; i < S.nVars(); i++) {
       if (S.value(i) != l_Undef) {
         Logger::log(fmt::format("- {} = {}", i, (S.value(i) == l_True)));
-        all_undef = true;
+        all_undef = false;
       }
     }
-    if (all_undef) Logger::log("all vars remain UNDEF");
+    if (all_undef) Logger::log("- all vars remain UNDEF");
   };
 
   auto unit_lits = std::vector<Lit>{};
@@ -44,6 +44,10 @@ bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &
     S.addClause_(lits);
   }
   // ------------
+
+#ifdef INIT_PAIR_CONFLICT
+  init_pair_conflict(S);
+#endif
 
   if (!S.simplify()) {
     Logger::log("[Conflict detected in simplify()!]");

@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <set>
+#include <unordered_map>
 #include <queue>
 #include <bitset>
 #include <algorithm>
@@ -15,6 +16,7 @@ class Graph {
 public:
   int n_vertices; // indexed in [0, n_vertices - 1]
   std::vector<std::vector<int>> edges;
+  std::unordered_map<int, std::unordered_map<int, bool>> has_edge;
   
   bool prepared_bridge;
   std::set<std::pair<int, int>> bridges;
@@ -31,7 +33,11 @@ public:
     prepared_reachability = false;
   }
 
-  void add_edge(int from, int to) { edges[from].push_back(to); }
+  bool add_edge(int from, int to) { 
+    if (has_edge[from][to]) return false;
+    edges[from].push_back(to); 
+    return has_edge[from][to] = true;
+  }
 
   void prepare_bridge() {
     int n = n_vertices;

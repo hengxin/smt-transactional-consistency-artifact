@@ -305,7 +305,7 @@ namespace Minisat::Logger {
 
 // ! This is a VERY BAD implementation, see Logger.h for more details
 auto reasons2str(const std::unordered_multiset<std::pair<int, int>, decltype(pair_hash_endpoint2)> &s) -> std::string {
-  if (s.empty()) return std::string{""};
+  if (s.empty()) return std::string{"null"};
   auto os = std::ostringstream{};
   for (const auto &[x, y] : s) {
     os << "{" << std::to_string(x) << ", " << std::to_string(y) << "}, ";

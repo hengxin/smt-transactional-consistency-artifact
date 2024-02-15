@@ -252,7 +252,6 @@ lbool AcyclicSolver::search(int nof_conflicts) {
   starts++;
 
   for (; ; ) {
-    int qhead_backup = qhead;
     CRef confl = propagate();
     if (confl != CRef_Undef) {
       // CONFLICT
@@ -549,5 +548,12 @@ bool AcyclicSolver::simplify()
 }
 
 AcyclicSolver::~AcyclicSolver() { delete solver_helper; }
+
+
+AcyclicSolverHelper *AcyclicSolver::get_solver_helper() { return solver_helper; }
+
+Polygraph *AcyclicSolver::get_polygraph() { return solver_helper->get_polygraph(); }
+
+
 
 } // namespace Minisat
