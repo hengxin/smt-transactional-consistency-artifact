@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <set>
+#include <stack>
 #include <unordered_set>
 #include <unordered_map>
 #include <sstream>
@@ -30,6 +31,8 @@ class AcyclicSolverHelper {
   std::unordered_map<int, std::unordered_map<int, std::set<int64_t>>> ww_keys; // (from, to) -> { keys }
   std::vector<std::unordered_set<int>> ww_to;
   std::vector<std::unordered_set<std::pair<int, int64_t>, decltype(pair_hash_endpoint)>> wr_to; // <to, key>
+
+  std::vector<std::stack<std::tuple<int, int, std::pair<int, int>>>> added_edges_of; // <from, to, reason>
 
 public:
   std::vector<std::vector<Lit>> conflict_clauses;

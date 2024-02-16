@@ -24,4 +24,6 @@
 // #define SELECT_MIN_EDGES 1
 // !NOT Implemented
 
+#define ADDED_EDGES_CACHE 1
+
 #endif
