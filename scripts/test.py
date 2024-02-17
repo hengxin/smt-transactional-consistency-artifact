@@ -4,7 +4,7 @@ from prettytable import PrettyTable
 from rich.progress import track
 import sys
 
-history_type = 'dbcop'
+history_type = 'cobra'
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 
 if history_type == 'cobra':
