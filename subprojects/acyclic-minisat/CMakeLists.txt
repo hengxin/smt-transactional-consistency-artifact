@@ -38,6 +38,7 @@ find_package(fmt)
 # Compile flags:
 
 add_definitions(-D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS)
+# add_compile_options(-g -pg)
 add_compile_options(-Ofast -g -pg)
 
 #--------------------------------------------------------------------------------------------------

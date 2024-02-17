@@ -90,27 +90,23 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
     added_edges.push({from, to, {var, -1}});
     
     // 2. add induced rw edges
-    for (const auto &key : keys) {
-      if (wr_to[from][key].empty()) continue;
-      for (const auto &to2 : wr_to[from][key]) {
-        if (to2 == to) continue;
-        auto var2 = polygraph->wr_var_of[from][to2][key];
-        Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {})", to2, to, var, var2));
-        cycle = !icd_graph.add_edge(to2, to, {var, var2});
-        if (cycle) {
-          Logger::log(" - conflict!");
-          goto conflict; // bad implementation
-        } 
-        Logger::log(" - success");
-        added_edges.push({to2, to, {var, var2}});
-      }
+    for (const auto &[to2, key2] : wr_to[from]) {
+      if (to2 == to) continue;
+      if (!keys.contains(key2)) continue;
+      // RW: to2 -> to
+      auto var2 = polygraph->wr_var_of[from][to2][key2];
+      Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {})", to2, to, var, var2));
+      cycle = !icd_graph.add_edge(to2, to, {var, var2});
+      if (cycle) {
+        Logger::log(" - conflict!");
+        break;
+      } 
+      Logger::log(" - success");
+      added_edges.push({to2, to, {var, var2}});
     }
-
     if (!cycle) {
-      for (const auto &key : keys) {
-        ww_to[from][key].insert(to);
-        Logger::log(fmt::format(" - inserting ({} -> {}, key = {}) into ww_to, now ww_to[{}][{}] = {} ", from, to, key, from, key, Logger::urdset2str(ww_to[from][key])));
-      }
+      ww_to[from].insert(to);
+      Logger::log(fmt::format(" - inserting {} -> {} into ww_to, now ww_to[{}] = {} ", from, to, from, Logger::urdset2str(ww_to[from])));
     } 
   } else if (polygraph->is_wr_var(var)) {
     Logger::log(fmt::format("- adding {}, type = WR", var));
@@ -126,8 +122,11 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
     added_edges.push({from, to, {-1, var}});
 
     // 2. add induced rw edges
-    for (const auto &to2 : ww_to[from][key]) {
+    for (const auto &to2 : ww_to[from]) {
       if (to2 == to) continue;
+      const auto &key2s = ww_keys[from][to2];
+      if (!key2s.contains(key)) continue;
+      // RW: to -> to2
       auto var2 = polygraph->ww_var_of[from][to2];
       Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {})", to, to2, var2, var));
       cycle = !icd_graph.add_edge(to, to2, {var2, var});
@@ -138,10 +137,9 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
       Logger::log(" - success");
       added_edges.push({to, to2, {var2, var}});
     }
-
     if (!cycle) {
-      wr_to[from][key].insert(to);
-      Logger::log(fmt::format(" - inserting ({} -> {}, key = {}) into wr_to, now wr_to[{}][{}] = {}", from, to, key, from, key, Logger::urdset2str(wr_to[from][key])));
+      wr_to[from].insert({to, key});
+      Logger::log(fmt::format(" - inserting ({} -> {}, key = {}) into wr_to, now wr_to[{}] = {}", from, to, key, from, Logger::wr_to2str(wr_to[from])));
     } 
   } else {
     assert(false);
@@ -232,16 +230,14 @@ void AcyclicSolverHelper::remove_edges_of_var(int var) {
   // all edges have been deleted including the WW or WR itself
   if (polygraph->is_ww_var(var)) {
     const auto &[from, to, keys] = polygraph->ww_info[var];
-    for (const auto &key : keys) {
-      assert(ww_to[from][key].contains(to));
-      ww_to[from][key].erase(to);
-      Logger::log(fmt::format(" - deleting ({} -> {}, key = {}) into ww_to, now ww_to[{}][{}] = {} ", from, to, key, from, key, Logger::urdset2str(ww_to[from][key])));
-    }
+    assert(ww_to[from].contains(to));
+    ww_to[from].erase(to);
+    Logger::log(fmt::format(" - deleting {} -> {} into ww_to, now ww_to[{}] = {} ", from, to, from, Logger::urdset2str(ww_to[from])));
   } else if (polygraph->is_wr_var(var)) { 
     const auto &[from, to, key] = polygraph->wr_info[var];
-    assert(wr_to[from][key].contains(to));
-    wr_to[from][key].erase(to);
-    Logger::log(fmt::format(" - deleting ({} -> {}, key = {}) into wr_to, now wr_to[{}][{}] = {}", from, to, key, from, key, Logger::urdset2str(wr_to[from][key])));
+    assert(wr_to[from].contains({to, key}));
+    wr_to[from].erase({to, key});
+    Logger::log(fmt::format(" - deleting ({} -> {}, key = {}) into wr_to, now wr_to[{}] = {}", from, to, key, from, Logger::wr_to2str(wr_to[from])));
   } else {
     assert(false);
   }

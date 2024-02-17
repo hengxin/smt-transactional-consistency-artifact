@@ -29,8 +29,9 @@ class AcyclicSolverHelper {
   ICDGraph icd_graph;
   std::set<std::pair<int, int>> vars_heap;
   std::unordered_map<int, std::unordered_map<int, std::set<int64_t>>> ww_keys; // (from, to) -> { keys }
-  std::vector<std::unordered_set<int>> ww_to;
-  std::vector<std::unordered_set<std::pair<int, int64_t>, decltype(pair_hash_endpoint)>> wr_to; // <to, key>
+  // std::vector<std::unordered_set<int>> ww_to;
+  // std::vector<std::unordered_set<std::pair<int, int64_t>, decltype(pair_hash_endpoint)>> wr_to; // <to, key>
+  std::vector<std::unordered_map<int64_t, std::unordered_set<int>>> ww_to, wr_to; // from -> (key -> to)
 
   std::vector<std::stack<std::tuple<int, int, std::pair<int, int>>>> added_edges_of; // <from, to, reason>
 

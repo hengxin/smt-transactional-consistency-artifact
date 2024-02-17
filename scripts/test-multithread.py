@@ -38,22 +38,22 @@ logging.basicConfig(
   filemode = 'w'  
 )
 
-history_type = 'cobra' 
+history_type = 'dbcop' 
 assert history_type == 'cobra' or history_type == 'dbcop'
 logging.info(f'history type = {history_type}')
 
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 logging.info(f'root path = {root_path}')
 # will run all histories under this path
-history_path = history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'one-shot-chengRW') 
-# history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
+# history_path = history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'one-shot-chengRW') 
+history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
 logging.info(f'history path = {history_path}')
 
 checker_path = os.path.join(root_path, 'builddir', 'checker')
 logging.info(f'checker path = {checker_path}')
 
-solver = 'acyclic-minisat'
-assert solver == 'acyclic-minisat' or 'monosat' or 'z3'
+solver = 'monosat'
+assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3'
 logging.info(f'solver = {solver}')
 
 pruning = True
@@ -211,9 +211,9 @@ with open(output_path, 'w+') as json_file:
   json.dump(results, json_file, indent=2)
 
 table = Table()
-table.add_column('History')
-table.add_column('Time')
-table.add_column('Accept')
+table.add_column('History', justify="center")
+table.add_column('Time', justify="center")
+table.add_column('Accept', justify="center")
 
 for task in tasks:
   table.add_row(task, results[task]['total time'], "[bold green]✔" if results[task]['accept'] else "[bold red]✘")

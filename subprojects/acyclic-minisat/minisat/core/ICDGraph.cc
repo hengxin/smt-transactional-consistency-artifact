@@ -58,12 +58,12 @@ bool ICDGraph::add_edge(int from, int to, std::pair<int, int> reason) {
     reasons_of[from][to].insert(reason);
     Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
 
-    {
-      // record levels
-      Logger::log("   - now level: ", "");
-      for (auto x : level) Logger::log(fmt::format("{}", x), ", ");
-      Logger::log("");
-    }
+    // {
+    //   // record levels
+    //   Logger::log("   - now level: ", "");
+    //   for (auto x : level) Logger::log(fmt::format("{}", x), ", ");
+    //   Logger::log("");
+    // }
 
     out[from].insert(to);
     if (level[from] == level[to]) in[to].insert(from);
