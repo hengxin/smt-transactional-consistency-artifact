@@ -2,6 +2,7 @@
 # system
 import os
 import subprocess
+from sys import stderr
 
 # progress bar
 from rich.progress import (
@@ -86,7 +87,7 @@ def update_results(thread_id, name, key, value):
   global results
   with results_lock:
     results[name][key] = value
-    logging.debug(f'thread {thread_id} updates results[{name}][{key}] to {value}')
+    logging.debug(f'thread {thread_id} updates results[\'{name}\'][\'{key}\'] to \'{value}\'')
 
 # === progress bar definition ===
 current_task_progress = Progress(
@@ -118,7 +119,7 @@ overall_task_id = overall_progress.add_task("", total=len(tasks))
 
 def parse_logs(thread_id, logs, task_name):
   """parse logs of a task and store"""
-  logging.debug(f'thread {thread_id} starts parsing logs of task {task_name}')
+  logging.debug(f'thread {thread_id} starts parsing logs of task {task_name}, logs = {logs}')
   for log in logs:
     if log == '':
       logging.warning(f'thread {thread_id} found \'\'(empty line) in logs, skip')
@@ -155,6 +156,7 @@ def run_task(thread_id, task):
   logging.debug(f'thread {thread_id} runs cmd {cmd}')
   result = subprocess.run(cmd, capture_output=True, text=True)
   
+  logging.debug(f'thread finished checking {task}, stdout = {result.stdout}, stderr = {stderr}')
   logs = result.stdout.split(os.linesep)
   parse_logs(thread_id, logs, task)
   logging.info(f'thread {thread_id} finished task {task}')
