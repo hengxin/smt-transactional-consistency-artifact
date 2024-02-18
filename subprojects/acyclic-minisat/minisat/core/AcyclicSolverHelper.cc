@@ -26,6 +26,7 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   ww_to.assign(polygraph->n_vertices, {});
   wr_to.assign(polygraph->n_vertices, {});
   added_edges_of.assign(polygraph->n_vars, {});
+  known_induced_edges_of.assign(polygraph->n_vars, {});
   
   for (const auto &[from, to, type] : polygraph->known_edges) {
     icd_graph.add_known_edge(from, to /*, reason = {-1, -1} */); 
@@ -48,6 +49,82 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
       const auto &[from, to, keys] = polygraph->ww_info[v];
       ww_keys[from][to].insert(keys.begin(), keys.end());
     }
+  }
+  
+  {
+    // initialize induced known edges
+    Logger::log("[Initializing Induced Known Edges]");
+    #ifdef INDUCE_KNOWN_EDGES
+      Logger::log("- initailize all edges!");
+    #endif
+
+    using ReasonEdge = std::tuple<int, int, std::pair<int, int>>; // (from, to, reason)
+    struct CmpReasonEdge {
+      auto operator() (const ReasonEdge &lhs, const ReasonEdge &rhs) const -> bool {
+        return lhs < rhs;
+      };
+    };
+    // known_induced_edges_set will ensures duplicate-free reasonedges
+    using known_induced_edges_set = std::set<ReasonEdge, CmpReasonEdge>;
+    auto known_induced_edges_set_of = std::vector<known_induced_edges_set>(polygraph->n_vars);
+
+    for (int v = 0; v < polygraph->n_vars; v++) {
+      Logger::log(fmt::format("var {}:", v));
+      auto &s = known_induced_edges_set_of[v];
+      if (polygraph->is_ww_var(v)) {
+        const auto &[from, to, keys] = polygraph->ww_info[v];
+        s.insert(ReasonEdge{from, to, {v, -1}});
+        Logger::log(fmt::format(" - WW: {} -> {}, reason = ({}, {}), Known(Itself)", from, to, v, -1));
+      } else if (polygraph->is_wr_var(v)) {
+        const auto &[from, to, key] = polygraph->wr_info[v];
+        s.insert(ReasonEdge{from, to, {-1, v}});
+        Logger::log(fmt::format(" - WR: {} -> {}, reason = ({}, {}), Known(Itself)", from, to, -1, v));
+      } else {
+        assert(false);
+      }
+
+      #ifdef INDUCE_KNOWN_EDGES
+        // copied from add_edges_of_var()
+        const auto &var = v;
+        if (polygraph->is_ww_var(v)) {
+          const auto &[from, to, keys] = polygraph->ww_info[var];
+          for (const auto &key : keys) {
+            if (wr_to[from][key].empty()) continue;
+            for (const auto &to2 : wr_to[from][key]) {
+              if (to2 == to) continue;
+              auto var2 = polygraph->wr_var_of[from][to2][key];
+              Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {}), Induced", to2, to, var, var2));
+              s.insert(ReasonEdge{to2, to, {var, var2}});
+            }
+          }
+        } else if (polygraph->is_wr_var(v)) {
+          const auto &[from, to, key] = polygraph->wr_info[var];
+          for (const auto &to2 : ww_to[from][key]) {
+            if (to2 == to) continue;
+            auto var2 = polygraph->ww_var_of[from][to2];
+            Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {}), Induced", to, to2, var2, var));
+            s.insert(ReasonEdge{to, to2, {var2, var}});
+          }
+        } else {
+          assert(false);
+        }
+      #endif
+    }
+
+    // copy results into known_induced_edges
+    for (int v = 0; v < polygraph->n_vars; v++) {
+      const auto &edges_set = known_induced_edges_set_of[v];
+      auto &edges = known_induced_edges_of[v];
+      for (const auto &e :edges_set) {
+        edges.emplace_back(e);
+      } 
+    }
+
+    #ifdef INDUCE_KNOWN_EDGES
+      // clear known edges
+      ww_to.assign(polygraph->n_vertices, {});
+      wr_to.assign(polygraph->n_vertices, {});
+    #endif
   }
 
   // * note: assume known graph has reached a fixed point, 
@@ -78,24 +155,29 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
   bool cycle = false;
   if (polygraph->is_ww_var(var)) {
     Logger::log(fmt::format("- adding {}, type = WW", var));
-    const auto &[from, to, keys] = polygraph->ww_info[var];
-    // 1. add itself, ww
-    Logger::log(fmt::format(" - WW: {} -> {}, reason = ({}, {})", from, to, var, -1));
-    cycle = !icd_graph.add_edge(from, to, {var, -1});
-    if (cycle) {
-      Logger::log(" - conflict!");
-      goto conflict; // bad implementation
-    } 
-    Logger::log(" - success");
-    added_edges.push({from, to, {var, -1}});
+    // 1. add induced known edges, including itself(ww)
+    // if INDUCE_KNOWN_EDGES is enabled, known_induced_known_edges_of[var] contains all induced edges(including itself)
+    // otherwise, it will only contain itself(ww)
+    const auto &known_induced_edges = known_induced_edges_of[var];
+    for (const auto &[from, to, reason] : known_induced_edges) {
+      Logger::log(fmt::format(" - ??: {} -> {}, reason = ({}, {}), Known", from, to, reason.first, reason.second));
+      cycle = !icd_graph.add_edge(from, to, reason);
+      if (cycle) {
+        Logger::log(" - conflict!");
+        goto conflict; // bad implementation
+      } 
+      Logger::log(" - success");
+      added_edges.push({from, to, reason});
+    }
     
     // 2. add induced rw edges
+    const auto &[from, to, keys] = polygraph->ww_info[var];
     for (const auto &key : keys) {
       if (wr_to[from][key].empty()) continue;
       for (const auto &to2 : wr_to[from][key]) {
         if (to2 == to) continue;
         auto var2 = polygraph->wr_var_of[from][to2][key];
-        Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {})", to2, to, var, var2));
+        Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {}), Induced", to2, to, var, var2));
         cycle = !icd_graph.add_edge(to2, to, {var, var2});
         if (cycle) {
           Logger::log(" - conflict!");
@@ -114,22 +196,27 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
     } 
   } else if (polygraph->is_wr_var(var)) {
     Logger::log(fmt::format("- adding {}, type = WR", var));
-    const auto &[from, to, key] = polygraph->wr_info[var];
-    // 1. add itself, wr
-    Logger::log(fmt::format(" - WR: {} -> {}, reason = ({}, {})", from, to, -1, var));
-    cycle = !icd_graph.add_edge(from, to, {-1, var});
-    if (cycle) {
-      Logger::log(" - conflict!");
-      goto conflict; // bad implementation
-    } 
-    Logger::log(" - success");
-    added_edges.push({from, to, {-1, var}});
+
+    // 1. add known induced edges, including itself(wr)
+    // see ww branch for more info
+    const auto &known_induced_edges = known_induced_edges_of[var];
+    for (const auto &[from, to, reason] : known_induced_edges) {
+      Logger::log(fmt::format(" - ??: {} -> {}, reason = ({}, {}), Known", from, to, reason.first, reason.second));
+      cycle = !icd_graph.add_edge(from, to, reason);
+      if (cycle) {
+        Logger::log(" - conflict!");
+        goto conflict; // bad implementation
+      } 
+      Logger::log(" - success");
+      added_edges.push({from, to, reason});
+    }
 
     // 2. add induced rw edges
+    const auto &[from, to, key] = polygraph->wr_info[var];
     for (const auto &to2 : ww_to[from][key]) {
       if (to2 == to) continue;
       auto var2 = polygraph->ww_var_of[from][to2];
-      Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {})", to, to2, var2, var));
+      Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {}), Induced", to, to2, var2, var));
       cycle = !icd_graph.add_edge(to, to2, {var2, var});
       if (cycle) {
         Logger::log(" - conflict!");

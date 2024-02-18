@@ -26,4 +26,6 @@
 
 #define ADDED_EDGES_CACHE 1
 
+#define INDUCE_KNOWN_EDGES 1
+
 #endif
