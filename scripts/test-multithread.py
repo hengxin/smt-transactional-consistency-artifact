@@ -3,6 +3,7 @@
 import os
 import subprocess
 from sys import stderr
+import psutil
 
 # progress bar
 from rich.progress import (
@@ -60,7 +61,7 @@ logging.info(f'solver = {solver}')
 pruning = True
 logging.info(f'pruning = {pruning}')
 
-n_threads = 4
+n_threads = 3
 logging.info(f'use {n_threads} thread(s)')
 
 output_path = os.path.join(root_path, 'results', 'test-results.json')
@@ -117,9 +118,10 @@ overall_task_id = overall_progress.add_task("", total=len(tasks))
 
 # === sub thread ===
 
-def parse_logs(thread_id, logs, task_name):
+def parse_logs(thread_id, logs, max_memory, task_name):
   """parse logs of a task and store"""
-  logging.debug(f'thread {thread_id} starts parsing logs of task {task_name}, logs = {logs}')
+  logging.debug(f'thread {thread_id} starts parsing logs of task {task_name}, max memory = {max_memory}, logs = {logs}')
+  update_results(thread_id, task_name, 'max memory', max_memory)
   for log in logs:
     if log == '':
       logging.warning(f'thread {thread_id} found \'\'(empty line) in logs, skip')
@@ -135,6 +137,14 @@ def parse_logs(thread_id, logs, task_name):
       update_results(thread_id, task_name, 'accept', log.split(':')[-1].strip() == 'true')
     else:
       logging.error(f'thread {thread_id} cannot parse log line "{log}"')
+
+
+def read_stream(stream):
+  output = ''
+  for line in stream:
+    line = line.decode().rstrip()
+    output += line + os.linesep
+  return output
   
 
 def run_task(thread_id, task):
@@ -154,11 +164,28 @@ def run_task(thread_id, task):
   if pruning:
     cmd.append('--pruning')
   logging.debug(f'thread {thread_id} runs cmd {cmd}')
-  result = subprocess.run(cmd, capture_output=True, text=True)
+  # result = subprocess.run(cmd, capture_output=True, text=True)
+  process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+  process_id = process.pid
+  max_memory = 0
+
+  while process.poll() is None:
+    try:
+      process_info = psutil.Process(process_id)
+      memory_info = process_info.memory_info()
+      memory_usage = memory_info.rss
+      max_memory = max(max_memory, memory_usage)
+
+    except psutil.NoSuchProcess:
+      break
   
-  logging.debug(f'thread finished checking {task}, stdout = {result.stdout}, stderr = {stderr}')
-  logs = result.stdout.split(os.linesep)
-  parse_logs(thread_id, logs, task)
+  stdout = read_stream(process.stdout)
+  stderr = read_stream(process.stderr)
+  
+  logging.debug(f'thread finished checking {task}, stdout = {stdout}, stderr = {stderr}')
+  logs = stdout.split(os.linesep)
+  parse_logs(thread_id, logs, max_memory, task)
   logging.info(f'thread {thread_id} finished task {task}')
 
   current_task_progress.stop_task(current_task_id)
@@ -215,10 +242,11 @@ with open(output_path, 'w+') as json_file:
 table = Table()
 table.add_column('History', justify="center")
 table.add_column('Time', justify="center")
+table.add_column('Memory', justify="center")
 table.add_column('Accept', justify="center")
 
 for task in tasks:
-  table.add_row(task, results[task]['total time'], "[bold green]✔" if results[task]['accept'] else "[bold red]✘")
+  table.add_row(task, results[task]['total time'],  f"{results[task]['max memory']}b", "[bold green]✔" if results[task]['accept'] else "[bold red]✘")
 
 console = Console()
 console.print(table, justify="center")
