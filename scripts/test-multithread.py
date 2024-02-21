@@ -2,10 +2,7 @@
 # system
 import os
 import subprocess
-from sys import stderr
-import arrow
 import humanize
-import pendulum
 import psutil
 
 # progress bar
