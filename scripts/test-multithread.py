@@ -3,6 +3,9 @@
 import os
 import subprocess
 from sys import stderr
+import arrow
+import humanize
+import pendulum
 import psutil
 
 # progress bar
@@ -40,15 +43,15 @@ logging.basicConfig(
   filemode = 'w'  
 )
 
-history_type = 'cobra' 
+history_type = 'dbcop' 
 assert history_type == 'cobra' or history_type == 'dbcop'
 logging.info(f'history type = {history_type}')
 
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 logging.info(f'root path = {root_path}')
 # will run all histories under this path
-history_path = history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'one-shot-chengRW') 
-# history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
+# history_path = history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'one-shot-chengRW') 
+history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
 logging.info(f'history path = {history_path}')
 
 checker_path = os.path.join(root_path, 'builddir', 'checker')
@@ -246,7 +249,7 @@ table.add_column('Memory', justify="center")
 table.add_column('Accept', justify="center")
 
 for task in tasks:
-  table.add_row(task, results[task]['total time'],  f"{results[task]['max memory']}b", "[bold green]✔" if results[task]['accept'] else "[bold red]✘")
+  table.add_row(task, results[task]['total time'], humanize.naturalsize(results[task]['max memory']), "[bold green]✔" if results[task]['accept'] else "[bold red]✘")
 
 console = Console()
 console.print(table, justify="center")
