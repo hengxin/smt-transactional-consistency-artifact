@@ -362,15 +362,16 @@ Var AcyclicSolverHelper::get_var_represents_min_edges() {
 
 void AcyclicSolverHelper::construct_wr_cons_propagated_lits(int var) {
   // construct wr constraint propagated lits
-#ifdef ENABLE_WRÇP
+#ifdef ENABLE_WRCP
   if (!polygraph->is_wr_var(var)) return;
   Logger::log(fmt::format("- [Construct WRCP of {}]", var));
   auto wr_cons_ref = polygraph->get_wr_cons(var);
   for (const auto &var2 : *wr_cons_ref) {
     if (icd_graph.get_var_assigned(var2)) continue;
-    Logger::log(fmt::format(" - prop {} with reason (~{} | ~{})", var2, var, var2));
-    propagated_lits.emplace_back(~mkLit(var2), {~mkLit(var), ~mkLit(var2)});
+    Logger::log(fmt::format(" - prop (~{}) with reason (~{} | ~{})", var2, var, var2));
+    propagated_lits.emplace_back(std::pair<Lit, std::vector<Lit>>{~mkLit(var2), {~mkLit(var), ~mkLit(var2)}});
   }
+  Logger::log(fmt::format("- end of WRCP construction", var));
 #endif
 }
 

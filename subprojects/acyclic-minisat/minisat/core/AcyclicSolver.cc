@@ -168,6 +168,7 @@ CRef AcyclicSolver::propagate() {
 
         confl = ca.alloc(clause, false); 
         solver_helper->conflict_clauses.pop_back();
+        break;
       } else {
         added_var[v] = true;
         add_atom(v);
@@ -189,13 +190,15 @@ CRef AcyclicSolver::propagate() {
           }
         }
         propagated_lits.clear();
-    }
+      }
     }
   }
   // ---- addon end ----
 
   propagations += num_props;
   simpDB_props -= num_props;
+  
+  if (confl != CRef_Undef) return confl;
 
   if (re_propagate) {
     assert(confl == CRef_Undef);
