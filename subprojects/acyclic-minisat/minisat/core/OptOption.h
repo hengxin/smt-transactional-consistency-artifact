@@ -20,9 +20,8 @@
 
 // #define EXTEND_KG_IN_UEP 1
 
-// #define SELECT_MAX_EDGES 1
+#define SELECT_MAX_EDGES 1
 // #define SELECT_MIN_EDGES 1
-// !NOT Implemented
 
 #define ADDED_EDGES_CACHE 1
 
