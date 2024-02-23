@@ -244,6 +244,8 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
 
   if (!cycle) {
     Logger::log(fmt::format(" - {} is successfully added", var));
+    icd_graph.get_propagated_lits(propagated_lits);
+    construct_wr_cons_propagated_lits(var);
     return true;
   } 
 
@@ -356,6 +358,20 @@ Var AcyclicSolverHelper::get_var_represents_min_edges() {
   if (vars_heap.empty()) return var_Undef;
   auto it = vars_heap.begin();
   return Var(it->second);
+}
+
+void AcyclicSolverHelper::construct_wr_cons_propagated_lits(int var) {
+  // construct wr constraint propagated lits
+#ifdef ENABLE_WRÇP
+  if (!polygraph->is_wr_var(var)) return;
+  Logger::log(fmt::format("- [Construct WRCP of {}]", var));
+  auto wr_cons_ref = polygraph->get_wr_cons(var);
+  for (const auto &var2 : *wr_cons_ref) {
+    if (icd_graph.get_var_assigned(var2)) continue;
+    Logger::log(fmt::format(" - prop {} with reason (~{} | ~{})", var2, var, var2));
+    propagated_lits.emplace_back(~mkLit(var2), {~mkLit(var), ~mkLit(var2)});
+  }
+#endif
 }
 
 Polygraph *AcyclicSolverHelper::get_polygraph() { return polygraph; }

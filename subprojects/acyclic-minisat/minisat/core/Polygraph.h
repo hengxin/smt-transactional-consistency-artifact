@@ -36,6 +36,9 @@ public:
   std::unordered_map<int, std::unordered_map<int, int>> ww_var_of; // (from, to) -> ww var
   std::unordered_map<int, std::unordered_map<int, std::unordered_map<int64_t, int>>> wr_var_of; // (from, to, key) -> wr var
 
+  std::vector<std::vector<int>> wr_cons;
+  std::unordered_map<int, int> wr_cons_index_of; // var -> wr_cons index
+
   Polygraph(int _n_vertices = 0) { n_vertices = _n_vertices, n_vars = 0; }
 
   void add_known_edge(int from, int to, int type, const std::vector<int64_t> &keys) { 
@@ -75,6 +78,19 @@ public:
     return wr_keys.contains(from) && wr_keys[from].contains(to) && !wr_keys[from][to].empty();
   }
 
+  int add_wr_cons(std::vector<int> &cons) {
+    int index = wr_cons.size();
+    wr_cons.emplace_back(cons);
+    return index;
+  }
+
+  void map_wr_cons(int v, int index) { wr_cons_index_of[v] = index; }
+
+  std::vector<int> *get_wr_cons(int v) {
+    if (!wr_cons_index_of.contains(v)) return nullptr;
+    int index = wr_cons_index_of[v];
+    return &wr_cons[index];
+  } 
 };
 
 } // namespace Minisat

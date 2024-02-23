@@ -49,14 +49,20 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
   assert(unit_lits.empty());
   for (const auto &[read, writes, key] : wr_cons) {
     vec<Lit> lits;
+    auto cons = std::vector<int>{};
     for (const auto &write : writes) {
       solver.newVar();
       int v = var_count++; // WR(k)
       polygraph->map_wr_var(v, write, read, key);
       lits.push(mkLit(v));
+      cons.emplace_back(v);
     }
     if (lits.size() != 1) {
       solver.addClause_(lits); // v1 | v2 | ... | vn
+      int index = polygraph->add_wr_cons(cons);
+      for (const auto &v : cons) {
+        polygraph->map_wr_cons(v, index);
+      }
     } else {
       unit_lits.emplace_back(lits[0]);
     }

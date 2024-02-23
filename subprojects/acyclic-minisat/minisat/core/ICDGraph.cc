@@ -293,6 +293,8 @@ bool ICDGraph::check_acyclicity() {
 
 void ICDGraph::set_var_assigned(int var, bool assgined) { assigned[var] = assgined; }
 
+bool ICDGraph::get_var_assigned(int var) { return assigned[var]; }
+
 } // namespace Minisat
 
 namespace Minisat::Logger {

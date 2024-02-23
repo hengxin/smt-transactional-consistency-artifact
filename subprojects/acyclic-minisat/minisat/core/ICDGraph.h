@@ -69,6 +69,7 @@ public:
   void get_minimal_cycle(std::vector<Lit> &cur_conflict_clauses); // get_minimal_cycle will copy conflict_clause and clear it
   void get_propagated_lits(std::vector<std::pair<Lit, std::vector<Lit>>> &cur_propagated_lit); // get_propagated_lits will copy propagated_lits and clear it 
   void set_var_assigned(int var, bool is_unassigned); 
+  bool get_var_assigned(int var);
   // * note: this is a bad implementation, for ICDGraph's original responsibility prevent itself from seeing these info.
 };
 

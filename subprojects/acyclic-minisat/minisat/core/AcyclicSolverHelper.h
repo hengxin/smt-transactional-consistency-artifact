@@ -38,6 +38,8 @@ class AcyclicSolverHelper {
   // will only be used if INDUCE_KNOWN_EDGE is defined 
   std::vector<std::vector<std::tuple<int, int, std::pair<int, int>>>> known_induced_edges_of; // <from, to, reason>
 
+  void construct_wr_cons_propagated_lits(int var);
+
 public:
   std::vector<std::vector<Lit>> conflict_clauses;
   std::vector<std::pair<Lit, std::vector<Lit>>> propagated_lits; // <lit, reason>

@@ -13,6 +13,9 @@
 
 // #define LOGGER_ENABLED 1
 
+// WR constraint propagation
+#define ENABLE_WRCP 1 
+
 // #define ENABLE_UEP 1
 // !NOT Implemented
 
@@ -20,7 +23,7 @@
 
 // #define EXTEND_KG_IN_UEP 1
 
-#define SELECT_MAX_EDGES 1
+// #define SELECT_MAX_EDGES 1
 // #define SELECT_MIN_EDGES 1
 
 #define ADDED_EDGES_CACHE 1
