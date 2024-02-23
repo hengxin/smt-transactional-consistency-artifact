@@ -8,8 +8,9 @@
   - [ ] 准备一些 hard test
   - [ ] 在 theory solver 中实现 $x_1 + x_2 + \ldots + x_n \leq 1$ 的效果，当加入 wr var 时，把这个功能实现在 unit edge propagate 中
 
-- [ ] 完善测试脚本
+- [x] 完善测试脚本
   - [x] 将测试脚本改成多线程的
   - [x] 在测试脚本中加入检测内存的功能
   - [x] 准备一个脚本把 `.json` 格式的数据整理成 `.csv`
-  - [x] 完成 polysi-fig7-like 的画图 latex 代码⏎                                
+  - [x] 完成 polysi-fig7-like 的画图 latex 代码
+                                  

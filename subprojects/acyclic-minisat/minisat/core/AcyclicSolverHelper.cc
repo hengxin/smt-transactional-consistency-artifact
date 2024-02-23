@@ -134,17 +134,25 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   // ! deprecated
   // initialize vars_heap, sorting by n_edges_of_var
   int n_vars = polygraph->n_vars;
-  for (int i = 0; i < n_vars; i++) vars_heap.insert(std::make_pair(/* edge(s) of each var = */ 1, i));
+  for (int i = 0; i < n_vars; i++) vars_heap.insert({known_induced_edges_of[i].size(), i});
 }
 
 void AcyclicSolverHelper::add_var(int var) {
-  // TODO later: add_var
-  // pass
+  // TODO: test add_var()
+  // add_var adds the var into vars_heap
+  int n_edges = known_induced_edges_of[var].size();
+  vars_heap.insert({n_edges, var});
+  icd_graph.set_var_assigned(var, false);
 } 
 
 void AcyclicSolverHelper::remove_var(int var) {
-  // TODO later: remove_var
-  // pass
+  // TODO: test remove_var()
+  // remove_var removes the var from vars_heap
+  int n_edges = known_induced_edges_of[var].size();
+  if (vars_heap.contains({n_edges, var})) {
+    vars_heap.erase({n_edges, var});
+    icd_graph.set_var_assigned(var, true);
+  }
 }
 
 bool AcyclicSolverHelper::add_edges_of_var(int var) { 
@@ -339,14 +347,12 @@ void AcyclicSolverHelper::remove_edges_of_var(int var) {
 }
 
 Var AcyclicSolverHelper::get_var_represents_max_edges() {
-  // ! deprecated
   if (vars_heap.empty()) return var_Undef;
   auto it = --vars_heap.end();
   return Var(it->second);
 }
 
 Var AcyclicSolverHelper::get_var_represents_min_edges() {
-  // ! deprecated
   if (vars_heap.empty()) return var_Undef;
   auto it = vars_heap.begin();
   return Var(it->second);

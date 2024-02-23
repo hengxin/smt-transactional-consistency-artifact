@@ -26,7 +26,7 @@ void ICDGraph::init(int _n_vertices = 0, int n_vars = 0) {
   // note: currently n_vars is useless
   n = _n_vertices, m = max_m = 0;
   level.assign(n, 1), in.assign(n, {}), out.assign(n, {});
-  is_var_unassigned.assign(n_vars, true);
+  assigned.assign(n_vars, false);
 }
 
 void ICDGraph::add_inactive_edge(int from, int to, std::pair<int, int> reason) { 
@@ -291,7 +291,7 @@ bool ICDGraph::check_acyclicity() {
   return true;
 }
 
-void ICDGraph::set_var_status(int var, bool is_unassgined) { is_var_unassigned[var] = is_unassgined; }
+void ICDGraph::set_var_assigned(int var, bool assgined) { assigned[var] = assgined; }
 
 } // namespace Minisat
 

@@ -37,7 +37,7 @@ CRef AcyclicSolver::propagate() {
 
     // ---addon begin---
     Logger::log(fmt::format("- try assigning {} to {}", var(p), (value(var(p)) == l_True)));
-    solver_helper->add_var(var(p));
+    solver_helper->remove_var(var(p));
     if (value(var(p)) == l_True) {
       int v = var(p);
       if (!added_var[v]) { // TODO: this condition may be useless
@@ -215,7 +215,7 @@ void AcyclicSolver::cancelUntil(int level) {
       insertVarOrder(x);
 
       // --- addon begin ---
-      solver_helper->remove_var(x);
+      solver_helper->add_var(x);
       // --- addon end ---
     }
 
