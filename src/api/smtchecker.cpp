@@ -193,7 +193,7 @@ bool verify(const char *filepath, const char *log_level, bool pruning, const cha
         }
 
         if (!accept && output_dot) {
-            std::string dot = "digraph {\n";
+            std::string dot = " {\n";
             // nodes
             for (auto txn_id : conflict_cycle) {
                 auto it = std::ranges::find_if(history.transactions().begin(), history.transactions().end(),
@@ -240,16 +240,36 @@ bool verify(const char *filepath, const char *log_level, bool pruning, const cha
                 return checker::history::EdgeInfo{};
             };
 
+            std::unordered_map<checker::history::EdgeType, int> edge_type_count;
             conflict_cycle.push_back(conflict_cycle.front());
             for (auto it = conflict_cycle.begin(); it != conflict_cycle.end() && it + 1 != conflict_cycle.end(); ++it) {
                 std::ostringstream oss;
-                oss << getEdgeType(*it, *(it + 1));
+                auto edge_type = getEdgeType(*it, *(it + 1));
+                edge_type_count[edge_type.type] += 1;
+                oss << edge_type;
                 auto edge_info = oss.str();
                 auto new_end = std::remove_if(edge_info.begin(), edge_info.end(), [](char c) { return c == '(' || c == ')'; });
                 edge_info.erase(new_end, edge_info.end());
                 dot += "\"Transaction(id=" + std::to_string(*it) + ")\" -> \"Transaction(id=" + std::to_string(*(it + 1)) + ")\" [label=\"" + edge_info + "\"]\n";
             }
             dot += "}";
+
+            // classify
+            Anomaly anomaly;
+            if (edge_type_count[checker::history::EdgeType::RW] > 0) {
+                anomaly = G2;
+            } else if (edge_type_count[checker::history::EdgeType::WR] > 0 || edge_type_count[checker::history::EdgeType::SO] > 0) {
+                anomaly = G1;
+            } else if (edge_type_count[checker::history::EdgeType::WW] > 0) {
+                anomaly = G0;
+            }
+            auto enumToStr = [](int enumVal) {
+                    return (std::string[]) {
+                        "G0", "G1", "G2",
+                    }[enumVal];
+            };
+            dot = "digraph " + enumToStr(anomaly) + dot;
+
             BOOST_LOG_TRIVIAL(info) << std::endl << "dot output:" << std::endl << dot << std::endl;
             std::ofstream dot_file(dot_path);
             if (!dot_file.is_open()) {
