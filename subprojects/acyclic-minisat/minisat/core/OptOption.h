@@ -14,7 +14,7 @@
 // #define LOGGER_ENABLED 1
 
 // WR constraint propagation
-#define ENABLE_WRCP 1 
+// #define ENABLE_WRCP 1 
 
 // #define ENABLE_UEP 1
 // !NOT Implemented

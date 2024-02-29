@@ -59,7 +59,7 @@ solver = 'acyclic-minisat'
 assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3'
 logging.info(f'solver = {solver}')
 
-pruning = True
+pruning = False
 logging.info(f'pruning = {pruning}')
 
 n_threads = 3
