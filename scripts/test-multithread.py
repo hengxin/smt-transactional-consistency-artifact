@@ -57,11 +57,11 @@ logging.info(f'history path = {history_path}')
 checker_path = os.path.join(root_path, 'builddir-release', 'checker')
 logging.info(f'checker path = {checker_path}')
 
-solver = 'monosat'
+solver = 'acyclic-minisat'
 assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3'
 logging.info(f'solver = {solver}')
 
-pruning_method = 'normal'
+pruning_method = 'none'
 assert pruning_method == 'fast' or pruning_method == 'normal' or pruning_method == 'none'
 logging.info(f'pruning method = {pruning_method}')
 
