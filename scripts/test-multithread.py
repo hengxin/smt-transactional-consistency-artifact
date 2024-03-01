@@ -4,6 +4,7 @@ import os
 import subprocess
 import humanize
 import psutil
+import time
 
 # progress bar
 from rich.progress import (
@@ -59,8 +60,9 @@ solver = 'acyclic-minisat'
 assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3'
 logging.info(f'solver = {solver}')
 
-pruning = True
-logging.info(f'pruning = {pruning}')
+pruning_method = 'fast'
+assert pruning_method == 'fast' or pruning_method == 'normal' or pruning_method == 'none'
+logging.info(f'pruning method = {pruning_method}')
 
 n_threads = 3
 logging.info(f'use {n_threads} thread(s)')
@@ -162,8 +164,9 @@ def run_task(thread_id, task):
     bincode_path = os.path.join(history_path, history_dir, 'hist-00000', 'history.bincode')
   
   cmd = [checker_path, bincode_path, '--solver', solver, '--history-type', history_type]
-  if pruning:
+  if pruning_method != 'none':
     cmd.append('--pruning')
+    cmd.append(pruning_method)
   logging.debug(f'thread {thread_id} runs cmd {cmd}')
   # result = subprocess.run(cmd, capture_output=True, text=True)
   process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -180,7 +183,12 @@ def run_task(thread_id, task):
 
     except psutil.NoSuchProcess:
       break
-  
+    
+  return_code = process.wait()
+  if return_code != 0:
+    logging.info(f'!subprocess of task {task} does not return 0')
+  time.sleep(1)
+
   stdout = read_stream(process.stdout)
   stderr = read_stream(process.stderr)
   
