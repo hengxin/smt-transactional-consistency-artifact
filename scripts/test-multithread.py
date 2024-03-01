@@ -64,7 +64,7 @@ pruning_method = 'fast'
 assert pruning_method == 'fast' or pruning_method == 'normal' or pruning_method == 'none'
 logging.info(f'pruning method = {pruning_method}')
 
-n_threads = 3
+n_threads = 1
 logging.info(f'use {n_threads} thread(s)')
 
 output_path = os.path.join(root_path, 'results', 'test-results.json')

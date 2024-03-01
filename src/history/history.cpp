@@ -266,6 +266,7 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
           transactions_status[current] = TransactionStatus::COMMIT;
           Session *session = sessions[current->session_id];
           session->transactions.push_back(std::move(*current));
+          delete current;
           break;
         }
         case 'W': {
@@ -325,6 +326,7 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
       auto session = add_session();
       parse_log(log_file, session);
       history.sessions.push_back(std::move(*session)); // TODO: std::move ?
+      delete session;
     } catch (std::runtime_error &e) {
       std::cerr << e.what() << std::endl;
       assert(0);
@@ -339,6 +341,8 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
   transactions_status[init_txn] = TransactionStatus::COMMIT;
   init_session->transactions.push_back(std::move(*init_txn));
   history.sessions.push_back(std::move(*init_session));
+  delete init_session;
+  delete init_txn;
 
   for (const auto &[txn_ref, status] : transactions_status) {
     if (status == TransactionStatus::ONGOING) {

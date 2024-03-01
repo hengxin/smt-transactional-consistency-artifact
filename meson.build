@@ -79,7 +79,7 @@ checker_cflags = []
 checker_ldflags = []
 if get_option('buildtype') == 'debug'
   # temporarily disable address sanitizer, for monosat leads to too many mistakes, qaq
-  # checker_opts += ['b_sanitize=address']
+  checker_opts += ['b_sanitize=address']
 elif get_option('buildtype') == 'debugoptimized'
   checker_cflags += ['-pg']
   checker_ldflags += ['-pg']
