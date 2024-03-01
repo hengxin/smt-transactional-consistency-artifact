@@ -34,11 +34,10 @@ auto main(int argc, char **argv) -> int {
       .default_value(std::string{"INFO"});
   args.add_argument("--pruning")
       .help("Do pruning")
-      .default_value(false)
-      .implicit_value(true);
+      .default_value(std::string{"none"});
   args.add_argument("--solver")
       .help("Select backend solver")
-      .default_value(std::string{"z3"});
+      .default_value(std::string{"acyclic-minisat"});
   args.add_argument("--history-type")
       .help("History type")
       .default_value(std::string{"dbcop"});
@@ -172,12 +171,25 @@ auto main(int argc, char **argv) -> int {
 
   auto accept = true;
 
-  if (args["--pruning"] == true) {
-    accept = solver::prune_constraints(dependency_graph, constraints);
+  if (args.get("--pruning") != "none") {
+    auto pruning_method = args.get("--pruning");
+    BOOST_LOG_TRIVIAL(debug) << "pruning method: " << pruning_method;
+    
+    auto pruned = true;
+    if (pruning_method == "normal") {
+      accept = solver::prune_constraints(dependency_graph, constraints);
+    } else if (pruning_method == "fast") {
+      accept = solver::fast_prune_constraints(dependency_graph, constraints);
+    } else {
+      pruned = false;
+      BOOST_LOG_TRIVIAL(info) << "unknown pruning method \"" 
+                              << pruning_method
+                              << "\", expect in {\"normal\", \"fast\", \"none\"}, skip pruning";
+    }
 
     // display_constraints(constraints, "Constraints after Pruning:");
 
-    {
+    if (pruned) {
       auto curr_time = chrono::steady_clock::now();
       BOOST_LOG_TRIVIAL(info)
           << "prune time: "
