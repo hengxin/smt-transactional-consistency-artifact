@@ -47,6 +47,7 @@ using std::optional;
 using std::unordered_set;
 using std::vector;
 using std::set;
+using std::pair;
 using std::unordered_map;
 using std::ranges::copy;
 using std::ranges::views::filter;
@@ -133,7 +134,8 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
 
   // 3. prepare known induced rw edges
   using Edge = std::tuple<int64_t, int64_t, EdgeInfo>;
-  auto known_rw_edges_of = vector<vector<vector<Edge>>>(n, vector<vector<Edge>>(n, vector<Edge>{})); // (from, to) -> rw edges
+  // auto known_rw_edges_of = vector<vector<vector<Edge>>>(n, vector<vector<Edge>>(n, vector<Edge>{})); // (from, to) -> rw edges
+  auto known_rw_edges_of = unordered_map<int, unordered_map<int, vector<Edge>>>{}; // (from, to) -> rw edges
   for (const auto &c : ww_constraints) {
     const auto &[either_txn_id, or_txn_id, info] = c.either_edges.at(0);
     const auto &keys = info.keys;
@@ -141,14 +143,21 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
     auto or_ = vertex_map.at(or_txn_id);
 
     auto induce_rw_edges = [&](int from, int to, int64_t key) -> void {
+      auto rw_keys_of = unordered_map<int, unordered_map<int, set<int64_t>>>{}; // (from, to) -> keys
+      auto rw_edges = vector<pair<int, int>>{};
       for (const auto &to2 : wr_to[from][key]) {
         if (to == to2) continue;
+        if (rw_keys_of[to2][to].empty()) rw_edges.emplace_back(pair<int, int>{to2, to});
+        rw_keys_of[to2][to].insert(key);
+      }
+      for (const auto &[u, v] : rw_edges) {
+        const auto &keys = rw_keys_of[u][v];
         known_rw_edges_of[from][to].emplace_back(Edge{
-          i_vertex_map.at(to2),
-          i_vertex_map.at(to),
+          i_vertex_map.at(u), 
+          i_vertex_map.at(v),
           EdgeInfo{
             .type = EdgeType::RW,
-            .keys = {key},
+            .keys = vector<int64_t>(keys.begin(), keys.end()),
           },
         });
       }
