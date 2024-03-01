@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <cstdio>
+#include <chrono>
 #include <cstdlib>
 #include <filesystem>
 
@@ -22,8 +23,17 @@ namespace checker::solver {
 
 MonosatSolver::MonosatSolver(const history::DependencyGraph &known_graph,
                              const history::Constraints &constraints) {
+  auto unique_filename = []() -> std::string {
+    auto currentTime = std::chrono::system_clock::now();
+    auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime.time_since_epoch()).count();
+
+    auto name = std::string{"mono-"} + std::to_string(timestamp) + std::string{".gnf"};
+    return name;
+  };
+  
   solver = newSolver();
-  gnf_path = fs::current_path(); gnf_path.append("monosat_tmp_input.gnf");
+  gnf_path = fs::temp_directory_path();
+  gnf_path = gnf_path / unique_filename();
   try {
     utils::write_to_gnf_file(gnf_path, known_graph, constraints);
   } catch (std::runtime_error &e) {
@@ -48,10 +58,14 @@ MonosatSolver::MonosatSolver(const history::DependencyGraph &known_graph,
 
 auto MonosatSolver::solve() -> bool {
   readGNF(solver, gnf_path.c_str());
+  // std::cout << gnf_path << std::endl;
   bool ret = solveWrapper(solver);
   return ret;
 }
 
-MonosatSolver::~MonosatSolver() { deleteSolver(solver); };
+MonosatSolver::~MonosatSolver() { 
+  deleteSolver(solver); 
+  fs::remove(gnf_path);
+};
 
 }
