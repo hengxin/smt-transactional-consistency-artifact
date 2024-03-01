@@ -238,7 +238,8 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
     Transaction *current = nullptr;
     while (1) {
       char op = read_char(in);
-      if (op == 255) { // the file ends with 255(EOF), but not reach the real end of this file
+      if (op == 255 || op == EOF) { // the file ends with 255(EOF), but not reach the real end of this file
+        // It's quite strange, for 255 = EOF is our common sense, however exception occured on 2 machines
         break;
       }
       // std::cout << op << std::endl;

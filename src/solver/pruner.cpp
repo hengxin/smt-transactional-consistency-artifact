@@ -15,6 +15,7 @@
 #include <vector>
 #include <cassert>
 #include <iostream>
+#include <chrono>
 
 #include "history/constraint.h"
 #include "history/dependencygraph.h"
@@ -47,6 +48,8 @@ using std::vector;
 using std::set;
 using std::ranges::copy;
 using std::ranges::views::filter;
+
+namespace chrono = std::chrono;
 
 namespace checker::solver {
 
@@ -203,10 +206,16 @@ auto prune_constraints(DependencyGraph &dependency_graph,
     }
   }
 
+  auto reachability_duration = chrono::milliseconds(0);
+  auto check_duration = chrono::milliseconds(0);
+  auto add_duration = chrono::milliseconds(0);
+
   while (changed) {
     BOOST_LOG_TRIVIAL(trace) << "new pruning pass:";
 
     changed = false;
+
+    auto time = chrono::steady_clock::now();
 
     auto known_graph = adjacency_list<>{dependency_graph.num_vertices()};
     for (auto &&[from, to, _] : dependency_graph.edges()) {
@@ -251,6 +260,12 @@ auto prune_constraints(DependencyGraph &dependency_graph,
 
       return r;
     }();
+
+    {
+      auto curr_time = chrono::steady_clock::now();
+      reachability_duration += chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+      time = curr_time;
+    }
 
     auto keys_intersection = [](const vector<int64_t> &v1, const vector<int64_t> &v2) -> vector<int64_t> {
       auto s1 = set<int64_t>(v1.begin(), v1.end()), s2 = set<int64_t>(v2.begin(), v2.end());
@@ -324,11 +339,19 @@ auto prune_constraints(DependencyGraph &dependency_graph,
         }
       };
 
+      time = chrono::steady_clock::now();
+
       auto add_or = !check_ww_edges(c.either_edges.at(0));
       auto add_either = !check_ww_edges(c.or_edges.at(0));
       if (add_or && add_either) {
         BOOST_LOG_TRIVIAL(debug) << "conflict found in ww pruning";
         return false;
+      }
+
+      {
+        auto curr_time = chrono::steady_clock::now();
+        check_duration += chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+        time = curr_time;
       }
 
       auto added_edges_name = "or";
@@ -341,6 +364,12 @@ auto prune_constraints(DependencyGraph &dependency_graph,
         add_ww_edges(c.either_edges.at(0));
         changed = pruned = true;
         added_edges_name = "either";
+      }
+
+      {
+        auto curr_time = chrono::steady_clock::now();
+        add_duration += chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+        time = curr_time;
       }
 
       if (pruned) {
@@ -388,6 +417,8 @@ auto prune_constraints(DependencyGraph &dependency_graph,
         }
       };
 
+      time = chrono::steady_clock::now();
+
       auto &[key, read_txn_id, write_txn_ids] = c;
       auto erased_wids = vector<int64_t>{};
       for (auto write_txn_id : write_txn_ids) {
@@ -398,6 +429,13 @@ auto prune_constraints(DependencyGraph &dependency_graph,
           erased_wids.emplace_back(write_txn_id);
         }
       }
+
+      {
+        auto curr_time = chrono::steady_clock::now();
+        check_duration += chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+        time = curr_time;
+      }
+
       for (auto id : erased_wids) write_txn_ids.erase(id);
       if (write_txn_ids.empty()) {
         BOOST_LOG_TRIVIAL(debug) << "conflict found in wr pruning:";
@@ -415,10 +453,19 @@ auto prune_constraints(DependencyGraph &dependency_graph,
       auto pruned = false;
       if (write_txn_ids.size() == 1) {
         pruned = changed = true;
+
+        time = chrono::steady_clock::now();
+
         add_wr_edges(*write_txn_ids.begin(), read_txn_id, EdgeInfo{
           .type = EdgeType::WR,
           .keys = vector<int64_t>{key},
         });
+
+        {
+          auto curr_time = chrono::steady_clock::now();
+          add_duration += chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+          time = curr_time;
+        }
       }
 
       if (pruned) {
@@ -428,6 +475,10 @@ auto prune_constraints(DependencyGraph &dependency_graph,
       }
     }
   }
+
+  BOOST_LOG_TRIVIAL(debug) << "constructing reachability time: " << reachability_duration;
+  BOOST_LOG_TRIVIAL(debug) << "checking time: " << check_duration;
+  BOOST_LOG_TRIVIAL(debug) << "adding edge time: " << add_duration;
 
   ww_constraints = ww_constraints | not_pruned_ww | to<vector<WWConstraint>>;
   wr_constraints = wr_constraints | not_pruned_wr | to<vector<WRConstraint>>;

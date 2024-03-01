@@ -366,6 +366,10 @@ void AcyclicSolverHelper::construct_wr_cons_propagated_lits(int var) {
   if (!polygraph->is_wr_var(var)) return;
   Logger::log(fmt::format("- [Construct WRCP of {}]", var));
   auto wr_cons_ref = polygraph->get_wr_cons(var);
+  if (!wr_cons_ref) {
+    Logger::log(fmt::format("- unit wr cons {}, end WRCP", var));
+    return;
+  }
   for (const auto &var2 : *wr_cons_ref) {
     if (icd_graph.get_var_assigned(var2)) continue;
     Logger::log(fmt::format(" - prop (~{}) with reason (~{} | ~{})", var2, var, var2));
