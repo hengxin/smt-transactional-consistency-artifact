@@ -9,13 +9,29 @@ import sys
 # === config ===
 participants = [
   {
-    'name': 'mono',
-    'data_path': 'pf7-mono-prune'
+    'name': 'mono(fp)',
+    'data_path': 'pf7-mono-fp-926'
   },
   {
-    'name': 'am',
-    'data_path': 'pf7-am-prune-cache-key-known-mem'
+    'name': 'mono(p)',
+    'data_path': 'pf7-mono-np-926'
+  },
+  {
+    'name': 'am(fp+pc+wrcp)',
+    'data_path': 'pf7-base-fp-pc-wrcp-926'
   }, 
+  {
+    'name': 'am(fp+pc)',
+    'data_path': 'pf7-base-fp-pc-926'
+  },
+  {
+    'name': 'am(fp)',
+    'data_path': 'pf7-base-fp-926'
+  },
+  {
+    'name': 'am(np)',
+    'data_path': 'pf7-base-np-926'
+  }
 ]
 
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')

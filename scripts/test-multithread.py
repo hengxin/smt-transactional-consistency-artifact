@@ -49,26 +49,26 @@ root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 logging.info(f'root path = {root_path}')
 # will run all histories under this path
 # history_path = history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'one-shot-chengRW') 
-# history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
-history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'polysi-fig7-like')
+history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
+# history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'polysi-fig7-like')
 logging.info(f'history path = {history_path}')
 
 # checker_path = os.path.join(root_path, 'builddir', 'checker')
 checker_path = os.path.join(root_path, 'builddir-release', 'checker')
 logging.info(f'checker path = {checker_path}')
 
-solver = 'acyclic-minisat'
+solver = 'monosat'
 assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3'
 logging.info(f'solver = {solver}')
 
-pruning_method = 'none'
+pruning_method = 'fast'
 assert pruning_method == 'fast' or pruning_method == 'normal' or pruning_method == 'none'
 logging.info(f'pruning method = {pruning_method}')
 
 # on 926 ubuntu, it's okay to set n_threads to 4
 # on local virtual machine, n_threads is recommanded to be set to 3
 # a large n_threads may lead to the not-full-usage of a cpu core, or trigger processes being incorrectly killed due to the exceeded memory usage
-n_threads = 4
+n_threads = 2
 logging.info(f'use {n_threads} thread(s)')
 
 output_path = os.path.join(root_path, 'results', 'test-results.json')
