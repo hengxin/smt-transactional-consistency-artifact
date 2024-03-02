@@ -29,7 +29,7 @@ participants = [
     'data_path': 'pf7-base-fp-926'
   },
   {
-    'name': 'am(np)',
+    'name': 'am(p)',
     'data_path': 'pf7-base-np-926'
   }
 ]
