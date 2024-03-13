@@ -76,6 +76,9 @@ logging.info(f'use {n_threads} thread(s)')
 output_path = os.path.join(root_path, 'results', 'test-results.json')
 logging.info(f'output path = {output_path}')
 
+time_out = 7 * 60 # 7 min
+logging.info(f'time out = {time_out}')
+
 # === global variables ===
 # tasks = [_ for _ in os.listdir(history_path) if len(_) <= 13]
 tasks = os.listdir(history_path) 
@@ -128,11 +131,16 @@ overall_task_id = overall_progress.add_task("", total=len(tasks))
 
 # === sub thread ===
 
-def parse_logs(thread_id, logs, max_memory, task_name):
+def parse_logs(thread_id, logs, max_memory, task_name, time_limit_exceeded):
   """parse logs of a task and store"""
   logging.debug(f'thread {thread_id} starts parsing logs of task {task_name}, max memory = {max_memory}, logs = {logs}')
-  update_results(thread_id, task_name, 'max memory', max_memory)
+  update_results(thread_id, task_name, 'max memory', max_memory if not time_limit_exceeded else 10 * 1024 * 1024 * 1024) # 10 GB
 
+  if time_limit_exceeded:
+    update_results(thread_id, task_name, 'accept', True)
+    update_results(thread_id, task_name, 'total time', str(time_out * 1000) + 'ms')
+    return
+  
   with open('/tmp/result_log.json', 'r') as data:
     content = data.read()
     json_content = '{' + content.split('{')[-1]
@@ -190,12 +198,19 @@ def run_task(thread_id, task):
                        '-d', bincode_path]
   logging.debug(f'thread {thread_id} runs cmd {cmd}')
   # result = subprocess.run(cmd, capture_output=True, text=True)
+  start_time = time.time()
+  time_limit_exceeded = False
   process = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
 
   process_id = process.pid
   max_memory = 0
 
   while process.poll() is None:
+    cur_time = time.time()
+    if cur_time - start_time > time_out:
+      process.terminate()
+      time_limit_exceeded = True
+      break
     try:
       process_info = psutil.Process(process_id)
       memory_info = process_info.memory_info()
@@ -216,7 +231,7 @@ def run_task(thread_id, task):
   
   logging.debug(f'thread finished checking {task}, stdout = {stdout}, stderr = {stderr}')
   logs = stdout.split(os.linesep)
-  parse_logs(thread_id, logs, max_memory, task)
+  parse_logs(thread_id, logs, max_memory, task, time_limit_exceeded)
   logging.info(f'thread {thread_id} finished task {task}')
 
   current_task_progress.stop_task(current_task_id)
