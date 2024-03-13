@@ -18,7 +18,7 @@ participants = [
   },
   {
     'name': 'dbcop',
-    'data_path': 'uvdminus-dbcop-926'
+    'data_path': 'uvd-dbcop-926'
   },
 ]
 
@@ -50,6 +50,12 @@ experiment_set = [ # default 15_45_15_1000
     'set': '15_45_15_{}',
     'param': [500, 750, 1000, 1250, 1500],
   },
+  {
+    'id': 'e',
+    'name': 'txns-stress',
+    'set': '15_{}_15_1000',
+    'param': [100, 200, 300, 400, 500, 600, 700],
+  }
 ]
 
 def adjust_time(time): # ms -> s
