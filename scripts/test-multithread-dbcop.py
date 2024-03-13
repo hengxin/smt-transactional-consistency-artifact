@@ -5,6 +5,7 @@ import subprocess
 import humanize
 import psutil
 import time
+import sys
 
 # progress bar
 from rich.progress import (
@@ -42,7 +43,7 @@ logging.basicConfig(
 )
 
 history_type = 'dbcop' 
-assert history_type == 'cobra' or history_type == 'dbcop'
+assert history_type == 'dbcop'
 logging.info(f'history type = {history_type}')
 
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
@@ -54,28 +55,30 @@ history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type)
 logging.info(f'history path = {history_path}')
 
 # checker_path = os.path.join(root_path, 'builddir', 'checker')
-checker_path = os.path.join(root_path, 'builddir-release', 'checker')
+# checker_path = os.path.join(root_path, 'builddir-release', 'checker')
+checker_path = '/home/rikka/smt-baselines/dbcop-verifier/target/release/dbcop'
 logging.info(f'checker path = {checker_path}')
 
-solver = 'acyclic-minisat'
-assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3'
+solver = 'dbcop'
+assert solver == 'dbcop'
 logging.info(f'solver = {solver}')
 
-pruning_method = 'fast'
+pruning_method = 'none'
 assert pruning_method == 'fast' or pruning_method == 'normal' or pruning_method == 'none'
 logging.info(f'pruning method = {pruning_method}')
 
 # on 926 ubuntu, it's okay to set n_threads to 4
 # on local virtual machine, n_threads is recommanded to be set to 3
 # a large n_threads may lead to the not-full-usage of a cpu core, or trigger processes being incorrectly killed due to the exceeded memory usage
-n_threads = 2
+n_threads = 1
 logging.info(f'use {n_threads} thread(s)')
 
 output_path = os.path.join(root_path, 'results', 'test-results.json')
 logging.info(f'output path = {output_path}')
 
 # === global variables ===
-tasks = os.listdir(history_path)
+# tasks = [_ for _ in os.listdir(history_path) if len(_) <= 13]
+tasks = os.listdir(history_path) 
 task_queue = queue.Queue()
 for history_dir in tasks:
   task_queue.put(history_dir)
@@ -129,21 +132,34 @@ def parse_logs(thread_id, logs, max_memory, task_name):
   """parse logs of a task and store"""
   logging.debug(f'thread {thread_id} starts parsing logs of task {task_name}, max memory = {max_memory}, logs = {logs}')
   update_results(thread_id, task_name, 'max memory', max_memory)
-  for log in logs:
-    if log == '':
-      logging.warning(f'thread {thread_id} found \'\'(empty line) in logs, skip')
-      continue
-    if log[0] == '[': # [time] [thread] [log_level] msg
-      msg = log.split(']')[-1].strip()
-      if msg.find(':') == -1:
-        logging.debug(f'thread {thread_id} skips msg {msg}')
-        continue
-      key, value = msg.split(':')
-      update_results(thread_id, task_name, key.strip(), value.strip())
-    elif log[0] == 'a': # accept : true / false
-      update_results(thread_id, task_name, 'accept', log.split(':')[-1].strip() == 'true')
-    else:
-      logging.error(f'thread {thread_id} cannot parse log line "{log}"')
+
+  with open('/tmp/result_log.json', 'r') as data:
+    content = data.read()
+    json_content = '{' + content.split('{')[-1]
+    logs = json.loads(json_content)
+  
+  if logs['minViolation'] == 'ok':
+    update_results(thread_id, task_name, 'accept', True)
+  else:
+    update_results(thread_id, task_name, 'accept', False)
+  
+  update_results(thread_id, task_name, 'total time', str(logs['duration'] * 1000).split('.')[0] + 'ms')
+
+  # for log in logs:
+  #   if log == '':
+  #     logging.warning(f'thread {thread_id} found \'\'(empty line) in logs, skip')
+  #     continue
+  #   if log[0] == '[': # [time] [thread] [log_level] msg
+  #     msg = log.split(']')[-1].strip()
+  #     if msg.find(':') == -1:
+  #       logging.debug(f'thread {thread_id} skips msg {msg}')
+  #       continue
+  #     key, value = msg.split(':')
+  #     update_results(thread_id, task_name, key.strip(), value.strip())
+  #   elif log[0] == 'a': # accept : true / false
+  #     update_results(thread_id, task_name, 'accept', log.split(':')[-1].strip() == 'true')
+  #   else:
+  #     logging.error(f'thread {thread_id} cannot parse log line "{log}"')
 
 
 def read_stream(stream):
@@ -165,15 +181,16 @@ def run_task(thread_id, task):
   if history_type == 'cobra':
     bincode_path = str(os.path.join(history_path, history_dir)) + '/'
   else: # dbcop
-    bincode_path = os.path.join(history_path, history_dir, 'hist-00000', 'history.bincode')
+    bincode_path = str(os.path.join(history_path, history_dir, 'hist-00000')) + '/'
   
-  cmd = [checker_path, bincode_path, '--solver', solver, '--history-type', history_type]
-  if pruning_method != 'none':
-    cmd.append('--pruning')
-    cmd.append(pruning_method)
+  out_dir = '/tmp/'
+  cmd = [checker_path, 'verify',
+                       '-c', 'ser', 
+                       '-o', out_dir,
+                       '-d', bincode_path]
   logging.debug(f'thread {thread_id} runs cmd {cmd}')
   # result = subprocess.run(cmd, capture_output=True, text=True)
-  process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  process = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
 
   process_id = process.pid
   max_memory = 0
@@ -193,8 +210,9 @@ def run_task(thread_id, task):
     logging.info(f'!subprocess of task {task} does not return 0')
   time.sleep(1)
 
-  stdout = read_stream(process.stdout)
-  stderr = read_stream(process.stderr)
+  # stdout = read_stream(process.stdout)
+  stdout = ''
+  stderr = ''
   
   logging.debug(f'thread finished checking {task}, stdout = {stdout}, stderr = {stderr}')
   logs = stdout.split(os.linesep)
@@ -242,12 +260,12 @@ with Live(progress_group):
     description="[bold green]%s histories checked, done!" % len(tasks)
   )
 
-for task in tasks:
-  total_time = 0
-  for key, value in results[task].items():
-    if key.endswith('time') and value.endswith('ms'):
-      total_time += int(value[:-2])
-  results[task]['total time'] = f'{total_time}ms'
+# for task in tasks:
+#   total_time = 0
+#   for key, value in results[task].items():
+#     if key.endswith('time') and value.endswith('ms'):
+#       total_time += int(value[:-2])
+#   results[task]['total time'] = f'{total_time}ms'
 
 with open(output_path, 'w+') as json_file:
   json.dump(results, json_file, indent=2)

@@ -5,6 +5,7 @@ import subprocess
 import humanize
 import psutil
 import time
+import sys
 
 # progress bar
 from rich.progress import (
@@ -54,10 +55,11 @@ history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type)
 logging.info(f'history path = {history_path}')
 
 # checker_path = os.path.join(root_path, 'builddir', 'checker')
-checker_path = os.path.join(root_path, 'builddir-release', 'checker')
+# checker_path = os.path.join(root_path, 'builddir-release', 'checker')
+checker_path = '/home/rikka/smt-baselines/smt-transactional-consistency-artifact/builddir-release/checker'
 logging.info(f'checker path = {checker_path}')
 
-solver = 'acyclic-minisat'
+solver = 'z3'
 assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3'
 logging.info(f'solver = {solver}')
 
@@ -75,7 +77,8 @@ output_path = os.path.join(root_path, 'results', 'test-results.json')
 logging.info(f'output path = {output_path}')
 
 # === global variables ===
-tasks = os.listdir(history_path)
+# tasks = [_ for _ in os.listdir(history_path) if len(_) <= 13]
+tasks = [_ for _ in os.listdir(history_path) if len(_) <= 14]
 task_queue = queue.Queue()
 for history_dir in tasks:
   task_queue.put(history_dir)
@@ -170,7 +173,7 @@ def run_task(thread_id, task):
   cmd = [checker_path, bincode_path, '--solver', solver, '--history-type', history_type]
   if pruning_method != 'none':
     cmd.append('--pruning')
-    cmd.append(pruning_method)
+    # cmd.append(pruning_method)
   logging.debug(f'thread {thread_id} runs cmd {cmd}')
   # result = subprocess.run(cmd, capture_output=True, text=True)
   process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
