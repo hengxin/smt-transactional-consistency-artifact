@@ -7,18 +7,17 @@ from rich.progress import track
 
 # === config ===
 histories_to_be_added = [
-  '10_50_15_1000_0.5_0',
-  '10_50_15_1000_0.5_0.25',
-  '10_50_15_1000_0.5_0.5',
-  '10_50_15_1000_0.5_0.75',
-  '10_50_15_1000_0.5_1',
+  '20_250_10_3000_0.5_0.9', # RH
+  '20_250_10_3000_0.5_0.2', # WH
+  '20_250_10_3000_0.5_0.5', # RW
+  '10_100_10_1000_0.95', # RV, Repeat Value
 ]
 
 dbcop = '/home/rikka/dbcop/target/release/dbcop'
 
 # under history/${specific-logs}/${history_name}/hist-00000/history.bincode
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
-specific_path = 'dbcop-logs/no-uv/polysi-fig7-like'
+specific_path = 'dbcop-logs/no-uv/general'
 # specific_path = 'dbcop-logs/tmp'
 history_dir = os.path.join(root_path, 'history', specific_path)
 
