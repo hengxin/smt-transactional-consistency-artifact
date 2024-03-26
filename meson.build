@@ -113,7 +113,7 @@ executable(
 )
 
 shared_library(
-  'smtchecker',
+  'smtchecker-ser',
   files('src/api/smtchecker.cpp'),
   dependencies: checker_common_deps,
   override_options: checker_opts,
