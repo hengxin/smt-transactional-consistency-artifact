@@ -20,6 +20,7 @@
 #include "solver/pruner.h"
 #include "solver/solverFactory.h"
 #include "utils/log.h"
+#include "api/smtchecker.h"
 
 namespace history = checker::history;
 namespace solver = checker::solver;
@@ -42,6 +43,12 @@ auto main(int argc, char **argv) -> int {
   args.add_argument("--history-type")
       .help("History type")
       .default_value(std::string{"dbcop"});
+  args.add_argument("--perf")
+      .help("Perform performance analysis")
+      .default_value(true);
+  args.add_argument("--perf-path")
+      .help("Performance analysis output path")
+      .default_value(std::string{"./perf.json"});
 
   try {
     args.parse_args(argc, argv);
@@ -71,130 +78,8 @@ auto main(int argc, char **argv) -> int {
     throw std::invalid_argument{os.str()};
   }
 
-  auto solver_type = args.get("--solver");
-  const auto all_solvers = std::set<std::string>{"z3", "monosat", "acyclic-minisat"};
-  if (all_solvers.contains(solver_type)) {
-    BOOST_LOG_TRIVIAL(debug)
-        << "use "
-        << solver_type
-        << " as backend solver";
-  } else {
-    std::ostringstream os;
-    os << "Invalid solver '" << solver_type << "'";
-    os << "All valid solvers: 'z3' or 'monosat' or 'acyclic-minisat'";
-    throw std::invalid_argument{os.str()};
-  }
-
-  auto history_type = args.get("--history-type");
-  const auto all_history_types = std::set<std::string>{"cobra", "dbcop"};
-  if (all_history_types.contains(history_type)) {
-    BOOST_LOG_TRIVIAL(debug)
-        << "history type: "
-        << history_type;
-  } else {
-    std::ostringstream os;
-    os << "Invalid history type '" << history_type << "'";
-    os << "All valid history types: 'dpcop' or 'cobra'";
-    throw std::invalid_argument{os.str()};
-  }
-
-  auto time = chrono::steady_clock::now();
-
-  history::History history;
-  if (history_type == "dbcop") {
-    // read history
-    auto history_file = std::ifstream{args.get("history")};
-    if (!history_file.is_open()) {
-      std::ostringstream os;
-      os << "Cannot open file '" << args.get("history") << "'";
-      throw std::runtime_error{os.str()};
-    }
-
-    history = history::parse_dbcop_history(history_file);
-  } else if (history_type == "cobra") {
-    auto history_dir = args.get("history");
-    try {
-      history = history::parse_cobra_history(history_dir);
-    } catch (const std::runtime_error &e) {
-      std::cerr << e.what() << std::endl;
-      return 1;
-    }
-  } else {
-    assert(0);
-  }
-
-  // compute known graph (WR edges) and constraints from history
-  auto dependency_graph = history::known_graph_of(history);
-  auto constraints = history::constraints_of(history, dependency_graph.wr);
-
-  // std::cout << dependency_graph << std::endl;
-
-  auto display_constraints = [](const std::vector<history::Constraint> &constraints, std::string info = {""}) -> void {
-    if (info != "") std::cout << info << std::endl;
-    for (auto constraint : constraints) {
-      std::cout << constraint << std::endl;
-    }
-    std::cout << std::endl;
-  };
-  // display_constraints(constraints, "Constraints before Pruning:");
-
-  {
-    auto curr_time = chrono::steady_clock::now();
-    BOOST_LOG_TRIVIAL(info)
-        << "construct time: "
-        << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
-    time = curr_time;
-  }
-
-  CHECKER_LOG_COND(trace, logger) {
-    logger << "history: " << history << "\ndependency graph:\n"
-           << dependency_graph;
-
-    for (const auto &c : constraints) {
-      logger << c;
-    }
-  }
-
-  auto accept = true;
-
-  if (args["--pruning"] == true) {
-    accept = solver::prune_constraints(dependency_graph, constraints);
-
-    // display_constraints(constraints, "Constraints after Pruning:");
-
-    {
-      auto curr_time = chrono::steady_clock::now();
-      BOOST_LOG_TRIVIAL(info)
-          << "prune time: "
-          << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
-      time = curr_time;
-    }
-  }
-
-  if (accept) {
-    // encode constraints and known graph
-    auto solver = solver::SolverFactory::getSolverFactory().make(solver_type, dependency_graph, constraints);
-
-    {
-      auto curr_time = chrono::steady_clock::now();
-      BOOST_LOG_TRIVIAL(info)
-          << "solver initializing time: "
-          << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
-      time = curr_time;
-    }
-
-    // use SMT solver to solve constraints
-    accept = solver->solve();
-
-    {
-      auto curr_time = chrono::steady_clock::now();
-      BOOST_LOG_TRIVIAL(info)
-          << "solve time: "
-          << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
-    }
-
-    delete solver;
-  }
-  std::cout << "accept: " << std::boolalpha << accept << std::endl;
+    verify(args.get("history").c_str(), args.get("--log-level").c_str(), args["--pruning"] == true,
+           args.get("--solver").c_str(), args.get("--history-type").c_str(),
+           args["--perf"] == true, args.get("--perf-path").c_str());
   return 0;
 }

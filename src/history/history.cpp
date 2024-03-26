@@ -20,6 +20,7 @@
 #include <filesystem>
 #include <map>
 #include <set>
+#include <regex>
 
 #include "utils/to_container.h"
 
@@ -413,6 +414,98 @@ auto n_written_key_txns_of(History &history) -> std::unordered_map<int64_t, int>
     n_written_txns_of_key[key] = txns.size();
   }
   return n_written_txns_of_key;
+}
+
+auto parse_text_history(std::ifstream &is) -> History {
+    constexpr int64_t init_session_id = -1;
+    constexpr int64_t init_txn_id = -1;
+
+    auto history = History{};
+    auto keys = std::unordered_set<int64_t>{};
+
+    std::string line;
+    std::regex regex("([rw])\\((\\d++),(\\d++),(\\d++),(-?\\d++)\\)");
+    std::map<int64_t, int64_t> sessionIdMap;
+    std::map<int64_t, std::map<int64_t, Transaction>> transactionsMap;
+    int64_t minSessionId = 0;
+
+    while (getline(is, line)) {
+        std::smatch match;
+        if (!std::regex_match(line, match, regex)) {
+            throw std::runtime_error("Invalid format");
+        }
+        std::string op = match[1].str();
+        auto type = op == "r" ? EventType::READ : EventType::WRITE;
+        int64_t key = std::stol(match[2].str());
+        keys.insert(key);
+        int64_t value = std::stol(match[3].str());
+        int64_t sessionId = std::stol(match[4].str());
+
+        if (sessionIdMap.find(sessionId) != sessionIdMap.end()) {
+            sessionId = sessionIdMap[sessionId];
+        } else {
+            sessionIdMap[sessionId] = minSessionId;
+            sessionId = minSessionId++;
+        }
+        int64_t transactionId = std::stol(match[5].str());
+
+        transactionsMap[sessionId][transactionId].events.emplace_back(Event{
+                .key = key,
+                .value = value,
+                .type = type,
+                .transaction_id = transactionId,
+        });
+    }
+
+    for (auto& [session_id, sessionsMap] : transactionsMap) {
+        for (auto& [transaction_id, transaction] : sessionsMap) {
+            transaction.id = transaction_id;
+            transaction.session_id = session_id;
+
+            auto it = std::find_if(history.sessions.begin(), history.sessions.end(),
+                                   [session_id](const Session& s) { return s.id == session_id; });
+
+            if (it == history.sessions.end()) {
+                Session session;
+                session.id = session_id;
+                session.transactions.push_back(std::move(transaction));
+                history.sessions.push_back(std::move(session));
+            } else {
+                it->transactions.push_back(std::move(transaction));
+            }
+        }
+    }
+
+    history.sessions.emplace_back(Session{
+            .id = init_session_id,
+            .transactions = std::vector{Transaction{
+                    .id = init_txn_id,
+                    .events = keys  //
+                              | transform([](auto key) {
+                        return Event{
+                                .key = key,
+                                .value = 0,
+                                .type = EventType::WRITE,
+                                .transaction_id = init_txn_id,
+                        };
+                    })  //
+                              | utils::to<std::vector<Event>>,
+                    .session_id = init_session_id,
+            }},
+    });
+
+    // log history meta
+    auto count_all = [](auto &&) { return true; };
+    BOOST_LOG_TRIVIAL(info) << "#sessions: " << history.sessions.size();
+    BOOST_LOG_TRIVIAL(info) << "#transactions: "
+                            << count_if(history.transactions(), count_all);
+    BOOST_LOG_TRIVIAL(info) << "#events: "
+                            << count_if(history.events(), count_all);
+    return history;
+}
+
+auto parse_elle_history(std::ifstream &is) -> History {
+
 }
 
 }  // namespace checker::history

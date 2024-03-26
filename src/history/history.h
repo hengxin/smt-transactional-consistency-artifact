@@ -69,6 +69,8 @@ struct History {
  */
 auto parse_dbcop_history(std::istream &is) -> History;
 auto parse_cobra_history(const std::string &history_dir) -> History;
+auto parse_text_history(std::ifstream &is) -> History;
+auto parse_elle_history(std::ifstream &is) -> History;
 
 auto n_txns_of(History &history) -> int;
 auto n_rw_same_key_txns_of(History &history) -> int;
