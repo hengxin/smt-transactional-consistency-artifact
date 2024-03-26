@@ -29,9 +29,7 @@ namespace history = checker::history;
 namespace solver = checker::solver;
 namespace chrono = std::chrono;
 
-extern std::vector<int64_t> conflict_cycle;
-
-bool verify(const char *filepath, const char *log_level, bool pruning, const char *solver_type, const char *history_type, bool output_dot, const char* dot_path) {
+bool verify(const char *filepath, const char *log_level, bool pruning, const char *solver_type, const char *history_type, bool perf, const char* perf_path) {
     std::string log_level_str{log_level};
     std::string history_type_str{history_type};
     auto log_level_map =
@@ -80,7 +78,7 @@ bool verify(const char *filepath, const char *log_level, bool pruning, const cha
     }
 
     auto time = chrono::steady_clock::now();
-
+    std::map<std::string, chrono::milliseconds> profile;
     history::History history;
     if (history_type_str == "dbcop") {
         // read history
@@ -142,16 +140,8 @@ bool verify(const char *filepath, const char *log_level, bool pruning, const cha
         BOOST_LOG_TRIVIAL(info)
                 << "construct time: "
                 << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+        profile["Construction"] = chrono::duration_cast<chrono::milliseconds>(curr_time - time);
         time = curr_time;
-    }
-
-    CHECKER_LOG_COND(trace, logger) {
-        logger << "history: " << history << "\ndependency graph:\n"
-               << dependency_graph;
-
-        for (const auto &c : constraints) {
-            logger << c;
-        }
     }
 
     auto accept = true;
@@ -166,6 +156,7 @@ bool verify(const char *filepath, const char *log_level, bool pruning, const cha
             BOOST_LOG_TRIVIAL(info)
                     << "prune time: "
                     << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+            profile["Pruning"] = chrono::duration_cast<chrono::milliseconds>(curr_time - time);
             time = curr_time;
         }
     }
@@ -179,6 +170,7 @@ bool verify(const char *filepath, const char *log_level, bool pruning, const cha
             BOOST_LOG_TRIVIAL(info)
                     << "solver initializing time: "
                     << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+            profile["Encoding"] = chrono::duration_cast<chrono::milliseconds>(curr_time - time);
             time = curr_time;
         }
 
@@ -190,99 +182,40 @@ bool verify(const char *filepath, const char *log_level, bool pruning, const cha
             BOOST_LOG_TRIVIAL(info)
                     << "solve time: "
                     << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+            profile["Solving"] = chrono::duration_cast<chrono::milliseconds>(curr_time - time);
         }
-
-        if (!accept && output_dot) {
-            std::string dot = " {\n";
-            // nodes
-            for (auto txn_id : conflict_cycle) {
-                auto it = std::ranges::find_if(history.transactions().begin(), history.transactions().end(),
-                                               [txn_id](const history::Transaction& txn) { return txn.id == txn_id; });
-                if (it == history.transactions().end()) {
-                    BOOST_LOG_TRIVIAL(error) << "txn_id not found: " << txn_id;
-                }
-                dot += "\"Transaction(id=" + std::to_string(txn_id) + ")\" [ops=\"";
-                for (std::size_t i = 0; const auto& event : it->events) {
-                    dot += "Operation(type=" + (event.type == history::EventType::READ ? std::string("READ") : std::string("WRITE"))  +
-                           ", key=" + std::to_string(event.key) + ", value=" + std::to_string(event.value) +
-                           ", transaction=Transaction(id=" + std::to_string(txn_id) + "), id=" + std::to_string(i++) + "), ";
-                }
-                dot.erase(dot.size() - 2);
-                dot += "\"]\n";
-            }
-
-            // edges
-            std::unordered_map<std::pair<int64_t, int64_t>, checker::history::EdgeInfo, decltype([](const std::pair<int64_t, int64_t> &p) {
-                std::hash<int64_t> h;
-                return h(p.first) ^ h(p.second);
-            })> edge_map;
-            for (const auto &[from, to, e] : dependency_graph.edges()) {
-                edge_map[{from, to}] = e;
-            }
-
-            auto getEdgeType = [&](int64_t from, int64_t to) -> checker::history::EdgeInfo {
-                if (edge_map.contains({from, to})) {
-                    return edge_map[{from, to}];
-                }
-                for (auto& constraint : constraints) {
-                    auto it = std::find_if(constraint.either_edges.begin(), constraint.either_edges.end(), [&](const auto& edge) { return std::get<0>(edge) == from && std::get<1>(edge) == to; });
-                    if (it != constraint.either_edges.end()) {
-                        for (auto& edge : constraint.either_edges) {
-                            edge_map[{std::get<0>(edge), std::get<1>(edge)}] = std::get<2>(edge);
-                        }
-                    }
-                }
-                if (edge_map.contains({from, to})) {
-                    return edge_map[{from, to}];
-                } else {
-                    BOOST_LOG_TRIVIAL(error) << "edge not found: " << from << " " << to;
-                }
-                return checker::history::EdgeInfo{};
-            };
-
-            std::unordered_map<checker::history::EdgeType, int> edge_type_count;
-            conflict_cycle.push_back(conflict_cycle.front());
-            for (auto it = conflict_cycle.begin(); it != conflict_cycle.end() && it + 1 != conflict_cycle.end(); ++it) {
-                std::ostringstream oss;
-                auto edge_type = getEdgeType(*it, *(it + 1));
-                edge_type_count[edge_type.type] += 1;
-                oss << edge_type;
-                auto edge_info = oss.str();
-                auto new_end = std::remove_if(edge_info.begin(), edge_info.end(), [](char c) { return c == '(' || c == ')'; });
-                edge_info.erase(new_end, edge_info.end());
-                dot += "\"Transaction(id=" + std::to_string(*it) + ")\" -> \"Transaction(id=" + std::to_string(*(it + 1)) + ")\" [label=\"" + edge_info + "\"]\n";
-            }
-            dot += "}";
-
-            // classify
-            Anomaly anomaly;
-            if (edge_type_count[checker::history::EdgeType::RW] > 0) {
-                anomaly = G2;
-            } else if (edge_type_count[checker::history::EdgeType::WR] > 0 || edge_type_count[checker::history::EdgeType::SO] > 0) {
-                anomaly = G1;
-            } else if (edge_type_count[checker::history::EdgeType::WW] > 0) {
-                anomaly = G0;
-            }
-            auto enumToStr = [](int enumVal) {
-                    return (std::string[]) {
-                        "G0", "G1", "G2",
-                    }[enumVal];
-            };
-            dot = "digraph " + enumToStr(anomaly) + dot;
-
-            BOOST_LOG_TRIVIAL(info) << std::endl << "dot output:" << std::endl << dot << std::endl;
-            std::ofstream dot_file(dot_path);
-            if (!dot_file.is_open()) {
-                BOOST_LOG_TRIVIAL(error) << "failed to open dot file: " << dot_path;
-            } else {
-                dot_file << dot;
-                dot_file.close();
-                BOOST_LOG_TRIVIAL(info) << "dot file saved: " << dot_path;
-            }
-        }
-
         delete solver;
     }
+
+    if (perf) {
+      auto profile_map_to_json = [](const std::map<std::string, chrono::milliseconds> &map) -> std::string {
+        std::stringstream ss;
+        ss << "{";
+        bool first = true;
+        for (auto &&[k, v] : map) {
+          if (!first) {
+            ss << ",";
+          }
+          ss << "\"" << k << "\": " << v.count();
+          first = false;
+        }
+        ss << "}" << std::endl;
+        return ss.str();
+      };
+      auto json = profile_map_to_json(profile);
+
+      BOOST_LOG_TRIVIAL(info) << json << std::endl;
+
+      std::ofstream perf_file(perf_path);
+      if (!perf_file.is_open()) {
+        BOOST_LOG_TRIVIAL(error) << "failed to open perf file: " << perf_path;
+      } else {
+        perf_file << json;
+        perf_file.close();
+        BOOST_LOG_TRIVIAL(info) << "dot file saved: " << perf_path;
+      }
+    }
+
     std::cout << "accept: " << std::boolalpha << accept << std::endl;
     return accept;
 }

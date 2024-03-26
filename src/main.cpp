@@ -26,8 +26,6 @@ namespace history = checker::history;
 namespace solver = checker::solver;
 namespace chrono = std::chrono;
 
-extern std::vector<int64_t> conflict_cycle;
-
 auto main(int argc, char **argv) -> int {
   // handle cmdline args, see checker --help
   auto args = argparse::ArgumentParser{"checker", "0.0.1"};
@@ -45,12 +43,12 @@ auto main(int argc, char **argv) -> int {
   args.add_argument("--history-type")
       .help("History type")
       .default_value(std::string{"dbcop"});
-  args.add_argument("--dot")
-      .help("Print bug cycle in DOT format")
+  args.add_argument("--perf")
+      .help("Perform performance analysis")
       .default_value(true);
-  args.add_argument("--dot-path")
-      .help("DOT file path")
-      .default_value(std::string{"./conflict.dot"});
+  args.add_argument("--perf-path")
+      .help("Performance analysis output path")
+      .default_value(std::string{"./perf.json"});
 
   try {
     args.parse_args(argc, argv);
@@ -82,6 +80,6 @@ auto main(int argc, char **argv) -> int {
 
     verify(args.get("history").c_str(), args.get("--log-level").c_str(), args["--pruning"] == true,
            args.get("--solver").c_str(), args.get("--history-type").c_str(),
-           args["--dot"] == true, args.get("--dot-path").c_str());
+           args["--perf"] == true, args.get("--perf-path").c_str());
   return 0;
 }

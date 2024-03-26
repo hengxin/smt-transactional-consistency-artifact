@@ -80,8 +80,6 @@ using std::ranges::views::transform;
 using z3::expr;
 using z3::expr_vector;
 
-std::vector<int64_t> conflict_cycle;
-
 template <>
 struct std::hash<expr> {
   auto operator()(const expr &e) const -> size_t { return e.hash(); }
@@ -422,11 +420,6 @@ struct DependencyGraphHasNoCycle : z3::user_propagator_base {
         logger << ' ' << polygraph[source(e, dependency_graph)] << "->"
                << polygraph[target(e, dependency_graph)];
       }
-    }
-    if (conflict_cycle.empty()) {
-        for (auto e : cycle.value()) {
-            conflict_cycle.push_back(polygraph[source(e, dependency_graph)]);
-        }
     }
 
     auto cycle_exprs = z3::expr_vector{ctx()};
