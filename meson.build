@@ -66,7 +66,7 @@ if not acyclic_minisat_dep.found()
   acyclic_minisat_pro = cmake.subproject('acyclic-minisat')
   acyclic_minisat_dep = declare_dependency(
     include_directories: include_directories('subprojects/acyclic-minisat/minisat/api'),
-    dependencies: acyclic_minisat_pro.dependency('minisat-lib-shared')
+    dependencies: acyclic_minisat_pro.dependency('minisat-lib-shared-ser')
   )
 endif
 
