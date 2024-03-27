@@ -146,6 +146,7 @@ bool ICDGraph::detect_cycle(int from, int to, int ww_reason, int rw_reason) {
     }
     forward_visited.insert(x);
   }
+  return false;
 }
 
 bool ICDGraph::add_known_edge(int from, int to, int dep_reason, int antidep_reason) {
