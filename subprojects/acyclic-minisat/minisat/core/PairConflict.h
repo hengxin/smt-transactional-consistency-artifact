@@ -17,7 +17,7 @@ namespace Minisat {
 bool init_pair_conflict(AcyclicSolver &solver) {
   Logger::log("[Init Pair Conflict]");
   Polygraph *polygraph = solver.get_polygraph();
-  if (polygraph->n_vertices > 100000) {
+  if (polygraph->n_vertices > 200000) {
     Logger::log(fmt::format(" - failed!  polygraph has {} vertices, > limit 100000", polygraph->n_vertices));
     return false;
   }
