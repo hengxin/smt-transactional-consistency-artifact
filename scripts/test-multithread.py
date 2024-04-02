@@ -51,7 +51,7 @@ logging.info(f'root path = {root_path}')
 # history_path = history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'one-shot-chengRW') 
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'polysi-fig7-like')
-history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'scalability')
+history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'scalability3')
 logging.info(f'history path = {history_path}')
 
 # checker_path = os.path.join(root_path, 'builddir', 'checker')
