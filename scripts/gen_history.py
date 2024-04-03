@@ -7,18 +7,18 @@ from rich.progress import track
 
 # === config ===
 histories_to_be_added = [
-  '40_2500_8_10000_0.8_0.8',
-  '40_2000_8_10000_0.8_0.8',
-  '40_1500_8_10000_0.8_0.8',
-  '40_1000_8_10000_0.8_0.8',
-  '40_500_8_10000_0.8_0.8',
+  '40_2500_8_10000_0.8_0.5',
+  '40_2000_8_10000_0.8_0.5',
+  '40_1500_8_10000_0.8_0.5',
+  '40_1000_8_10000_0.8_0.5',
+  '40_500_8_10000_0.8_0.5',
 ]
 
 dbcop = '/home/rikka/dbcop/target/release/dbcop'
 
 # under history/${specific-logs}/${history_name}/hist-00000/history.bincode
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
-specific_path = 'dbcop-logs/no-uv/scalability3'
+specific_path = 'dbcop-logs/no-uv/scalability4'
 # specific_path = 'dbcop-logs/tmp'
 history_dir = os.path.join(root_path, 'history', specific_path)
 
