@@ -417,9 +417,7 @@ auto n_written_key_txns_of(History &history) -> std::unordered_map<int64_t, int>
 }
 
 auto parse_text_history(std::ifstream &is) -> History {
-    constexpr int64_t init_session_id = -1;
-    constexpr int64_t init_txn_id = -1;
-
+    // assume the history has an init transaction
     auto history = History{};
     auto keys = std::unordered_set<int64_t>{};
 
@@ -476,24 +474,6 @@ auto parse_text_history(std::ifstream &is) -> History {
         }
     }
 
-    history.sessions.emplace_back(Session{
-            .id = init_session_id,
-            .transactions = std::vector{Transaction{
-                    .id = init_txn_id,
-                    .events = keys  //
-                              | transform([](auto key) {
-                        return Event{
-                                .key = key,
-                                .value = 0,
-                                .type = EventType::WRITE,
-                                .transaction_id = init_txn_id,
-                        };
-                    })  //
-                              | utils::to<std::vector<Event>>,
-                    .session_id = init_session_id,
-            }},
-    });
-
     // log history meta
     auto count_all = [](auto &&) { return true; };
     BOOST_LOG_TRIVIAL(info) << "#sessions: " << history.sessions.size();
@@ -504,8 +484,24 @@ auto parse_text_history(std::ifstream &is) -> History {
     return history;
 }
 
-auto parse_elle_history(std::ifstream &is) -> History {
+auto parse_elle_ww(std::ifstream &is) -> std::vector<std::pair<int64_t, int64_t>> {
+  // parse elle history is kind of complex... so we just use a text history and another file of ww edges
+  std::vector<std::pair<int64_t, int64_t>> pairs;
+  std::string line;
 
+  // get every line in the file
+  while (std::getline(is, line)) {
+    std::istringstream iss(line);
+    int64_t from, to;
+    char arrow; // skip arrow
+
+    // from -> to
+    if (iss >> from >> arrow >> arrow >> to) {
+      pairs.emplace_back(from, to);
+    } else {
+      std::cerr << "Error parsing line: " << line << std::endl;
+    }
+  }
+  return pairs;
 }
-
 }  // namespace checker::history
