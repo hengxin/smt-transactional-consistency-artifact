@@ -50,6 +50,8 @@ struct DependencyGraph {
 
 auto known_graph_of(const History &history) -> DependencyGraph;
 
+auto add_known_ww(DependencyGraph &graph, const std::vector<std::pair<int64_t, int64_t>> &ww_edges) -> void;
+
 }  // namespace checker::history
 
 #endif /* CHECKER_HISTORY_DEPENDENCYGRAPH_H */

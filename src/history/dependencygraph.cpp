@@ -78,6 +78,12 @@ auto known_graph_of(const History &history) -> DependencyGraph {
   return graph;
 }
 
+auto add_known_ww(DependencyGraph &graph, const std::vector<std::pair<int64_t, int64_t>> &ww_edges) -> void {
+  for (const auto& [a, b] : ww_edges) {
+    graph.ww.add_edge(a, b, EdgeInfo{.type = EdgeType::WW});
+  }
+}
+
 auto operator<<(std::ostream &os, const EdgeInfo &edge_info) -> std::ostream & {
   auto out = std::osyncstream{os};
   auto print_keys = [&] {

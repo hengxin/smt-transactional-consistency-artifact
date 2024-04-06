@@ -115,7 +115,7 @@ bool verify(const char *filepath, const char *log_level, bool pruning, const cha
             throw std::runtime_error{os.str()};
         }
 
-        history = history::parse_elle_history(history_file);
+        history = history::parse_text_history(history_file);
     } else {
         assert(0);
     }
@@ -123,6 +123,15 @@ bool verify(const char *filepath, const char *log_level, bool pruning, const cha
     // compute known graph (WR edges) and constraints from history
     auto dependency_graph = history::known_graph_of(history);
     auto constraints = history::constraints_of(history, dependency_graph.wr);
+
+    if (history_type_str == "elle") {
+      BOOST_LOG_TRIVIAL(info)
+          << "load known WW edges from '" << filepath << "_ww'";
+      auto ww_file_path = std::string(filepath) + "_ww";
+      auto ww_file = std::ifstream{ww_file_path};
+      auto known_ww_edges = history::parse_elle_ww(ww_file);
+      history::add_known_ww(dependency_graph, known_ww_edges);
+    }
 
     // std::cout << dependency_graph << std::endl;
 
