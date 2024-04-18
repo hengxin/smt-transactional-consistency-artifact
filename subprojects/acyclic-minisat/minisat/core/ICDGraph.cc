@@ -29,26 +29,26 @@ void ICDGraph::init(int _n_vertices = 0, int n_vars = 0) {
   assigned.assign(n_vars, false);
 }
 
-void ICDGraph::add_inactive_edge(int from, int to, std::pair<int, int> reason) { 
+void ICDGraph::add_inactive_edge(int from, int to, std::tuple<int, int, int> reason) { 
   // TODO later: now deprecated
 }
 
 bool ICDGraph::add_known_edge(int from, int to) { // reason default set to (-1, -1)
   // add_known_edge should not be called after initialisation
   if (!reasons_of[from][to].empty()) return true;
-  reasons_of[from][to].insert({-1, -1});
+  reasons_of[from][to].insert({-1, -1, -1});
   out[from].insert(to);
   if (level[from] == level[to]) in[to].insert(from);
   if (++m > max_m) max_m = m;
   return true; // always returns true
 }
 
-bool ICDGraph::add_edge(int from, int to, std::pair<int, int> reason) { 
+bool ICDGraph::add_edge(int from, int to, std::tuple<int, int, int> reason) { 
   // if a cycle is detected, the edge will not be added into the graph
-  Logger::log(fmt::format("   - ICDGraph: adding {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
+  Logger::log(fmt::format("   - ICDGraph: adding {} -> {}, reason = ({}, {}, {})", from, to, std::get<0>(reason), std::get<1>(reason), std::get<2>(reason)));
   if (reasons_of.contains(from) && reasons_of[from].contains(to) && !reasons_of[from][to].empty()) {
     reasons_of[from][to].insert(reason);
-    Logger::log(fmt::format("   - existing {} -> {}, adding ({}, {}) into reasons", from, to, reason.first, reason.second));
+    Logger::log(fmt::format("   - existing {} -> {}, adding ({}, {}, {}) into reasons", from, to, std::get<0>(reason), std::get<1>(reason), std::get<2>(reason)));
     Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
     return true;
   }
@@ -74,8 +74,8 @@ bool ICDGraph::add_edge(int from, int to, std::pair<int, int> reason) {
   return false;
 }
 
-void ICDGraph::remove_edge(int from, int to, std::pair<int, int> reason) {
-  Logger::log(fmt::format("   - ICDGraph: removing {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
+void ICDGraph::remove_edge(int from, int to, std::tuple<int, int, int> reason) {
+  Logger::log(fmt::format("   - ICDGraph: removing {} -> {}, reason = ({}, {}, {})", from, to, std::get<0>(reason), std::get<1>(reason), std::get<2>(reason)));
   assert(reasons_of.contains(from));
   assert(reasons_of[from].contains(to));
   auto &reasons = reasons_of[from][to];
@@ -85,7 +85,7 @@ void ICDGraph::remove_edge(int from, int to, std::pair<int, int> reason) {
   }
   assert(reasons.contains(reason));
   reasons.erase(reasons.find(reason));
-  Logger::log(fmt::format("   - removing reasons ({}, {}) in reasons_of[{}][{}]", reason.first, reason.second, from, to));
+  Logger::log(fmt::format("   - removing reasons ({}, {}, {}) in reasons_of[{}][{}]", std::get<0>(reason), std::get<1>(reason), std::get<2>(reason), from, to));
   Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
   if (reasons.empty()) {
     Logger::log(fmt::format("   - empty reasons! removing {} -> {}", from, to));
@@ -107,7 +107,7 @@ void ICDGraph::get_propagated_lits(std::vector<std::pair<Lit, std::vector<Lit>>>
   propagated_lits.clear();
 }
 
-bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
+bool ICDGraph::detect_cycle(int from, int to, std::tuple<int, int, int> reason) {
   // if any cycle is detected, construct conflict_clause and return true, else (may skip)construct propagated_lits and return false
   if (!conflict_clause.empty()) {
     std::cerr << "Oops! conflict_clause is not empty when entering detect_cycle()" << std::endl;
@@ -207,12 +207,12 @@ void ICDGraph::construct_propagated_lits(std::unordered_set<int> &forward_visite
                                          std::unordered_set<int> &backward_visited,
                                          std::vector<int> &forward_pred,
                                          std::vector<int> &backward_pred,
-                                         int from, int to, std::pair<int, int> reason) {
+                                         int from, int to, std::tuple<int, int, int> reason) {
   // TODO later: construct propagated lits
   // now pass
 }
 
-bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int from, int to, std::pair<int, int> reason) {
+bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int from, int to, std::tuple<int, int, int> reason) {
   auto vars = std::vector<int>{};
 
   auto add_var = [&vars](int v) -> bool {
@@ -220,19 +220,19 @@ bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int fro
     vars.emplace_back(v);
     return true;
   };
+  auto add_reason_var= [&vars, &add_var](const std::tuple<int, int, int> &reason) -> void {
+    const auto &[r1, r2, r3] = reason;
+    add_var(r1), add_var(r2), add_var(r3);
+  };
 
   for (int x = to; x != from; ) {
     const int pred = backward_pred[x];
     assert(reasons_of.contains(x) && reasons_of[x].contains(pred) && !reasons_of[x][pred].empty());
-    const auto [reason1, reason2] = *reasons_of[x][pred].begin();
-    add_var(reason1), add_var(reason2);
+    add_reason_var(*reasons_of[x][pred].begin());
     x = pred;
   }
 
-  {
-    const auto [reason1, reason2] = reason;
-    add_var(reason1), add_var(reason2);
-  }
+  add_reason_var(reason);
 
   std::sort(vars.begin(), vars.end());
   vars.erase(std::unique(vars.begin(), vars.end()), vars.end());
@@ -246,7 +246,7 @@ bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int fro
 
 bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred, 
                                        std::vector<int> &forward_pred, 
-                                       int from, int to, std::pair<int, int> reason, int middle) {
+                                       int from, int to, std::tuple<int, int, int> reason, int middle) {
   auto vars = std::vector<int>{};
 
   auto add_var = [&vars](int v) -> bool {
@@ -255,27 +255,26 @@ bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred,
     return true;
   };
 
+  auto add_reason_var= [&vars, &add_var](const std::tuple<int, int, int> &reason) -> void {
+    const auto &[r1, r2, r3] = reason;
+    add_var(r1), add_var(r2), add_var(r3);
+  };
+
   for (int x = middle; x != to; ) {
     const int pred = forward_pred[x];
     assert(reasons_of.contains(pred) && reasons_of[pred].contains(x) && !reasons_of[pred][x].empty());
-    const auto [reason1, reason2] = *reasons_of[pred][x].begin();
-    add_var(reason1), add_var(reason2);
+    add_reason_var(*reasons_of[pred][x].begin());
     x = pred;
   }
 
   for (int x = middle; x != from; ) {
     const int pred = backward_pred[x];
     assert(reasons_of.contains(x) && reasons_of[x].contains(pred) && !reasons_of[x][pred].empty());
-    const auto [reason1, reason2] = *reasons_of[x][pred].begin();
-    add_var(reason1), add_var(reason2);
+    add_reason_var(*reasons_of[x][pred].begin());
     x = pred;
   }
 
-  {
-    const auto [reason1, reason2] = reason;
-    add_var(reason1), add_var(reason2);
-  }
-
+  add_reason_var(reason);
   std::sort(vars.begin(), vars.end());
   vars.erase(std::unique(vars.begin(), vars.end()), vars.end());
   for (auto v : vars) {
@@ -300,11 +299,11 @@ bool ICDGraph::get_var_assigned(int var) { return assigned[var]; }
 namespace Minisat::Logger {
 
 // ! This is a VERY BAD implementation, see Logger.h for more details
-auto reasons2str(const std::unordered_multiset<std::pair<int, int>, decltype(pair_hash_endpoint2)> &s) -> std::string {
+auto reasons2str(const std::unordered_multiset<std::tuple<int, int, int>, decltype(triple_hash_endpoint)> &s) -> std::string {
   if (s.empty()) return std::string{"null"};
   auto os = std::ostringstream{};
-  for (const auto &[x, y] : s) {
-    os << "{" << std::to_string(x) << ", " << std::to_string(y) << "}, ";
+  for (const auto &[x, y, z] : s) {
+    os << "{" << std::to_string(x) << ", " << std::to_string(y) << ", " << std::to_string(z) << "}, ";
   } 
   auto ret = os.str();
   ret.erase(ret.length() - 2); // delete last ", "

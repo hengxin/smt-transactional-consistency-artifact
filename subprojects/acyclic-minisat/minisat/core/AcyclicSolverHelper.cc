@@ -28,8 +28,20 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   added_edges_of.assign(polygraph->n_vars, {});
   known_induced_edges_of.assign(polygraph->n_vars, {});
   
+  // c++ is really interesting...
+  // dep_edges_of.assign(polygraph->n_vertices, {});
+  // anti_dep_edges_of.assign(polygraph->n_vertices, {});
+  for (int i = 0; i < polygraph->n_vertices; i++) {
+    dep_edges_of.emplace_back(std::multiset<std::pair<int, int>, decltype(pair_hash_endpoint)>{});
+    anti_dep_edges_of.emplace_back(std::multiset<std::tuple<int, int, int>, decltype(triple_hash_endpoint2)>{});
+  }
+  
   for (const auto &[from, to, type] : polygraph->known_edges) {
-    icd_graph.add_known_edge(from, to /*, reason = {-1, -1} */); 
+    if (type != 3) { // SO or WW or WR
+      add_induced_dep_edge(/* var = */ -1, from, to, /* dep_reason = */ -1);
+    } else {
+      add_induced_anti_dep_edge(/* var = */ -1, from, to, /* ww_reason = */ -1, /* wr_reason = */ -1);
+    }
     if (type == 1) { // WW
       assert(polygraph->has_ww_keys(from, to));
       const auto &keys = polygraph->ww_keys[from][to];
@@ -58,7 +70,7 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
       Logger::log("- initailize all edges!");
     #endif
 
-    using ReasonEdge = std::tuple<int, int, std::pair<int, int>>; // (from, to, reason)
+    using ReasonEdge = std::tuple<int, int, std::pair<int, int>, bool>; // (from, to, reason, is_rw)
     struct CmpReasonEdge {
       auto operator() (const ReasonEdge &lhs, const ReasonEdge &rhs) const -> bool {
         return lhs < rhs;
@@ -73,11 +85,11 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
       auto &s = known_induced_edges_set_of[v];
       if (polygraph->is_ww_var(v)) {
         const auto &[from, to, keys] = polygraph->ww_info[v];
-        s.insert(ReasonEdge{from, to, {v, -1}});
+        s.insert(ReasonEdge{from, to, {v, -1}, /* is_rw = */ false});
         Logger::log(fmt::format(" - WW: {} -> {}, reason = ({}, {}), Known(Itself)", from, to, v, -1));
       } else if (polygraph->is_wr_var(v)) {
         const auto &[from, to, key] = polygraph->wr_info[v];
-        s.insert(ReasonEdge{from, to, {-1, v}});
+        s.insert(ReasonEdge{from, to, {-1, v}, /* is_rw = */ false});
         Logger::log(fmt::format(" - WR: {} -> {}, reason = ({}, {}), Known(Itself)", from, to, -1, v));
       } else {
         assert(false);
@@ -94,7 +106,7 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
               if (to2 == to) continue;
               auto var2 = polygraph->wr_var_of[from][to2][key];
               Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {}), Induced", to2, to, var, var2));
-              s.insert(ReasonEdge{to2, to, {var, var2}});
+              s.insert(ReasonEdge{to2, to, {var, var2}, /* is_rw = */ true});
             }
           }
         } else if (polygraph->is_wr_var(v)) {
@@ -103,7 +115,7 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
             if (to2 == to) continue;
             auto var2 = polygraph->ww_var_of[from][to2];
             Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {}), Induced", to, to2, var2, var));
-            s.insert(ReasonEdge{to, to2, {var2, var}});
+            s.insert(ReasonEdge{to, to2, {var2, var}, /* is_rw = */ true});
           }
         } else {
           assert(false);
@@ -167,15 +179,18 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
     // if INDUCE_KNOWN_EDGES is enabled, known_induced_known_edges_of[var] contains all induced edges(including itself)
     // otherwise, it will only contain itself(ww)
     const auto &known_induced_edges = known_induced_edges_of[var];
-    for (const auto &[from, to, reason] : known_induced_edges) {
+    for (const auto &[from, to, reason, is_rw] : known_induced_edges) {
       Logger::log(fmt::format(" - ??: {} -> {}, reason = ({}, {}), Known", from, to, reason.first, reason.second));
-      cycle = !icd_graph.add_edge(from, to, reason);
+      // cycle = !icd_graph.add_edge(from, to, reason);
+      const auto &[reason1, reason2] = reason;
+      cycle = !(is_rw ? add_induced_anti_dep_edge(var, from, to, reason1, reason2) : add_induced_dep_edge(var, from, to, var));
+      // except itself, known_induced_edges contains all rw edges
       if (cycle) {
         Logger::log(" - conflict!");
         goto conflict; // bad implementation
       } 
       Logger::log(" - success");
-      added_edges.push({from, to, reason});
+      added_edges.push({from, to, reason, is_rw});
     }
     
     // 2. add induced rw edges
@@ -186,13 +201,14 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
         if (to2 == to) continue;
         auto var2 = polygraph->wr_var_of[from][to2][key];
         Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {}), Induced", to2, to, var, var2));
-        cycle = !icd_graph.add_edge(to2, to, {var, var2});
+        // cycle = !icd_graph.add_edge(to2, to, {var, var2});
+        cycle = !add_induced_anti_dep_edge(var, to2, to, var, var2);
         if (cycle) {
           Logger::log(" - conflict!");
           goto conflict; // bad implementation
         } 
         Logger::log(" - success");
-        added_edges.push({to2, to, {var, var2}});
+        added_edges.push({to2, to, {var, var2}, /* is_rw = */ true});
       }
     }
 
@@ -208,15 +224,17 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
     // 1. add known induced edges, including itself(wr)
     // see ww branch for more info
     const auto &known_induced_edges = known_induced_edges_of[var];
-    for (const auto &[from, to, reason] : known_induced_edges) {
+    for (const auto &[from, to, reason, is_rw] : known_induced_edges) {
       Logger::log(fmt::format(" - ??: {} -> {}, reason = ({}, {}), Known", from, to, reason.first, reason.second));
-      cycle = !icd_graph.add_edge(from, to, reason);
+      // cycle = !icd_graph.add_edge(from, to, reason);
+      const auto &[reason1, reason2] = reason;
+      cycle = !(is_rw ? add_induced_anti_dep_edge(var, from, to, reason1, reason2) : add_induced_dep_edge(var, from, to, var));
       if (cycle) {
         Logger::log(" - conflict!");
         goto conflict; // bad implementation
       } 
       Logger::log(" - success");
-      added_edges.push({from, to, reason});
+      added_edges.push({from, to, reason, is_rw});
     }
 
     // 2. add induced rw edges
@@ -225,13 +243,14 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
       if (to2 == to) continue;
       auto var2 = polygraph->ww_var_of[from][to2];
       Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {}), Induced", to, to2, var2, var));
-      cycle = !icd_graph.add_edge(to, to2, {var2, var});
+      // cycle = !icd_graph.add_edge(to, to2, {var2, var});
+      cycle = !add_induced_anti_dep_edge(var, to, to2, var2, var);
       if (cycle) {
         Logger::log(" - conflict!");
         break;
       } 
       Logger::log(" - success");
-      added_edges.push({to, to2, {var2, var}});
+      added_edges.push({to, to2, {var2, var}, /* is_rw = */ true});
     }
 
     if (!cycle) {
@@ -261,9 +280,15 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
 
     conflict_clauses.emplace_back(cur_conflict_clause);
     while (!added_edges.empty()) {
-      const auto &[from, to, reason] = added_edges.top();
+      const auto &[from, to, reason, is_rw] = added_edges.top();
       Logger::log(fmt::format(" - removing edge {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
-      icd_graph.remove_edge(from, to, reason);
+      // icd_graph.remove_edge(from, to, reason);
+      if (is_rw) {
+        const auto &[ww_reason, wr_reason] = reason;
+        remove_induced_anti_dep_edge(var, from, to, ww_reason, wr_reason); 
+      } else {
+        remove_induced_dep_edge(var, from, to, var);
+      }
       added_edges.pop();
     }
     Logger::log(fmt::format(" - {} is not been added", var));
@@ -273,6 +298,8 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
 
 void AcyclicSolverHelper::remove_edges_of_var(int var) {
 #ifndef ADDED_EDGES_CACHE
+  std::cerr << "Case of undefined ADDED_EDGES_CACHE for SI checking is not implemented yet!"
+  assert(0);
   if (polygraph->is_ww_var(var)) {
     Logger::log(fmt::format("- removing {}, type = WW", var));
     const auto &[from, to, keys] = polygraph->ww_info[var];
@@ -321,8 +348,14 @@ void AcyclicSolverHelper::remove_edges_of_var(int var) {
 
   auto &added_edges = added_edges_of[var];
   while (!added_edges.empty()) {
-    const auto &[from, to, reason] = added_edges.top();
-    icd_graph.remove_edge(from, to, reason);
+    const auto &[from, to, reason, is_rw] = added_edges.top();
+    // icd_graph.remove_edge(from, to, reason);
+    if (is_rw) {
+      const auto &[ww_reason, wr_reason] = reason;
+      remove_induced_anti_dep_edge(var, from, to, ww_reason, wr_reason);
+    } else {
+      remove_induced_dep_edge(var, from, to, var);
+    }
     Logger::log(fmt::format(" - ??: {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
     added_edges.pop();
   }
@@ -347,6 +380,26 @@ void AcyclicSolverHelper::remove_edges_of_var(int var) {
 
   assert(added_edges_of[var].empty());
 }
+
+bool AcyclicSolverHelper::add_induced_dep_edge(int var, int from, int to, int dep_reason) {
+  // TODO
+  return true;
+}
+
+bool AcyclicSolverHelper::add_induced_anti_dep_edge(int var, int from, int to, int ww_reason, int wr_reason) {
+  // TODO 
+  return true;
+}
+
+void AcyclicSolverHelper::remove_induced_dep_edge(int var, int from, int to, int dep_reason) {
+  // TODO
+}
+
+void AcyclicSolverHelper::remove_induced_anti_dep_edge(int var, int from, int to, int ww_reason, int wr_reason) {
+  // TODO
+}
+
+
 
 Var AcyclicSolverHelper::get_var_represents_max_edges() {
   if (vars_heap.empty()) return var_Undef;

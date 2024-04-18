@@ -13,9 +13,15 @@
 namespace Minisat {
 
 constexpr static auto pair_hash_endpoint2 = [](const auto &t) {
-  auto &[t1, t2] = t;
+  const auto &[t1, t2] = t;
   std::hash<int> h;
   return h(t1) ^ h(t2); 
+};
+
+constexpr static auto triple_hash_endpoint = [](const auto &t) {
+  const auto &[t1, t2, t3] = t;
+  std::hash<int> h;
+  return h(t1) ^ h(t2) ^ h(t3);
 };
 
 constexpr int MAX_N = 100000;
@@ -29,11 +35,11 @@ class ICDGraph {
   
   int n, max_m, m; // n_vertices, n_edges
   std::vector<std::unordered_set<int>> in, out; // in[from], out[from] = {(to, label)}
-  std::unordered_map<int, std::unordered_map<int, std::unordered_multiset<std::pair<int, int>, decltype(pair_hash_endpoint2)>>> reasons_of; // (from, to) -> {(ww_reason, wr_reason)}
+  std::unordered_map<int, std::unordered_map<int, std::unordered_multiset<std::tuple<int, int, int>, decltype(triple_hash_endpoint)>>> reasons_of; // (from, to) -> {(dep_reason, anti_ww_reason, anti_wr_reason)}
   // "multi" is used to handle conflict drived by known edges, for example, 
   // known graph contains edge WR: 1 -> 2, keys = {1, 2}
   // In some pass, variable v: (WW: 1 -> 3, keys = {1, 2}) is decided to be added,
-  // then 2 RW edges are implied, but both reasons is (v, -1), 
+  // then 2 RW edges are derived, but both reasons are (v, -1), 
   // however, (v, -1) is able to be added into the reasons only once
   // when we decided to remove v from traits, (v, -1) will be removed twice, which drives to conflict
   std::vector<int> level;
@@ -48,24 +54,24 @@ class ICDGraph {
   // ------------------
 
   bool check_acyclicity();
-  bool detect_cycle(int from, int to, std::pair<int, int> reason);
-  bool construct_backward_cycle(std::vector<int> &backward_pred, int from, int to, std::pair<int, int> reason);
+  bool detect_cycle(int from, int to, std::tuple<int, int, int> reason);
+  bool construct_backward_cycle(std::vector<int> &backward_pred, int from, int to, std::tuple<int, int, int> reason);
   bool construct_forward_cycle(std::vector<int> &backward_pred, 
                                std::vector<int> &forward_pred, 
-                               int from, int to, std::pair<int, int> reason, int middle);
+                               int from, int to, std::tuple<int, int, int> reason, int middle);
   void construct_propagated_lits(std::unordered_set<int> &forward_visited, 
                                  std::unordered_set<int> &backward_visited,
                                  std::vector<int> &forward_pred,
                                  std::vector<int> &backward_pred,
-                                 int from, int to, std::pair<int, int> reason);
+                                 int from, int to, std::tuple<int, int, int> reason);
 
 public:
   ICDGraph();
   void init(int _n_vertices, int n_vars);
-  void add_inactive_edge(int from, int to, std::pair<int, int> reason);
+  void add_inactive_edge(int from, int to, std::tuple<int, int, int> reason);
   bool add_known_edge(int from, int to); // reason default set to (-1, -1)
-  bool add_edge(int from, int to, std::pair<int, int> reason); // add (from, to, label)
-  void remove_edge(int from, int to, std::pair<int, int> reason); // remove (from, to, label), assume (from, to, label) in the graph
+  bool add_edge(int from, int to, std::tuple<int, int, int> reason); // add (from, to, label)
+  void remove_edge(int from, int to, std::tuple<int, int, int> reason); // remove (from, to, label), assume (from, to, label) in the graph
   void get_minimal_cycle(std::vector<Lit> &cur_conflict_clauses); // get_minimal_cycle will copy conflict_clause and clear it
   void get_propagated_lits(std::vector<std::pair<Lit, std::vector<Lit>>> &cur_propagated_lit); // get_propagated_lits will copy propagated_lits and clear it 
   void set_var_assigned(int var, bool is_unassigned); 
@@ -77,7 +83,7 @@ public:
 
 namespace Minisat::Logger {
 
-auto reasons2str(const std::unordered_multiset<std::pair<int, int>, decltype(pair_hash_endpoint2)> &s) -> std::string;
+auto reasons2str(const std::unordered_multiset<std::tuple<int, int, int>, decltype(triple_hash_endpoint)> &s) -> std::string;
 
 } // namespace Minisat::Logger
 

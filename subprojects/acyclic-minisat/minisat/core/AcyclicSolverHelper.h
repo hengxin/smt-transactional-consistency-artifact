@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <sstream>
 #include <utility>
+#include <functional>
 
 #include "minisat/core/Polygraph.h"
 #include "minisat/core/ICDGraph.h"
@@ -19,9 +20,15 @@
 namespace Minisat {
 
 constexpr static auto pair_hash_endpoint = [](const auto &t) {
-  auto &[t1, t2] = t;
-  std::hash<int64_t> h;
-  return h(int64_t(t1)) ^ h(t2); 
+  const auto &[t1, t2] = t;
+  std::hash<int> h;
+  return h(t1) ^ h(t2); 
+};
+
+constexpr static auto triple_hash_endpoint2 = [](const auto &t) {
+  const auto &[t1, t2, t3] = t;
+  std::hash<int> h;
+  return h(t1) ^ h(t2) ^ h(t3);
 };
 
 class AcyclicSolverHelper {
@@ -33,12 +40,19 @@ class AcyclicSolverHelper {
   // std::vector<std::unordered_set<std::pair<int, int64_t>, decltype(pair_hash_endpoint)>> wr_to; // <to, key>
   std::vector<std::unordered_map<int64_t, std::unordered_set<int>>> ww_to, wr_to; // from -> (key -> to)
 
-  std::vector<std::stack<std::tuple<int, int, std::pair<int, int>>>> added_edges_of; // <from, to, reason>
+  std::vector<std::stack<std::tuple<int, int, std::pair<int, int>, bool>>> added_edges_of; // <from, to, reason, is_rw>
 
   // will only be used if INDUCE_KNOWN_EDGE is defined 
-  std::vector<std::vector<std::tuple<int, int, std::pair<int, int>>>> known_induced_edges_of; // <from, to, reason>
+  std::vector<std::vector<std::tuple<int, int, std::pair<int, int>, bool>>> known_induced_edges_of; // <from, to, reason, is_rw>
+
+  std::vector<std::multiset<std::pair<int, int>, decltype(pair_hash_endpoint)>> dep_edges_of; // to -> (from, reason)
+  std::vector<std::multiset<std::tuple<int, int, int>, decltype(triple_hash_endpoint2)>> anti_dep_edges_of; // from -> (to, ww_reason, wr_reason)
 
   void construct_wr_cons_propagated_lits(int var);
+  bool add_induced_dep_edge(int var, int from, int to, int dep_reason);
+  bool add_induced_anti_dep_edge(int var, int from, int to, int ww_reason, int wr_reason);
+  void remove_induced_dep_edge(int var, int from, int to, int dep_reason);
+  void remove_induced_anti_dep_edge(int var, int from, int to, int ww_reason, int wr_reason);
 
 public:
   std::vector<std::vector<Lit>> conflict_clauses;
