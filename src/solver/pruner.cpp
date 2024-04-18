@@ -197,40 +197,67 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
 
     auto time = chrono::steady_clock::now();
 
-    auto known_graph = adjacency_list<>{dependency_graph.num_vertices()};
-    for (auto &&[from, to, _] : dependency_graph.edges()) {
-      add_edge(vertex_map.at(from), vertex_map.at(to), known_graph);
+    auto dep_graph = adjacency_list<>{n}, anti_dep_graph = adjacency_list<>{n}, known_induced_graph = adjacency_list<>{n};
+    for (const auto &&[from, to, _] : dependency_graph.dep_edges()) {
+      add_edge(vertex_map.at(from), vertex_map.at(to), dep_graph);
+      add_edge(vertex_map.at(from), vertex_map.at(to), known_induced_graph);
+    }
+    for (const auto &&[from, to, _] : dependency_graph.anti_dep_edges()) {
+      add_edge(vertex_map.at(from), vertex_map.at(to), anti_dep_graph);
+    }
+    for (const auto &from : as_range(vertices(dep_graph))) {
+      for (const auto &&from_edge : as_range(out_edges(from, dep_graph))) {
+        const auto middle = target(from_edge, dep_graph);
+        for (const auto &&to_edge : as_range(out_edges(middle, anti_dep_graph))) {
+          const auto to = target(to_edge, anti_dep_graph);
+          add_edge(from, to, known_induced_graph);
+        }
+      }
+    }
+
+    CHECKER_LOG_COND(trace, logger) {
+      logger << "dep_graph:\n";
+      for (const auto &&e : as_range(edges(dep_graph))) {
+        auto from = source(e, dep_graph), to = target(e, dep_graph);
+        logger << from << " " << to << "\n"; 
+      }
+      logger << "antidep_graph:\n";
+      for (const auto &&e : as_range(edges(anti_dep_graph))) {
+        auto from = source(e, anti_dep_graph), to = target(e, anti_dep_graph);
+        logger << from << " " << to << "\n"; 
+      }
+      logger << "known_induced_graph:\n";
+      for (const auto &&e : as_range(edges(known_induced_graph))) {
+        auto from = source(e, known_induced_graph), to = target(e, known_induced_graph);
+        logger << from << " " << to << "\n"; 
+      }
     }
 
     auto reverse_topo_order =
         [&]() -> optional<vector<adjacency_list<>::vertex_descriptor>> {
-      auto v = vector<adjacency_list<>::vertex_descriptor>(dependency_graph.num_vertices());
-
+      auto v = vector<adjacency_list<>::vertex_descriptor>(n);
       try {
-        topological_sort(known_graph, v.begin(), no_named_parameters());
+        topological_sort(known_induced_graph, v.begin(), no_named_parameters());
       } catch (not_a_dag &e) {
         return nullopt;
       }
-
       return {std::move(v)};
     }();
 
     if (!reverse_topo_order) {
-      BOOST_LOG_TRIVIAL(debug) << "conflict found in toposort of pruning";
+      BOOST_LOG_TRIVIAL(debug) << "conflict found in pruning";
       return false;
     }
 
     auto reachability = [&]() {
-      auto r = vector<dynamic_bitset<>>{
-          dependency_graph.num_vertices(),
-          dynamic_bitset<>{dependency_graph.num_vertices()}};
+      auto r = vector<dynamic_bitset<>>{n, dynamic_bitset<>{n}};
 
       for (auto &&v : reverse_topo_order.value()) {
         r.at(v).set(v);
 
-        for (auto &&e : as_range(out_edges(v, known_graph))) {
-          auto v2 = target(e, known_graph);
-          // FIXME: is this !r.at(v)[v2] condition sufficient to this dynamic programming? 
+        for (auto &&e : as_range(out_edges(v, known_induced_graph))) {
+          auto v2 = target(e, known_induced_graph);
+          // FIXME: is this (!r.at(v)[v2]) condition sufficient to this dynamic programming? 
           // if (!r.at(v)[v2]) {
           //   r.at(v) |= r.at(v2);
           // }
@@ -240,6 +267,12 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
 
       return r;
     }();
+
+    auto pred_edges = vector<dynamic_bitset<>>{n, dynamic_bitset<>{n}};
+    for (const auto &&edge : as_range(edges(dep_graph))) {
+      auto from = source(edge, dep_graph), to = target(edge, dep_graph);
+      pred_edges.at(to).set(from);
+    }
 
     {
       auto curr_time = chrono::steady_clock::now();
@@ -256,8 +289,13 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
         }
         // rw edges part 1. known induced rw edges
         for (const auto &[from2, to2, _] : known_rw_edges_of[vertex_map.at(from)][vertex_map.at(to)]) {
-          if (reachability.at(vertex_map.at(to2)).test(vertex_map.at(from2))) {
-            return false; // rw edge forms a cycle
+          // SER pruning of RW edges:
+          // if (reachability.at(vertex_map.at(to2)).test(vertex_map.at(from2))) {
+          //   return false; // rw edge (from2, to2) forms a cycle
+          // }
+          // SI:
+          if ((pred_edges.at(vertex_map.at(from2)) & reachability.at(vertex_map.at(to2))).any()) {
+            return false; // rw edge (from2, to2) forms a cycle
           }
         }
         // rw edges part 2. new induced rw edges
@@ -265,8 +303,13 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
         for (const auto &key : keys) {
           for (const auto &to2 : wr_to[vertex_map.at(from)][key]) {
             if (vertex_map.at(to) == unsigned(to2)) continue;
-            if (reachability.at(vertex_map.at(to)).test(to2)) {
-              return false; // rw edge forms a cycle
+            // SER pruning of RW edges:
+            // if (reachability.at(vertex_map.at(to)).test(to2)) {
+            //   return false; // rw edge (to2, to) forms a cycle
+            // }
+            // SI:
+            if ((pred_edges.at(vertex_map.at(to2)) & reachability.at(vertex_map.at(to))).any()) {
+              return false; // rw edge (to2, to) forms a cycle
             }
           }
         }
@@ -348,8 +391,13 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
         // rw edges
         for (const auto &to2 : ww_to[vertex_map.at(from)][key]) {
           if (vertex_map.at(to) == unsigned(to2)) continue;
-          if (reachability.at(to2).test(vertex_map.at(to))) {
-            return false; // rw edge forms a cycle
+          // SER pruning of RW edges:
+          // if (reachability.at(to2).test(vertex_map.at(to))) {
+          //   return false; // rw edge (to, to2) forms a cycle
+          // }
+          // SI:
+          if ((pred_edges.at(vertex_map.at(to)) & reachability.at(vertex_map.at(to2))).any()) {
+            return false; // rw edge (to, to2) forms a cycle
           }
         }
         return true;
@@ -442,6 +490,8 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
 auto prune_constraints(DependencyGraph &dependency_graph,
                        Constraints &constraints) -> bool {
   auto &[ww_constraints, wr_constraints] = constraints;
+
+  auto n = dependency_graph.num_vertices();
   auto &&vertex_map = dependency_graph.rw.vertex_map.left;
   auto pruned_ww_constraints = unordered_set<WWConstraint *>{};
   auto not_pruned_ww = filter([&](auto &&c) { return !pruned_ww_constraints.contains(&c); });
@@ -467,21 +517,50 @@ auto prune_constraints(DependencyGraph &dependency_graph,
 
     auto time = chrono::steady_clock::now();
 
-    auto known_graph = adjacency_list<>{dependency_graph.num_vertices()};
-    for (auto &&[from, to, _] : dependency_graph.edges()) {
-      add_edge(vertex_map.at(from), vertex_map.at(to), known_graph);
+    auto dep_graph = adjacency_list<>{n}, anti_dep_graph = adjacency_list<>{n}, known_induced_graph = adjacency_list<>{n};
+    for (const auto &&[from, to, _] : dependency_graph.dep_edges()) {
+      add_edge(vertex_map.at(from), vertex_map.at(to), dep_graph);
+      add_edge(vertex_map.at(from), vertex_map.at(to), known_induced_graph);
+    }
+    for (const auto &&[from, to, _] : dependency_graph.anti_dep_edges()) {
+      add_edge(vertex_map.at(from), vertex_map.at(to), anti_dep_graph);
+    }
+    for (const auto &from : as_range(vertices(dep_graph))) {
+      for (const auto &&from_edge : as_range(out_edges(from, dep_graph))) {
+        const auto middle = target(from_edge, dep_graph);
+        for (const auto &&to_edge : as_range(out_edges(middle, anti_dep_graph))) {
+          const auto to = target(to_edge, anti_dep_graph);
+          add_edge(from, to, known_induced_graph);
+        }
+      }
+    }
+
+    CHECKER_LOG_COND(trace, logger) {
+      logger << "dep_graph:\n";
+      for (const auto &&e : as_range(edges(dep_graph))) {
+        auto from = source(e, dep_graph), to = target(e, dep_graph);
+        logger << from << " " << to << "\n"; 
+      }
+      logger << "antidep_graph:\n";
+      for (const auto &&e : as_range(edges(anti_dep_graph))) {
+        auto from = source(e, anti_dep_graph), to = target(e, anti_dep_graph);
+        logger << from << " " << to << "\n"; 
+      }
+      logger << "known_induced_graph:\n";
+      for (const auto &&e : as_range(edges(known_induced_graph))) {
+        auto from = source(e, known_induced_graph), to = target(e, known_induced_graph);
+        logger << from << " " << to << "\n"; 
+      }
     }
 
     auto reverse_topo_order =
         [&]() -> optional<vector<adjacency_list<>::vertex_descriptor>> {
-      auto v = vector<adjacency_list<>::vertex_descriptor>(dependency_graph.num_vertices());
-
+      auto v = vector<adjacency_list<>::vertex_descriptor>(n);
       try {
-        topological_sort(known_graph, v.begin(), no_named_parameters());
+        topological_sort(known_induced_graph, v.begin(), no_named_parameters());
       } catch (not_a_dag &e) {
         return nullopt;
       }
-
       return {std::move(v)};
     }();
 
@@ -491,16 +570,14 @@ auto prune_constraints(DependencyGraph &dependency_graph,
     }
 
     auto reachability = [&]() {
-      auto r = vector<dynamic_bitset<>>{
-          dependency_graph.num_vertices(),
-          dynamic_bitset<>{dependency_graph.num_vertices()}};
+      auto r = vector<dynamic_bitset<>>{n, dynamic_bitset<>{n}};
 
       for (auto &&v : reverse_topo_order.value()) {
         r.at(v).set(v);
 
-        for (auto &&e : as_range(out_edges(v, known_graph))) {
-          auto v2 = target(e, known_graph);
-          // FIXME: is this !r.at(v)[v2] condition sufficient to this dynamic programming? 
+        for (auto &&e : as_range(out_edges(v, known_induced_graph))) {
+          auto v2 = target(e, known_induced_graph);
+          // FIXME: is this (!r.at(v)[v2]) condition sufficient to this dynamic programming? 
           // if (!r.at(v)[v2]) {
           //   r.at(v) |= r.at(v2);
           // }
@@ -510,6 +587,12 @@ auto prune_constraints(DependencyGraph &dependency_graph,
 
       return r;
     }();
+
+    auto pred_edges = vector<dynamic_bitset<>>{n, dynamic_bitset<>{n}};
+    for (const auto &&edge : as_range(edges(dep_graph))) {
+      auto from = source(edge, dep_graph), to = target(edge, dep_graph);
+      pred_edges.at(to).set(from);
+    }
 
     {
       auto curr_time = chrono::steady_clock::now();
@@ -523,6 +606,7 @@ auto prune_constraints(DependencyGraph &dependency_graph,
       std::set_intersection(s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter(s3, s3.end()));
       return vector(s3.begin(), s3.end());
     };
+
     auto add_edge = [&](int64_t from, int64_t to, EdgeInfo info) -> void {
       switch (info.type) {
         case EdgeType::WW:
@@ -565,7 +649,12 @@ auto prune_constraints(DependencyGraph &dependency_graph,
           auto e = dependency_graph.wr.edge(from, v);
           assert(e);
           if (!keys_intersection(e.value().get().keys, info.keys).empty()) {
-            if (reachability.at(vertex_map.at(to)).test(vertex_map.at(v))) {
+            // SER pruning of RW edges:
+            // if (reachability.at(vertex_map.at(to)).test(vertex_map.at(v))) {
+            //   return false; // rw edge(v, to) forms a cycle
+            // }
+            // SI:
+            if ((pred_edges.at(vertex_map.at(v)) & reachability.at(vertex_map.at(to))).any()) {
               return false; // rw edge(v, to) forms a cycle
             }
           }
@@ -642,10 +731,10 @@ auto prune_constraints(DependencyGraph &dependency_graph,
           auto e = dependency_graph.ww.edge(from, v);
           assert(e);
           if (auto keys = keys_intersection(e.value().get().keys, info.keys); !keys.empty()) {
-            if (reachability.at(vertex_map.at(v)).test(vertex_map.at(to))) {
+            if ((pred_edges.at(vertex_map.at(v)) & reachability.at(vertex_map.at(to))).any()) {
               return false; // rw edge (to, v) forms a cycle
             }
-            // we should check (from, v), for theres a trail of from -> to -> v , 
+            // we should check (from, v), for there's a trail of from -> to -> v , 
             // however, from -> v is a WW edge, so no need
           }
         }

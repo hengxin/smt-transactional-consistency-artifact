@@ -23,6 +23,9 @@ namespace checker::solver {
 
 MonosatSolver::MonosatSolver(const history::DependencyGraph &known_graph,
                              const history::Constraints &constraints) {
+  std::cerr << "Not implemented yet!" << std::endl;
+  assert(0);
+
   auto unique_filename = []() -> std::string {
     auto currentTime = std::chrono::system_clock::now();
     auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime.time_since_epoch()).count();
