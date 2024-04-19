@@ -1,0 +1,67 @@
+[DEBUG] Txn[100000508] start
+[DEBUG] Txn[100000508] try to commit
+[DEBUG] Txn[100000508] successfully commit
+[DEBUG] Txn[100000586] start
+[DEBUG] Txn[100000586] try to commit
+[DEBUG] Txn[100000586] successfully commit
+[DEBUG] Txn[1000005f6] start
+[DEBUG] Txn[1000005f6] try to commit
+[DEBUG] Txn[1000005f6] successfully commit
+[DEBUG] Txn[10000065e] start
+[DEBUG] Txn[10000065e] try to commit
+[DEBUG] Txn[10000065e] successfully commit
+[DEBUG] Txn[1000006a0] start
+[DEBUG] Txn[1000006a0] try to commit
+[DEBUG] Txn[1000006a0] successfully commit
+[DEBUG] Txn[10000070d] start
+[DEBUG] Txn[10000070d] try to commit
+[DEBUG] Txn[10000070d] successfully commit
+[DEBUG] Txn[100000785] start
+[DEBUG] Txn[100000785] try to commit
+[DEBUG] Txn[100000785] successfully commit
+[DEBUG] Txn[1000007c4] start
+[DEBUG] Txn[1000007c4] try to commit
+[DEBUG] Txn[1000007c4] successfully commit
+[DEBUG] Txn[100000834] start
+[DEBUG] Txn[100000834] try to commit
+[DEBUG] Txn[100000834] successfully commit
+[DEBUG] Txn[100000873] start
+[DEBUG] Txn[100000873] try to commit
+[DEBUG] Txn[100000873] successfully commit
+[DEBUG] Txn[1000008ad] start
+[DEBUG] Txn[1000008ad] try to commit
+[DEBUG] Txn[1000008ad] successfully commit
+[DEBUG] Txn[1000008f1] start
+[DEBUG] Txn[1000008f1] try to commit
+[DEBUG] Txn[1000008f1] successfully commit
+[DEBUG] Txn[10000092b] start
+[DEBUG] Txn[10000092b] try to commit
+[DEBUG] Txn[10000092b] successfully commit
+[DEBUG] Txn[10000099b] start
+[DEBUG] Txn[10000099b] try to commit
+[DEBUG] Txn[10000099b] successfully commit
+[DEBUG] Txn[100000a08] start
+[DEBUG] Txn[100000a08] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[63] msg[TxnException: Write conflict, txnStartTS=435969714180849690, conflictStartTS=435969714141528084, conflictCommitTS=435969714233278480, key={tableID=1147, handle=8169} primary={tableID=1147, handle=992} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435969714180849690, conflictStartTS=435969714141528084, conflictCommitTS=435969714233278480, key={tableID=1147, handle=8169} primary={tableID=1147, handle=992} [try again later]
+[DEBUG] Txn[100000a08] abort
+[DEBUG] Txn[100000a84] start
+[DEBUG] Txn[100000a84] try to commit
+[DEBUG] Txn[100000a84] successfully commit
+[DEBUG] Txn[100000aca] start
+[DEBUG] Txn[100000aca] try to commit
+[DEBUG] Txn[100000aca] successfully commit
+[DEBUG] Txn[100000b38] start
+[DEBUG] Txn[100000b38] try to commit
+[DEBUG] Txn[100000b38] successfully commit
+[DEBUG] Txn[100000b7a] start
+[DEBUG] Txn[100000b7a] try to commit
+[DEBUG] Txn[100000b7a] successfully commit
+[DEBUG] Txn[100000be7] start
+[DEBUG] Txn[100000be7] try to commit
+[DEBUG] Txn[100000be7] successfully commit
+[DEBUG] Txn[100000c5a] start
+[DEBUG] Txn[100000c5a] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[63] msg[TxnException: Write conflict, txnStartTS=435969714718244895, conflictStartTS=435969714692292639, conflictCommitTS=435969714783780889, key={tableID=1147, handle=4010} primary={tableID=1147, handle=391} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435969714718244895, conflictStartTS=435969714692292639, conflictCommitTS=435969714783780889, key={tableID=1147, handle=4010} primary={tableID=1147, handle=391} [try again later]
+[DEBUG] Txn[100000c5a] abort

@@ -1,0 +1,65 @@
+[DEBUG] Txn[100000516] start
+[DEBUG] Txn[100000516] try to commit
+[DEBUG] Txn[100000516] successfully commit
+[DEBUG] Txn[100000591] start
+[DEBUG] Txn[100000591] try to commit
+[DEBUG] Txn[100000591] successfully commit
+[DEBUG] Txn[100000610] start
+[DEBUG] Txn[100000610] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[50] msg[TxnException: Write conflict, txnStartTS=435969718270296087, conflictStartTS=435969718257188944, conflictCommitTS=435969718349201417, key={tableID=1153, handle=697} primary={tableID=1153, handle=697} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435969718270296087, conflictStartTS=435969718257188944, conflictCommitTS=435969718349201417, key={tableID=1153, handle=697} primary={tableID=1153, handle=697} [try again later]
+[DEBUG] Txn[100000610] abort
+[DEBUG] Txn[100000698] start
+[DEBUG] Txn[100000698] try to commit
+[DEBUG] Txn[100000698] successfully commit
+[DEBUG] Txn[1000006db] start
+[DEBUG] Txn[1000006db] try to commit
+[DEBUG] Txn[1000006db] successfully commit
+[DEBUG] Txn[100000757] start
+[DEBUG] Txn[100000757] try to commit
+[DEBUG] Txn[100000757] successfully commit
+[DEBUG] Txn[1000007d9] start
+[DEBUG] Txn[1000007d9] try to commit
+[DEBUG] Txn[1000007d9] successfully commit
+[DEBUG] Txn[10000081d] start
+[DEBUG] Txn[10000081d] try to commit
+[DEBUG] Txn[10000081d] successfully commit
+[DEBUG] Txn[100000898] start
+[DEBUG] Txn[100000898] try to commit
+[DEBUG] Txn[100000898] successfully commit
+[DEBUG] Txn[1000008e3] start
+[DEBUG] Txn[1000008e3] try to commit
+[DEBUG] Txn[1000008e3] successfully commit
+[DEBUG] Txn[10000091f] start
+[DEBUG] Txn[10000091f] try to commit
+[DEBUG] Txn[10000091f] successfully commit
+[DEBUG] Txn[100000964] start
+[DEBUG] Txn[100000964] try to commit
+[DEBUG] Txn[100000964] successfully commit
+[DEBUG] Txn[1000009a3] start
+[DEBUG] Txn[1000009a3] try to commit
+[DEBUG] Txn[1000009a3] successfully commit
+[DEBUG] Txn[100000a1c] start
+[DEBUG] Txn[100000a1c] try to commit
+[DEBUG] Txn[100000a1c] successfully commit
+[DEBUG] Txn[100000a97] start
+[DEBUG] Txn[100000a97] try to commit
+[DEBUG] Txn[100000a97] successfully commit
+[DEBUG] Txn[100000b13] start
+[DEBUG] Txn[100000b13] try to commit
+[DEBUG] Txn[100000b13] successfully commit
+[DEBUG] Txn[100000b56] start
+[DEBUG] Txn[100000b56] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[50] msg[TxnException: Write conflict, txnStartTS=435969719397515282, conflictStartTS=435969719397515287, conflictCommitTS=435969719489527831, key={tableID=1153, handle=413} primary={tableID=1153, handle=413} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435969719397515282, conflictStartTS=435969719397515287, conflictCommitTS=435969719489527831, key={tableID=1153, handle=413} primary={tableID=1153, handle=413} [try again later]
+[DEBUG] Txn[100000b56] abort
+[DEBUG] Txn[100000be1] start
+[DEBUG] Txn[100000be1] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[50] msg[TxnException: Write conflict, txnStartTS=435969719502372912, conflictStartTS=435969719489527834, conflictCommitTS=435969719581016084, key={tableID=1153, handle=2511} primary={tableID=1153, handle=883} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435969719502372912, conflictStartTS=435969719489527834, conflictCommitTS=435969719581016084, key={tableID=1153, handle=2511} primary={tableID=1153, handle=883} [try again later]
+[DEBUG] Txn[100000be1] abort
+[DEBUG] Txn[100000c64] start
+[DEBUG] Txn[100000c64] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[50] msg[TxnException: Write conflict, txnStartTS=435969719620337679, conflictStartTS=435969719594385438, conflictCommitTS=435969719685873685, key={tableID=1153, handle=3651} primary={tableID=1153, handle=95} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435969719620337679, conflictStartTS=435969719594385438, conflictCommitTS=435969719685873685, key={tableID=1153, handle=3651} primary={tableID=1153, handle=95} [try again later]
+[DEBUG] Txn[100000c64] abort
