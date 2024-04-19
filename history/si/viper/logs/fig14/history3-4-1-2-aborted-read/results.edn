@@ -1,0 +1,40 @@
+{:perf {:latency-graph {:valid? true},
+        :rate-graph {:valid? true},
+        :valid? true},
+ :clock {:valid? true},
+ :stats {:valid? true,
+         :count 2265,
+         :ok-count 2228,
+         :fail-count 0,
+         :info-count 37,
+         :by-f {:txn {:valid? true,
+                      :count 2265,
+                      :ok-count 2228,
+                      :fail-count 0,
+                      :info-count 37}}},
+ :exceptions {:valid? true},
+ :workload {:valid? false,
+            :anomaly-types (:incompatible-order),
+            :anomalies {:incompatible-order ({:key 77,
+                                              :values [[3] [1 5]]}
+                                             {:key 99,
+                                              :values [[1 2] [1 5 6]]})},
+            :not #{:read-atomic :read-committed},
+            :also-not #{:causal-cerone
+                        :consistent-view
+                        :cursor-stability
+                        :forward-consistent-view
+                        :monotonic-atomic-view
+                        :monotonic-snapshot-read
+                        :monotonic-view
+                        :parallel-snapshot-isolation
+                        :prefix
+                        :repeatable-read
+                        :serializable
+                        :snapshot-isolation
+                        :strict-serializable
+                        :strong-session-serializable
+                        :strong-session-snapshot-isolation
+                        :strong-snapshot-isolation
+                        :update-serializable}},
+ :valid? false}

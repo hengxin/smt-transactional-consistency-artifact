@@ -1,0 +1,13 @@
+[DEBUG] Txn[1000007d2] start
+[DEBUG] Txn[1000007d2] try to commit
+[DEBUG] Txn[1000007d2] successfully commit
+[DEBUG] Txn[1000007e9] start
+[DEBUG] Txn[1000007e9] try to commit
+[DEBUG] Txn[1000007e9] successfully commit
+[DEBUG] Txn[100000809] start
+[DEBUG] Txn[100000809] try to commit
+[DEBUG] Txn[100000809] successfully commit
+[DEBUG] Txn[100000828] start
+[DEBUG] [ERROR] [KvException|TxnException] Tid[37] msg[TxnException: Cannot delete a non-existing key]
+[DEBUG] TxnException: Cannot delete a non-existing key
+[DEBUG] Txn[100000828] abort

@@ -1,0 +1,55 @@
+{:perf {:latency-graph {:valid? true},
+        :rate-graph {:valid? true},
+        :valid? true},
+ :clock {:valid? true},
+ :stats {:valid? true,
+         :count 23261,
+         :ok-count 23224,
+         :fail-count 0,
+         :info-count 37,
+         :by-f {:txn {:valid? true,
+                      :count 23261,
+                      :ok-count 23224,
+                      :fail-count 0,
+                      :info-count 37}}},
+ :exceptions {:valid? true},
+ :workload {:valid? false,
+            :anomaly-types (:incompatible-order),
+            :anomalies {:incompatible-order ({:key 0,
+                                              :values [[1 2 3]
+                                                       [1 2 4 5]]}
+                                             {:key 555,
+                                              :values [[8] [1]]}
+                                             {:key 1006,
+                                              :values [[1] [3 4 5]]}
+                                             {:key 1107,
+                                              :values [[5] [1]]}
+                                             {:key 1056,
+                                              :values [[4] [1 2]]}
+                                             {:key 588,
+                                              :values [[7] [1 2]]}
+                                             {:key 868,
+                                              :values [[1 2 3]
+                                                       [1 2 6 7]]}
+                                             {:key 455,
+                                              :values [[1 2 3 7]
+                                                       [1 2 3 4 5 6]]})},
+            :not #{:read-atomic :read-committed},
+            :also-not #{:causal-cerone
+                        :consistent-view
+                        :cursor-stability
+                        :forward-consistent-view
+                        :monotonic-atomic-view
+                        :monotonic-snapshot-read
+                        :monotonic-view
+                        :parallel-snapshot-isolation
+                        :prefix
+                        :repeatable-read
+                        :serializable
+                        :snapshot-isolation
+                        :strict-serializable
+                        :strong-session-serializable
+                        :strong-session-snapshot-isolation
+                        :strong-snapshot-isolation
+                        :update-serializable}},
+ :valid? false}

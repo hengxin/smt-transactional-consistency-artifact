@@ -1,0 +1,18 @@
+G-nonadjacent #0
+Let:
+  T1 = {:type :ok, :f :txn, :value [[:append 73 7] [:r 75 []]], :time 22285083415, :process 34, :index 1028}
+  T2 = {:type :ok, :f :txn, :value [[:r 59 [1 3 5 4 8 7 5]] [:append 73 5] [:r 73 [2 3 4 6 7 5]] [:append 75 1]], :time 22814118909, :process 31, :index 1089}
+  T3 = {:type :ok, :f :txn, :value [[:append 66 6] [:r 3 [2 3]] [:append 59 4]], :time 22057554064, :process 32, :index 999}
+  T4 = {:type :ok, :f :txn, :value [[:append 59 8] [:append 73 3] [:r 59 [1 3 5 4 8]] [:append 74 1]], :time 22043493887, :process 33, :index 997}
+  T5 = {:type :ok, :f :txn, :value [[:r 73 [2 3]] [:r 69 [1 2 3 4 6 7]]], :time 22192099005, :process 32, :index 1017}
+  T6 = {:type :ok, :f :txn, :value [[:append 73 4] [:r 73 [2 3 4]]], :time 22108561096, :process 33, :index 1010}
+  T7 = {:type :ok, :f :txn, :value [[:append 73 6]], :time 22108465820, :process 50, :index 1009}
+
+Then:
+  - T1 < T2, because T2 appended 5 after T1 appended 7 to 73.
+  - T2 < T3, because T2 did not observe T3's append of 4 to 59.
+  - T3 < T4, because T4 appended 8 after T3 appended 4 to 59.
+  - T4 < T5, because T5 observed T4's append of 3 to key 73.
+  - T5 < T6, because T5 did not observe T6's append of 4 to 73.
+  - T6 < T7, because T7 appended 6 after T6 appended 4 to 73.
+  - However, T7 < T1, because T1 appended 7 after T7 appended 6 to 73: a contradiction!

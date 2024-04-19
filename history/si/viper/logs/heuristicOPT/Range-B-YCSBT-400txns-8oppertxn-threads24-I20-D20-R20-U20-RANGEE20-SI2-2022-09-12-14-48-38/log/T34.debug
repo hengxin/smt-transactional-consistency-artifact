@@ -1,0 +1,52 @@
+[DEBUG] Txn[1000007d7] start
+[DEBUG] [ERROR] [KvException|TxnException] Tid[34] msg[TxnException: Cannot delete a non-existing key]
+[DEBUG] TxnException: Cannot delete a non-existing key
+[DEBUG] Txn[1000007d7] abort
+[DEBUG] Txn[1000007e8] start
+[DEBUG] Txn[1000007e8] try to commit
+[DEBUG] Txn[1000007e8] successfully commit
+[DEBUG] Txn[100000806] start
+[DEBUG] Txn[100000806] try to commit
+[DEBUG] Txn[100000806] successfully commit
+[DEBUG] Txn[100000827] start
+[DEBUG] Txn[100000827] try to commit
+[DEBUG] Txn[100000827] successfully commit
+[DEBUG] Txn[100000838] start
+[DEBUG] Txn[100000838] try to commit
+[DEBUG] Txn[100000838] successfully commit
+[DEBUG] Txn[100000857] start
+[DEBUG] Txn[100000857] try to commit
+[DEBUG] Txn[100000857] successfully commit
+[DEBUG] Txn[100000869] start
+[DEBUG] Txn[100000869] try to commit
+[DEBUG] Txn[100000869] successfully commit
+[DEBUG] Txn[100000887] start
+[DEBUG] Txn[100000887] try to commit
+[DEBUG] Txn[100000887] successfully commit
+[DEBUG] Txn[1000008a4] start
+[DEBUG] [ERROR] [KvException|TxnException] Tid[34] msg[TxnException: Cannot delete a non-existing key]
+[DEBUG] TxnException: Cannot delete a non-existing key
+[DEBUG] Txn[1000008a4] abort
+[DEBUG] Txn[1000008b6] start
+[DEBUG] Txn[1000008b6] try to commit
+[DEBUG] Txn[1000008b6] successfully commit
+[DEBUG] Txn[1000008d1] start
+[DEBUG] Txn[1000008d1] try to commit
+[DEBUG] Txn[1000008d1] successfully commit
+[DEBUG] Txn[1000008e2] start
+[DEBUG] Txn[1000008e2] try to commit
+[DEBUG] Txn[1000008e2] successfully commit
+[DEBUG] Txn[100000900] start
+[DEBUG] Txn[100000900] try to commit
+[DEBUG] Txn[100000900] successfully commit
+[DEBUG] Txn[10000091b] start
+[DEBUG] Txn[10000091b] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[34] msg[TxnException: Write conflict, txnStartTS=435947706680868922, conflictStartTS=435947706667761720, conflictCommitTS=435947706693976085, key={tableID=931, handle=2} primary={tableID=931, handle=2} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435947706680868922, conflictStartTS=435947706667761720, conflictCommitTS=435947706693976085, key={tableID=931, handle=2} primary={tableID=931, handle=2} [try again later]
+[DEBUG] Txn[10000091b] abort
+[DEBUG] Txn[100000947] start
+[DEBUG] Txn[100000947] try to commit
+[DEBUG] Txn[100000947] successfully commit
+[DEBUG] Txn[100000957] start
+[DEBUG] Txn[100000957] try to commit
+[DEBUG] Txn[100000957] successfully commit

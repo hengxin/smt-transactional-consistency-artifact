@@ -1,0 +1,46 @@
+[DEBUG] Txn[1000007df] start
+[DEBUG] Txn[1000007df] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[41] msg[TxnException: Write conflict, txnStartTS=435947706471153728, conflictStartTS=435947706471153727, conflictCommitTS=435947706484260899, key={tableID=931, handle=1} primary={tableID=931, handle=1} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435947706471153728, conflictStartTS=435947706471153727, conflictCommitTS=435947706484260899, key={tableID=931, handle=1} primary={tableID=931, handle=1} [try again later]
+[DEBUG] Txn[1000007df] abort
+[DEBUG] Txn[100000804] start
+[DEBUG] Txn[100000804] try to commit
+[DEBUG] Txn[100000804] successfully commit
+[DEBUG] Txn[100000820] start
+[DEBUG] Txn[100000820] try to commit
+[DEBUG] Txn[100000820] successfully commit
+[DEBUG] Txn[100000840] start
+[DEBUG] Txn[100000840] try to commit
+[DEBUG] Txn[100000840] successfully commit
+[DEBUG] Txn[10000085b] start
+[DEBUG] [ERROR] [KvException|TxnException] Tid[41] msg[TxnException: Cannot delete a non-existing key]
+[DEBUG] TxnException: Cannot delete a non-existing key
+[DEBUG] Txn[10000085b] abort
+[DEBUG] Txn[100000871] start
+[DEBUG] Txn[100000871] try to commit
+[DEBUG] Txn[100000871] successfully commit
+[DEBUG] Txn[10000088a] start
+[DEBUG] Txn[10000088a] try to commit
+[DEBUG] Txn[10000088a] successfully commit
+[DEBUG] Txn[10000089e] start
+[DEBUG] Txn[10000089e] try to commit
+[DEBUG] Txn[10000089e] successfully commit
+[DEBUG] Txn[1000008bb] start
+[DEBUG] [ERROR] [KvException|TxnException] Tid[41] msg[TxnException: Cannot delete a non-existing key]
+[DEBUG] TxnException: Cannot delete a non-existing key
+[DEBUG] Txn[1000008bb] abort
+[DEBUG] Txn[1000008cc] start
+[DEBUG] Txn[1000008cc] try to commit
+[DEBUG] Txn[1000008cc] successfully commit
+[DEBUG] Txn[1000008f2] start
+[DEBUG] Txn[1000008f2] try to commit
+[DEBUG] Txn[1000008f2] successfully commit
+[DEBUG] Txn[10000090d] start
+[DEBUG] Txn[10000090d] try to commit
+[DEBUG] Txn[10000090d] successfully commit
+[DEBUG] Txn[100000927] start
+[DEBUG] Txn[100000927] try to commit
+[DEBUG] Txn[100000927] successfully commit
+[DEBUG] Txn[100000948] start
+[DEBUG] Txn[100000948] try to commit
+[DEBUG] Txn[100000948] successfully commit
