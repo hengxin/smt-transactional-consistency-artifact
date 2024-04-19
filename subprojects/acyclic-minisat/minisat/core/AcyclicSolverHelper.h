@@ -19,13 +19,13 @@
 
 namespace Minisat {
 
-constexpr static auto pair_hash_endpoint = [](const auto &t) {
+constexpr static auto pair_hash_endpoint = [](auto &t) {
   const auto &[t1, t2] = t;
   std::hash<int> h;
   return h(t1) ^ h(t2); 
 };
 
-constexpr static auto triple_hash_endpoint2 = [](const auto &t) {
+constexpr static auto triple_hash_endpoint2 = [](auto &t) {
   const auto &[t1, t2, t3] = t;
   std::hash<int> h;
   return h(t1) ^ h(t2) ^ h(t3);
@@ -45,8 +45,8 @@ class AcyclicSolverHelper {
   // will only be used if INDUCE_KNOWN_EDGE is defined 
   std::vector<std::vector<std::tuple<int, int, std::pair<int, int>, bool>>> known_induced_edges_of; // <from, to, reason, is_rw>
 
-  std::vector<std::multiset<std::pair<int, int>, decltype(pair_hash_endpoint)>> dep_edges_of; // to -> (from, reason)
-  std::vector<std::multiset<std::tuple<int, int, int>, decltype(triple_hash_endpoint2)>> anti_dep_edges_of; // from -> (to, ww_reason, wr_reason)
+  std::vector<std::multiset<std::pair<int, int>>> dep_edges_of; // to -> (from, reason)
+  std::vector<std::multiset<std::tuple<int, int, int>>> anti_dep_edges_of; // from -> (to, ww_reason, wr_reason)
 
   void construct_wr_cons_propagated_lits(int var);
   bool add_induced_dep_edge(int var, int from, int to, int dep_reason);

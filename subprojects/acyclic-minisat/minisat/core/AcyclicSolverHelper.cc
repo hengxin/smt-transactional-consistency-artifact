@@ -28,13 +28,14 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   added_edges_of.assign(polygraph->n_vars, {});
   known_induced_edges_of.assign(polygraph->n_vars, {});
   
-  // c++ is really interesting...
-  // dep_edges_of.assign(polygraph->n_vertices, {});
-  // anti_dep_edges_of.assign(polygraph->n_vertices, {});
-  for (int i = 0; i < polygraph->n_vertices; i++) {
-    dep_edges_of.emplace_back(std::multiset<std::pair<int, int>, decltype(pair_hash_endpoint)>{});
-    anti_dep_edges_of.emplace_back(std::multiset<std::tuple<int, int, int>, decltype(triple_hash_endpoint2)>{});
-  }
+  // C++ is really interesting...
+  dep_edges_of.assign(polygraph->n_vertices, {});
+  anti_dep_edges_of.assign(polygraph->n_vertices, {});
+  // The above code cannot work, but the beneath code works.
+  // for (int i = 0; i < polygraph->n_vertices; i++) {
+  //   dep_edges_of.emplace_back(std::multiset<std::pair<int, int>, decltype(pair_hash_endpoint)>{});
+  //   anti_dep_edges_of.emplace_back(std::multiset<std::tuple<int, int, int>, decltype(triple_hash_endpoint2)>{});
+  // }
   
   for (const auto &[from, to, type] : polygraph->known_edges) {
     if (type != 3) { // SO or WW or WR
@@ -272,13 +273,14 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
     Logger::log(fmt::format(" - conflict found! reverting adding edges of {}", var));
 
     // generate conflict clause
-    std::vector<Lit> cur_conflict_clause;
-    icd_graph.get_minimal_cycle(cur_conflict_clause);
+    // std::vector<Lit> cur_conflict_clause;
+    // icd_graph.get_minimal_cycle(cur_conflict_clause);
 
     // for (Lit l : cur_conflict_clause) std::cerr << l.x << " ";
     // std::cerr << std::endl;
 
-    conflict_clauses.emplace_back(cur_conflict_clause);
+    // conflict_clauses.emplace_back(cur_conflict_clause);
+
     while (!added_edges.empty()) {
       const auto &[from, to, reason, is_rw] = added_edges.top();
       Logger::log(fmt::format(" - removing edge {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
@@ -382,24 +384,96 @@ void AcyclicSolverHelper::remove_edges_of_var(int var) {
 }
 
 bool AcyclicSolverHelper::add_induced_dep_edge(int var, int from, int to, int dep_reason) {
-  // TODO
+  if (var == -1) { // known
+    icd_graph.add_known_edge(from, to);
+    dep_edges_of[to].insert({from, -1});
+    return true;
+  }
+  auto added_induced_edges = std::stack<std::tuple<int, int, std::tuple<int, int, int>>> {}; // (from, to, reason)
+  bool cycle = false;
+  // 1. add itself
+  cycle = !icd_graph.add_edge(from, to, {dep_reason, -1, -1}); 
+  if (cycle) goto inner_dep_conflict;
+  added_induced_edges.push({from, to, {dep_reason, -1, -1}});
+  // 2. add induced edges
+  for (const auto &[rw_to, ww_reason, wr_reason] : anti_dep_edges_of[to]) {
+    cycle = !icd_graph.add_edge(from, rw_to, {dep_reason, ww_reason, wr_reason});
+    if (rw_to == from) assert(cycle); // selfloops directly drives to conflict
+    if (cycle) goto inner_dep_conflict; // bad implementation!
+    added_induced_edges.push({from, to, {dep_reason, ww_reason, wr_reason}});
+  }
+  dep_edges_of[to].insert({from, dep_reason});
   return true;
+
+  inner_dep_conflict:
+    // generate conflict clause
+    std::vector<Lit> cur_conflict_clause;
+    icd_graph.get_minimal_cycle(cur_conflict_clause);
+
+    // for (Lit l : cur_conflict_clause) std::cerr << l.x << " ";
+    // std::cerr << std::endl;
+
+    conflict_clauses.emplace_back(cur_conflict_clause);
+    while (!added_induced_edges.empty()) {
+      const auto &[from, to, reason] = added_induced_edges.top();
+      icd_graph.remove_edge(from, to, reason);
+      added_induced_edges.pop();
+    }
+    return false;
 }
 
 bool AcyclicSolverHelper::add_induced_anti_dep_edge(int var, int from, int to, int ww_reason, int wr_reason) {
-  // TODO 
+  if (var == -1) {
+    icd_graph.add_known_edge(from, to);
+    anti_dep_edges_of[from].insert({to, -1, -1});
+    return true;
+  }
+  auto added_induced_edges = std::stack<std::tuple<int, int, std::tuple<int, int, int>>> {}; // (from, to, reason)
+  bool cycle = false;
+  // 1. add induced edges
+  for (const auto &[dep_from, dep_reason] : dep_edges_of[from]) {
+    cycle = !icd_graph.add_edge(dep_from, to, {dep_reason, ww_reason, wr_reason});
+    if (dep_from == to) assert(cycle); // selfloop directly drives to conflict
+    if (cycle) goto inner_anti_dep_conflict; // bad implementation!
+    added_induced_edges.push({dep_from, to, {dep_reason, ww_reason, wr_reason}});
+  }
+  anti_dep_edges_of[from].insert({to, ww_reason, wr_reason});
   return true;
+
+  inner_anti_dep_conflict:
+    // generate conflict clause
+    std::vector<Lit> cur_conflict_clause;
+    icd_graph.get_minimal_cycle(cur_conflict_clause);
+
+    // for (Lit l : cur_conflict_clause) std::cerr << l.x << " ";
+    // std::cerr << std::endl;
+
+    conflict_clauses.emplace_back(cur_conflict_clause);
+    while (!added_induced_edges.empty()) {
+      const auto &[from, to, reason] = added_induced_edges.top();
+      icd_graph.remove_edge(from, to, reason);
+      added_induced_edges.pop();
+    }
+    return false;
 }
 
 void AcyclicSolverHelper::remove_induced_dep_edge(int var, int from, int to, int dep_reason) {
-  // TODO
+  assert(var >= 0); // var != -1
+  // 1. remove itself
+  icd_graph.remove_edge(from, to, {dep_reason, -1, -1}); 
+  // 2. remove induced edges
+  for (const auto &[rw_to, ww_reason, wr_reason] : anti_dep_edges_of[to]) {
+    icd_graph.remove_edge(from, rw_to, {dep_reason, ww_reason, wr_reason});
+  }
+  dep_edges_of[to].erase(dep_edges_of[to].find({from, dep_reason}));
 }
 
 void AcyclicSolverHelper::remove_induced_anti_dep_edge(int var, int from, int to, int ww_reason, int wr_reason) {
-  // TODO
+  for (const auto &[dep_from, dep_reason] : dep_edges_of[from]) {
+    icd_graph.remove_edge(dep_from, to, {dep_reason, ww_reason, wr_reason});
+  }
+  anti_dep_edges_of[from].erase(anti_dep_edges_of[from].find({to, ww_reason, wr_reason}));
 }
-
-
 
 Var AcyclicSolverHelper::get_var_represents_max_edges() {
   if (vars_heap.empty()) return var_Undef;

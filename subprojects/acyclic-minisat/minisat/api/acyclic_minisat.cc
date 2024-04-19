@@ -12,6 +12,7 @@ namespace Minisat {
 
 bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &constraints) {
   Logger::log("[Acyclic Minisat QxQ]");
+
   AcyclicSolver S;
 
   auto show_model = [&S](std::string model_name = "Model") -> void {
