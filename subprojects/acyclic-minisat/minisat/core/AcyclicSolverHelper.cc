@@ -385,8 +385,8 @@ void AcyclicSolverHelper::remove_edges_of_var(int var) {
 
 bool AcyclicSolverHelper::add_induced_dep_edge(int var, int from, int to, int dep_reason) {
   if (var == -1) { // known
-    icd_graph.add_known_edge(from, to);
-    dep_edges_of[to].insert({from, -1});
+    assert(dep_reason == -1);
+    add_known_induced_dep_edge(from, to);
     return true;
   }
   auto added_induced_edges = std::stack<std::tuple<int, int, std::tuple<int, int, int>>> {}; // (from, to, reason)
@@ -422,15 +422,26 @@ bool AcyclicSolverHelper::add_induced_dep_edge(int var, int from, int to, int de
     return false;
 }
 
+void AcyclicSolverHelper::add_known_induced_dep_edge(int from, int to) {
+  // acyclicity test is preprocessed by the last pruning pass
+  icd_graph.add_known_edge(from, to); 
+  for (const auto &[rw_to, ww_reason, wr_reason] : anti_dep_edges_of[to]) {
+    assert(ww_reason == -1 && wr_reason == -1); // only have known edges when handling known graph
+    icd_graph.add_known_edge(from, rw_to);
+    assert(rw_to != from); // selfloops directly drives to conflict
+  }
+  dep_edges_of[to].insert({from, /* dep_reason = */ -1});
+}
+
 bool AcyclicSolverHelper::add_induced_anti_dep_edge(int var, int from, int to, int ww_reason, int wr_reason) {
   if (var == -1) {
-    icd_graph.add_known_edge(from, to);
-    anti_dep_edges_of[from].insert({to, -1, -1});
+    assert(ww_reason == -1 && wr_reason == -1);
+    add_known_induced_anti_dep_edge(from, to);
     return true;
   }
   auto added_induced_edges = std::stack<std::tuple<int, int, std::tuple<int, int, int>>> {}; // (from, to, reason)
   bool cycle = false;
-  // 1. add induced edges
+  // 1. only add induced edges except itself
   for (const auto &[dep_from, dep_reason] : dep_edges_of[from]) {
     cycle = !icd_graph.add_edge(dep_from, to, {dep_reason, ww_reason, wr_reason});
     if (dep_from == to) assert(cycle); // selfloop directly drives to conflict
@@ -457,6 +468,17 @@ bool AcyclicSolverHelper::add_induced_anti_dep_edge(int var, int from, int to, i
     return false;
 }
 
+void AcyclicSolverHelper::add_known_induced_anti_dep_edge(int from, int to) {
+  // acyclicity test is preprocessed by the last pruning pass
+  // only add induced edges except itslef
+  for (const auto &[dep_from, dep_reason] : dep_edges_of[from]) {
+    assert(dep_reason == -1); // only have known edges when handling known graph
+    icd_graph.add_known_edge(dep_from, to);
+    assert(dep_from != to); // selfloop directly drives to conflict
+  }
+  anti_dep_edges_of[from].insert({to, /* ww_reason = */ -1, /* wr_reaons = */ -1});
+}
+
 void AcyclicSolverHelper::remove_induced_dep_edge(int var, int from, int to, int dep_reason) {
   assert(var >= 0); // var != -1
   // 1. remove itself
@@ -469,6 +491,8 @@ void AcyclicSolverHelper::remove_induced_dep_edge(int var, int from, int to, int
 }
 
 void AcyclicSolverHelper::remove_induced_anti_dep_edge(int var, int from, int to, int ww_reason, int wr_reason) {
+  assert(var >= 0); // var != -1
+  // 1. only remove induced edges
   for (const auto &[dep_from, dep_reason] : dep_edges_of[from]) {
     icd_graph.remove_edge(dep_from, to, {dep_reason, ww_reason, wr_reason});
   }

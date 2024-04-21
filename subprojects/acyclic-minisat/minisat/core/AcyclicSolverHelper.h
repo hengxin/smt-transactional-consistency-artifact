@@ -51,6 +51,8 @@ class AcyclicSolverHelper {
   void construct_wr_cons_propagated_lits(int var);
   bool add_induced_dep_edge(int var, int from, int to, int dep_reason);
   bool add_induced_anti_dep_edge(int var, int from, int to, int ww_reason, int wr_reason);
+  void add_known_induced_dep_edge(int from, int to);
+  void add_known_induced_anti_dep_edge(int from, int to);
   void remove_induced_dep_edge(int var, int from, int to, int dep_reason);
   void remove_induced_anti_dep_edge(int var, int from, int to, int ww_reason, int wr_reason);
 
