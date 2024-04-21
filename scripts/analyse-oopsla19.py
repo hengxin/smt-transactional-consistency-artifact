@@ -2,8 +2,8 @@ import json
 import os
 import sys
 
-# data_name = 'all'
-data_name = 'partition'
+data_name = 'all'
+# data_name = 'partition'
 
 # 1. load NuSer data
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
@@ -14,7 +14,7 @@ with open(data_path) as data:
   data = json.load(data)
 
 # 2. load dbcop data
-dbcop_data_path = f'/home/rikka/dbcop-master/output/roachdb_general_{data_name}_writes'
+dbcop_data_path = f'/home/rikka/dbcop+/dbcop-verifier/results/correctness/roachdb_general_{data_name}_writes'
 dbcop_data = {}
 for hist in os.listdir(dbcop_data_path):
   dbcop_hist_path = os.path.join(dbcop_data_path, hist)
