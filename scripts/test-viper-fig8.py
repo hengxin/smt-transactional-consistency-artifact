@@ -18,9 +18,10 @@ if checker == 'polysi':
 elif checker == 'nusi':
   checker_path = os.path.join(root_path, 'builddir-release', 'checker')
   solver = 'acyclic-minisat'
+  print('use [{}] as backend solver'.format(solver))
 elif checker == 'viper':
   # checker_path = 
-  print('use [{}] as backend solver'.format(solver))
+  assert False;
 
 # params
 history_names = {
