@@ -225,7 +225,7 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
 } */
 
 auto AcyclicMinisatSolver::solve() -> bool {
-  return Minisat::am_solve(n_vertices, am_known_graph, am_constraints);
+  return Minisat::am_solve(n_vertices, am_known_graph, am_constraints, n_sessions, n_total_transactions, n_total_events, write_steps, read_steps);
 }
 
 AcyclicMinisatSolver::~AcyclicMinisatSolver() = default;

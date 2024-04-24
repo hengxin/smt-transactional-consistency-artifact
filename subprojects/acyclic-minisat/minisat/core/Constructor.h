@@ -2,6 +2,8 @@
 #define MINISAT_CONSTRCUTOR_H
 
 #include <cassert>
+#include <algorithm>
+
 #include <fmt/format.h>
 
 #include "minisat/core/Polygraph.h"
@@ -15,7 +17,10 @@
 
 namespace Minisat {
 
-Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constraints &constraints, AcyclicSolver &solver, std::vector<Lit> &unit_lits) {
+Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constraints &constraints, AcyclicSolver &solver, std::vector<Lit> &unit_lits, 
+                     int suggest_distance,
+                     const std::unordered_map<int, std::unordered_map<int64_t, int>> &write_steps, 
+                     const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps) {
   Polygraph *polygraph = new Polygraph(n_vertices); // unused n_vars
 
   Logger::log("[Known Graph]");
@@ -26,9 +31,28 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
   }
 
   Logger::log("[Constraints]");
+  assert(unit_lits.empty());
   int var_count = 0;
   const auto &[ww_cons, wr_cons] = constraints;
   Logger::log("[1. WW Constraints]");
+
+  auto suggest_ww = [&suggest_distance, &write_steps](int v1, int v2, int either_, int or_, const std::vector<int64_t> &keys) -> int {
+    // v1: either -> or; v2: or -> either
+    assert(suggest_distance != -1);
+    // TODO: ww heuristics
+    int max_diff = 0; // either_steps - or_steps
+    int64_t sum_diff = 0;
+    for (const auto &key : keys) {
+      int either_steps = write_steps.at(either_).at(key);
+      int or_steps = write_steps.at(or_).at(key);
+      sum_diff += either_steps - or_steps;
+      if (std::abs(either_steps - or_steps) > std::abs(max_diff)) max_diff = either_steps - or_steps;
+    }
+    if (std::abs(max_diff) <= suggest_distance) return -1;
+    return max_diff > 0 ? v2 : v1;
+    // return sum_diff > 0 ? v2 : v1;
+  };
+
   for (const auto &[either_, or_, keys] : ww_cons) {
     solver.newVar(), solver.newVar();
     int v1 = var_count++, v2 = var_count++;
@@ -44,9 +68,20 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
     Logger::log(Logger::lits2str(lits));
     lits.clear(), lits.push(~mkLit(v1)), lits.push(~mkLit(v2));
     solver.addClause_(lits); // ((~v1) | (~v2))
+
+    if (suggest_distance != -1) {
+      int suggest_v = suggest_ww(v1, v2, either_, or_, keys);
+      if (suggest_v != -1) unit_lits.emplace_back(mkLit(suggest_v));
+    } 
   }
+
   Logger::log("[2. WR Constraints]");
-  assert(unit_lits.empty());
+
+  auto suggest_wr = [&suggest_distance, &write_steps, &read_steps](const std::vector<int> &cons, int read, const std::vector<int> &writes, int64_t key) -> int {
+    // TODO: wr heuristics
+    return -1;
+  };
+
   for (const auto &[read, writes, key] : wr_cons) {
     vec<Lit> lits;
     auto cons = std::vector<int>{};
@@ -62,6 +97,10 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
       int index = polygraph->add_wr_cons(cons);
       for (const auto &v : cons) {
         polygraph->map_wr_cons(v, index);
+      }
+      if (suggest_distance != -1) {
+        int suggest_v = suggest_wr(cons, read, writes, key);
+        if (suggest_v != -1) unit_lits.emplace_back(mkLit(suggest_v));
       }
     } else {
       unit_lits.emplace_back(lits[0]);
