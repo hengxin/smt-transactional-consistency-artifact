@@ -7,6 +7,7 @@
 #include <iosfwd>
 #include <ranges>
 #include <vector>
+#include <unordered_map>
 
 namespace checker::history {
 
@@ -52,6 +53,13 @@ struct History {
            | std::ranges::views::join;
   }
 };
+
+struct HistoryMetaInfo {
+  int n_sessions, n_total_transactions, n_total_events;
+  std::unordered_map<int64_t, std::unordered_map<int64_t, int>> write_steps, read_steps; // write_steps read_steps [txn][key] = step
+};
+
+auto compute_history_meta_info(const History &history) -> HistoryMetaInfo;
 
 /**
  * Read history from an input stream. The history is in dbcop format.

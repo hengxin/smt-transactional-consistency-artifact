@@ -20,13 +20,14 @@ private:
 public:
     auto make(const std::string &solver_type, 
               const history::DependencyGraph &dependency_graph,
-              const history::Constraints &constraints) -> AbstractSolver * {
+              const history::Constraints &constraints,
+              const history::HistoryMetaInfo &history_meta_info) -> AbstractSolver * {
                 if (solver_type == "z3") {
-                  return new Z3Solver{dependency_graph, constraints};
+                  return new Z3Solver{dependency_graph, constraints, history_meta_info};
                 } else if (solver_type == "monosat") {
-                  return new MonosatSolver{dependency_graph, constraints};
+                  return new MonosatSolver{dependency_graph, constraints, history_meta_info};
                 } else if (solver_type == "acyclic-minisat") {
-                  return new AcyclicMinisatSolver{dependency_graph, constraints};
+                  return new AcyclicMinisatSolver{dependency_graph, constraints, history_meta_info};
                 } else {
                   throw std::runtime_error("unknown solver!");
                 }

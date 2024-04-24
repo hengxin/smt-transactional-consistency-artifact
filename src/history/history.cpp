@@ -421,4 +421,42 @@ auto n_written_key_txns_of(History &history) -> std::unordered_map<int64_t, int>
   return n_written_txns_of_key;
 }
 
+auto compute_history_meta_info(const History &history) -> HistoryMetaInfo {
+  auto history_meta_info = HistoryMetaInfo{
+    .n_sessions = 0, 
+    .n_total_transactions = 0, 
+    .n_total_events = 0,
+    .write_steps = {},
+    .read_steps = {}};
+  history_meta_info.n_sessions = history.sessions.size();
+  for (const auto &txn : history.transactions()) {
+    ++history_meta_info.n_total_transactions;
+    history_meta_info.n_total_events += txn.events.size();
+  }
+
+  for (const auto &session : history.sessions) {
+    int steps = 0; // for each session, calculate a steps
+    for (const auto &txn : session.transactions) {
+      ++steps;
+      auto cur_value = std::unordered_map<int64_t, int64_t>{}; // key -> value (for current txn)
+      for (const auto &event : txn.events) {
+        const auto &[key, value, type, txn_id] = event;
+        if (type == EventType::READ) {
+          if (!cur_value.contains(key)) {
+            history_meta_info.read_steps[txn_id][key] = steps; // once update read steps
+          } else {
+            if (cur_value[key] != value) 
+              throw std::runtime_error{"exception found in 1 txn."}; // violate ser
+          }
+        } else { // EventType::WRITE
+          cur_value[key] = value;
+          history_meta_info.write_steps[txn_id][key] = steps; // iteratively update write steps
+        }
+      }
+    }
+  }
+
+  return history_meta_info;
+};
+
 }  // namespace checker::history

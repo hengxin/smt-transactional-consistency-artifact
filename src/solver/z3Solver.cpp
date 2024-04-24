@@ -106,7 +106,8 @@ struct std::equal_to<expr> {
 namespace checker::solver {
 
 Z3Solver::Z3Solver(const history::DependencyGraph &known_graph,
-                   const history::Constraints &constraints)
+                   const history::Constraints &constraints,
+                   const history::HistoryMetaInfo &history_meta_info)
           : solver{context, z3::solver::simple{}} {
   std::cerr << "Not implemented!" << std::endl;
   assert(0);

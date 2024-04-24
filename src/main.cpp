@@ -149,6 +149,8 @@ auto main(int argc, char **argv) -> int {
   // };
   // display_constraints(constraints, "Constraints before Pruning:");
 
+  auto history_meta_info = history::compute_history_meta_info(history);
+
   {
     auto curr_time = chrono::steady_clock::now();
     BOOST_LOG_TRIVIAL(info)
@@ -200,7 +202,10 @@ auto main(int argc, char **argv) -> int {
 
   if (accept) {
     // encode constraints and known graph
-    auto solver = solver::SolverFactory::getSolverFactory().make(solver_type, dependency_graph, constraints);
+    auto solver = solver::SolverFactory::getSolverFactory().make(solver_type, 
+                                                                 dependency_graph, 
+                                                                 constraints, 
+                                                                 history_meta_info);
 
     {
       auto curr_time = chrono::steady_clock::now();

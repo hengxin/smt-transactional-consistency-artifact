@@ -28,9 +28,13 @@ struct AcyclicMinisatSolver : AbstractSolver {
   int n_vertices;
   AMKnownGraph am_known_graph;
   AMConstraints am_constraints;
+  
+  int n_sessions, n_total_transactions, n_total_events;
+  std::unordered_map<int, std::unordered_map<int64_t, int>> write_steps, read_steps;
 
   AcyclicMinisatSolver(const history::DependencyGraph &known_graph,
-                       const history::Constraints &constraints);
+                       const history::Constraints &constraints,
+                       const history::HistoryMetaInfo &history_meta_info);
 
   auto solve() -> bool override;
 

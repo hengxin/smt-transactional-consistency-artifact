@@ -20,7 +20,8 @@ struct Z3Solver : AbstractSolver {
   std::unique_ptr<DependencyGraphHasNoCycle> user_propagator;
 
   Z3Solver(const history::DependencyGraph &known_graph,
-         const history::Constraints &constraints);
+         const history::Constraints &constraints,
+         const history::HistoryMetaInfo &history_meta_info);
 
   auto solve() -> bool override;
 
