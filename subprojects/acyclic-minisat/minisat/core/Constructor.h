@@ -53,6 +53,7 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
     // return sum_diff > 0 ? v2 : v1;
   };
 
+  int suggest_ww_cnt = 0;
   for (const auto &[either_, or_, keys] : ww_cons) {
     solver.newVar(), solver.newVar();
     int v1 = var_count++, v2 = var_count++;
@@ -71,9 +72,15 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
 
     if (suggest_distance != -1) {
       int suggest_v = suggest_ww(v1, v2, either_, or_, keys);
-      if (suggest_v != -1) unit_lits.emplace_back(mkLit(suggest_v));
+      if (suggest_v != -1) {
+        ++suggest_ww_cnt;
+        unit_lits.emplace_back(mkLit(suggest_v));
+      } 
     } 
   }
+
+  Logger::log(fmt::format("suggest ww count = {}", suggest_ww_cnt));
+  std::cout << "suggest ww cnt = " << suggest_ww_cnt << std::endl;
 
   Logger::log("[2. WR Constraints]");
 

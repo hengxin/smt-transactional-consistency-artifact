@@ -436,6 +436,9 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
 
   ww_constraints = ww_constraints | not_pruned_ww | to<vector<WWConstraint>>;
   wr_constraints = wr_constraints | not_pruned_wr | to<vector<WRConstraint>>;
+
+  BOOST_LOG_TRIVIAL(debug) << "#ww constraints after pruning: " << ww_constraints.size();
+  BOOST_LOG_TRIVIAL(debug) << "#wr constraints after pruning: " << wr_constraints.size();
   return true;
 }
 

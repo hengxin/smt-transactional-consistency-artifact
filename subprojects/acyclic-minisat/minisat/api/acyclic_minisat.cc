@@ -91,7 +91,7 @@ bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &
 
   bool accept = false;
   int test_round = 0;
-  for (int dist = std::max(1, n_total_events / n_sessions / 16); dist <= n_total_events; dist <<= 3) { // TODO: incresing strategy
+  for (int dist = std::max(1, n_total_events / n_total_transactions * 6); dist <= n_total_events; dist <<= 1) { // TODO: incresing strategy
     Logger::log(fmt::format("suggest dist = {}", dist));
     std::cout << "suggest dist = " << dist << std::endl;
     accept = am_solve_with_suggestion(n_vertices, known_graph, constraints, dist, write_steps, read_steps);

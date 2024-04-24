@@ -35,6 +35,7 @@ using std::ranges::views::transform;
 static auto check_history(const History &h) {
   auto depgraph = checker::history::known_graph_of(h);
   auto cons = checker::history::constraints_of(h);
+  auto hist_meta = checker::history::compute_history_meta_info(h);
 
   CHECKER_LOG_COND(trace, logger) {
     logger << "history: " << h << "\ndependency graph:\n"
@@ -48,7 +49,7 @@ static auto check_history(const History &h) {
     for (const auto &c : wr_constraints) { logger << c; }
   }
   return checker::solver::prune_constraints(depgraph, cons) &&
-    checker::solver::AcyclicMinisatSolver{depgraph, cons}.solve();
+    checker::solver::AcyclicMinisatSolver{depgraph, cons, hist_meta}.solve();
 }
 
 static auto create_history(
