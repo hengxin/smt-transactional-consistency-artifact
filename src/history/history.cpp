@@ -421,6 +421,83 @@ auto n_written_key_txns_of(History &history) -> std::unordered_map<int64_t, int>
   return n_written_txns_of_key;
 }
 
+auto parse_elle_list_append_history(std::ifstream &is) 
+  -> std::pair<History, std::vector<std::tuple<int64_t, int64_t, int64_t>>> {
+  // [sess] [txn_id] [type = 'R' or 'A'] [key] [value]
+  // if type == 'R', value = n a1 a2 ... an
+  // if type == 'A', value = v
+
+  constexpr int64_t init_session_id = 0;
+  constexpr int64_t init_txn_id = 0;
+  constexpr int64_t INIT_VALUE = 0x7ff7f7f7f7f7f7f7;
+
+  int n_lines = 0;
+  is >> n_lines;
+
+  auto txns = std::unordered_map<int64_t, Transaction>{};
+  auto sessions = std::unordered_map<int64_t, std::vector<int64_t>>{}; // sess_id -> { txn_ids in SO order }
+  auto known_ww = std::vector<std::tuple<int64_t, int64_t, int64_t>>{}; // <key, v1, v2>
+  auto init_write_keys = std::set<int64_t> {};
+  while (n_lines--) {
+    int64_t session_id, txn_id, key, value;
+    std::string type;
+    is >> session_id >> txn_id >> type >> key;
+    if (type == "R") { // read
+      int n_list = 0;
+      is >> n_list;
+      auto list = std::vector<int64_t>(n_list);
+      for (int i = 0; i < n_list; i++) is >> list[i];
+      if (n_list == 0) {
+        value = INIT_VALUE;
+        init_write_keys.insert(key);
+      } else {
+        value = list[n_list - 1];
+        for (int i = 0; i + 1 < n_list; i++) {
+          known_ww.emplace_back(std::tuple<int64_t, int64_t, int64_t>{key, list[i], list[i + 1]});
+        }
+      }
+    } else if (type == "A") { // append
+      is >> value;
+    }
+    if (!txns.contains(txn_id)) {
+      txns[txn_id] = Transaction{ .id = txn_id, .events = {}, .session_id = session_id, };
+      sessions[session_id].emplace_back(txn_id);
+    } 
+    txns[txn_id].events.emplace_back((Event) {
+      .key = key, 
+      .value = value, 
+      .type = (type == "R" ? EventType::READ : EventType::WRITE),
+      .transaction_id = txn_id,
+    });
+  } 
+
+  auto history = History{};
+  history.sessions.emplace_back(Session{
+    .id = init_session_id,
+    .transactions = std::vector{Transaction{
+        .id = init_txn_id,
+        .events = init_write_keys  //
+                  | transform([](auto key) {
+                      return Event{
+                          .key = key,
+                          .value = INIT_VALUE,
+                          .type = EventType::WRITE,
+                          .transaction_id = init_txn_id,
+                      };
+                    })  //
+                  | utils::to<std::vector<Event>>,
+        .session_id = init_session_id,
+    }},
+  });
+  for (const auto &[sess_id, txn_ids] : sessions) {
+    auto session = Session{ .id = sess_id, .transactions = {} };
+    for (const auto &txn_id : txn_ids) session.transactions.emplace_back(txns.at(txn_id));
+    history.sessions.emplace_back(session);
+  }
+
+  return {history, known_ww};
+}
+
 auto compute_history_meta_info(const History &history) -> HistoryMetaInfo {
   auto history_meta_info = HistoryMetaInfo{
     .n_sessions = 0, 

@@ -85,19 +85,20 @@ auto main(int argc, char **argv) -> int {
   }
 
   auto history_type = args.get("--history-type");
-  const auto all_history_types = std::set<std::string>{"cobra", "dbcop"};
+  const auto all_history_types = std::set<std::string>{"cobra", "dbcop", "elle-list-append"};
   if (all_history_types.contains(history_type)) {
     BOOST_LOG_TRIVIAL(debug) << "history type: " << history_type;
   } else {
     std::ostringstream os;
     os << "Invalid history type '" << history_type << "'";
-    os << "All valid history types: 'dpcop' or 'cobra'";
+    os << "All valid history types: 'dpcop' or 'cobra' or 'elle-list-append'";
     throw std::invalid_argument{os.str()};
   }
 
   auto time = chrono::steady_clock::now();
 
   history::History history;
+  auto known_ww = std::vector<std::tuple<int64_t, int64_t, int64_t>>{};
   if (history_type == "dbcop") {
     // read history
     auto history_file = std::ifstream{args.get("history")};
@@ -116,6 +117,16 @@ auto main(int argc, char **argv) -> int {
       std::cerr << e.what() << std::endl;
       return 1;
     }
+  } else if (history_type == "elle-list-append") {
+    auto history_file = std::ifstream{args.get("history")};
+    if (!history_file.is_open()) {
+      std::ostringstream os;
+      os << "Cannot open file '" << args.get("history") << "'";
+      throw std::runtime_error{os.str()};
+    }
+
+    auto && [history_, known_ww_] = history::parse_elle_list_append_history(history_file);
+    history = history_, known_ww = known_ww_;
   } else {
     assert(0);
   }
@@ -136,6 +147,16 @@ auto main(int argc, char **argv) -> int {
     auto accept = false;
     std::cout << "accept: " << std::boolalpha << accept << std::endl;
     return 0;
+  }
+
+  if (history_type == "elle-list-append") {
+    // assert(!known_ww.empty());
+    bool accept = history::instrument_known_ww(history, dependency_graph, known_ww);
+    if (!accept) {
+      BOOST_LOG_TRIVIAL(debug) << "conflict found in instrument_known_ww()";
+      std::cout << "accept: " << std::boolalpha << accept << std::endl;
+      return 0;
+    }
   }
 
   // std::cout << dependency_graph << std::endl;

@@ -11,6 +11,7 @@
 
 #include "history.h"
 #include "utils/literal.h"
+#include "utils/log.h"
 
 using boost::add_edge;
 using boost::add_vertex;
@@ -77,6 +78,36 @@ auto known_graph_of(const History &history) -> DependencyGraph {
   // }
 
   // return graph;
+}
+
+auto instrument_known_ww(const History &history, DependencyGraph &known_graph, const std::vector<std::tuple<int64_t, int64_t, int64_t>> &known_ww) -> bool {
+  auto add_dep_ww_edge = [&](int64_t from, int64_t to, EdgeInfo info) -> void {
+    if (info.type == EdgeType::WW) {
+      if (auto e = known_graph.ww.edge(from, to); e) {
+        std::ranges::copy(info.keys, back_inserter(e.value().get().keys));
+      } else {
+        known_graph.ww.add_edge(from, to, info);
+      }
+    } else {
+      assert(false);
+    }
+  };
+  auto txn_of_key_value = unordered_map<int64_t, unordered_map<int64_t, int64_t>>{}; // key -> (value -> txn_id)
+  for (const auto &[key, value, type, txn_id] : history.events()) {
+    if (type == EventType::READ) continue;
+    if (txn_of_key_value[key][value] != 0) return false;
+    txn_of_key_value[key][value] = txn_id;
+  }
+  int known_ww_cnt = 0;
+  for (const auto &[key, value1, value2] : known_ww) {
+    auto txn1 = txn_of_key_value[key][value1];
+    auto txn2 = txn_of_key_value[key][value2];
+    if (txn1 == txn2) continue;
+    add_dep_ww_edge(txn1, txn2, (EdgeInfo) { .type = EdgeType::WW, .keys = {key} });
+    ++known_ww_cnt;
+  }
+  BOOST_LOG_TRIVIAL(debug) << "#known_ww: " << known_ww_cnt;
+  return true;
 }
 
 auto operator<<(std::ostream &os, const EdgeInfo &edge_info) -> std::ostream & {

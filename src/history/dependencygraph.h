@@ -47,6 +47,8 @@ struct DependencyGraph {
 
 auto known_graph_of(const History &history) -> DependencyGraph;
 
+auto instrument_known_ww(const History &history, DependencyGraph &known_graph, const std::vector<std::tuple<int64_t, int64_t, int64_t>> &known_ww) -> bool;
+
 }  // namespace checker::history
 
 #endif /* CHECKER_HISTORY_DEPENDENCYGRAPH_H */
