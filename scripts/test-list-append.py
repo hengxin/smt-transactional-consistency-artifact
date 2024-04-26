@@ -49,7 +49,7 @@ def run_single(history_dir, bincode):
     with open(output_tmp_file_path, 'w+') as hist_file:
       subprocess.run(['python3', transform_script_path, bincode_path], stdout=hist_file)
     start_time = time.perf_counter()
-    logs = subprocess.run([checker_path, bincode_path, '--solver', solver, '--history-type', history_type, '--pruning', 'fast'], capture_output=True, text=True).stdout.split(os.linesep)
+    logs = subprocess.run([checker_path, output_tmp_file_path, '--solver', solver, '--history-type', history_type, '--pruning', 'fast'], capture_output=True, text=True).stdout.split(os.linesep)
     end_time = time.perf_counter()
     for log in logs:
       if log == '':
@@ -63,6 +63,9 @@ def run_single(history_dir, bincode):
         if log.split(':')[-1].strip() != 'true':
           print(f'checking result of {history_dir}/{bincode} is false')
         # assert log.split(':')[-1].strip() == 'true' # must satisfy si
+      # print(log)
+    # print(runtime)
+    # print((end_time - start_time) * 1000)
     runtime = (end_time - start_time) * 1000
     os.remove(output_tmp_file_path)
   return runtime
