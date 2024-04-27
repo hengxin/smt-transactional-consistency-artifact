@@ -4,40 +4,40 @@ cmake = import('cmake')
 fs = import('fs')
 
 # z3
-z3_dep = dependency('z3', required: false)
+# z3_dep = dependency('z3', required: false)
 
-if not z3_dep.found()
-  z3_opts = cmake.subproject_options()
-  z3_opts.add_cmake_defines({
-    'Z3_ENABLE_EXAMPLE_TARGETS': 'OFF',
-    'Z3_BUILD_EXECUTABLE': 'OFF',
-    'Z3_BUILD_TEST_EXECUTABLES': 'OFF',
-    'Z3_BUILD_LIBZ3_SHARED': 'OFF',
-  })
-  if get_option('buildtype') == 'debug'
-    z3_opts.add_cmake_defines({
-      'CMAKE_BUILD_TYPE': 'Debug',
-    })
-  elif get_option('buildtype') == 'release'
-    z3_opts.add_cmake_defines({
-      'CMAKE_BUILD_TYPE': 'Release',
-      'Z3_LINK_TIME_OPTIMIZATION': 'ON',
-      'Z3_SINGLE_THREADED': 'ON',
-    })
-  elif get_option('buildtype') == 'debugoptimized'
-    z3_opts.add_cmake_defines({
-      'CMAKE_BUILD_TYPE': 'RelWithDebInfo',
-      'CMAKE_CXX_FLAGS': '-pg',
-      'Z3_SINGLE_THREADED': 'ON',
-    })
-  endif
+# if not z3_dep.found()
+#   z3_opts = cmake.subproject_options()
+#   z3_opts.add_cmake_defines({
+#     'Z3_ENABLE_EXAMPLE_TARGETS': 'OFF',
+#     'Z3_BUILD_EXECUTABLE': 'OFF',
+#     'Z3_BUILD_TEST_EXECUTABLES': 'OFF',
+#     'Z3_BUILD_LIBZ3_SHARED': 'OFF',
+#   })
+#   if get_option('buildtype') == 'debug'
+#     z3_opts.add_cmake_defines({
+#       'CMAKE_BUILD_TYPE': 'Debug',
+#     })
+#   elif get_option('buildtype') == 'release'
+#     z3_opts.add_cmake_defines({
+#       'CMAKE_BUILD_TYPE': 'Release',
+#       'Z3_LINK_TIME_OPTIMIZATION': 'ON',
+#       'Z3_SINGLE_THREADED': 'ON',
+#     })
+#   elif get_option('buildtype') == 'debugoptimized'
+#     z3_opts.add_cmake_defines({
+#       'CMAKE_BUILD_TYPE': 'RelWithDebInfo',
+#       'CMAKE_CXX_FLAGS': '-pg',
+#       'Z3_SINGLE_THREADED': 'ON',
+#     })
+#   endif
 
-  z3_pro = cmake.subproject('z3', options: z3_opts)
-  z3_dep = declare_dependency(
-    include_directories: include_directories('subprojects/z3/src/api/c++'),
-    dependencies: z3_pro.dependency('libz3')
-  )
-endif
+#   z3_pro = cmake.subproject('z3', options: z3_opts)
+#   z3_dep = declare_dependency(
+#     include_directories: include_directories('subprojects/z3/src/api/c++'),
+#     dependencies: z3_pro.dependency('libz3')
+#   )
+# endif
 
 # argparse
 argparse_dep = dependency('argparse', required: false)
@@ -72,7 +72,7 @@ endif
 
 subdir('src')
 
-checker_deps = [z3_dep, argparse_dep, boost_dep, monosat_dep, acyclic_minisat_dep]
+checker_deps = [argparse_dep, boost_dep, monosat_dep, acyclic_minisat_dep] # remove 'z3_dep'
 checker_opts = ['cpp_std=c++20']
 checker_incs = ['src']
 checker_cflags = []

@@ -1,7 +1,7 @@
 #ifndef CHECKER_SOLVER_Z3SOLVER_H
 #define CHECKER_SOLVER_Z3SOLVER_H
 
-#include <z3++.h>
+// #include <z3++.h>
 
 #include <memory>
 #include <vector>
@@ -15,9 +15,9 @@ namespace checker::solver {
 struct DependencyGraphHasNoCycle;
 
 struct Z3Solver : AbstractSolver {
-  z3::context context;
-  z3::solver solver;
-  std::unique_ptr<DependencyGraphHasNoCycle> user_propagator;
+  // z3::context context;
+  // z3::solver solver;
+  // std::unique_ptr<DependencyGraphHasNoCycle> user_propagator;
 
   Z3Solver(const history::DependencyGraph &known_graph,
          const history::Constraints &constraints,

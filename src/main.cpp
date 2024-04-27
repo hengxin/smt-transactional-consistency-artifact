@@ -1,5 +1,3 @@
-#include <z3++.h>
-
 #include <argparse/argparse.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
@@ -41,6 +39,9 @@ auto main(int argc, char **argv) -> int {
   args.add_argument("--history-type")
       .help("History type")
       .default_value(std::string{"dbcop"});
+  args.add_argument("--isolation-level")
+      .help("Target isolation level")
+      .default_value(std::string{"ser"});
 
   try {
     args.parse_args(argc, argv);
@@ -81,6 +82,19 @@ auto main(int argc, char **argv) -> int {
     std::ostringstream os;
     os << "Invalid solver '" << solver_type << "'";
     os << "All valid solvers: 'z3' or 'monosat' or 'acyclic-minisat'";
+    throw std::invalid_argument{os.str()};
+  }
+
+  auto isolation_level = args.get("--isolation-level");
+  const auto all_isolation_levels = std::set<std::string>{"ser", "si"};
+  if (all_isolation_levels.contains(isolation_level)) {
+    BOOST_LOG_TRIVIAL(debug)
+      << "target isolation level: "
+      << isolation_level;
+  } else {
+    std::ostringstream os;
+    os << "Unknown isolation level '" << isolation_level << "'";
+    os << "Supported isolation levels: 'ser'(serializabe) or 'si'(snapshot isolation)";
     throw std::invalid_argument{os.str()};
   }
 
