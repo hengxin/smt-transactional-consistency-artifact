@@ -1,0 +1,27 @@
+[DEBUG] Txn[1000004e3] start
+[DEBUG] Txn[1000004e3] try to commit
+[DEBUG] Txn[1000004e3] successfully commit
+[DEBUG] Txn[1000004fb] start
+[DEBUG] Txn[1000004fb] try to commit
+[DEBUG] Txn[1000004fb] successfully commit
+[DEBUG] Txn[10000051b] start
+[DEBUG] Txn[10000051b] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[25] msg[TxnException: Write conflict, txnStartTS=435925520184508431, conflictStartTS=435925520132079631, conflictCommitTS=435925520223830019, key={tableID=587, handle=7913} primary={tableID=587, handle=1151} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435925520184508431, conflictStartTS=435925520132079631, conflictCommitTS=435925520223830019, key={tableID=587, handle=7913} primary={tableID=587, handle=1151} [try again later]
+[DEBUG] Txn[10000051b] abort
+[DEBUG] Txn[100000540] start
+[DEBUG] Txn[100000540] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[25] msg[TxnException: Write conflict, txnStartTS=435925520302735361, conflictStartTS=435925520289366037, conflictCommitTS=435925520381378568, key={tableID=587, handle=4796} primary={tableID=587, handle=787} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435925520302735361, conflictStartTS=435925520289366037, conflictCommitTS=435925520381378568, key={tableID=587, handle=4796} primary={tableID=587, handle=787} [try again later]
+[DEBUG] Txn[100000540] abort
+[DEBUG] Txn[10000055e] start
+[DEBUG] Txn[10000055e] try to commit
+[DEBUG] Txn[10000055e] successfully commit
+[DEBUG] Txn[10000057e] start
+[DEBUG] Txn[10000057e] try to commit
+[DEBUG] Txn[10000057e] successfully commit
+[DEBUG] Txn[10000059a] start
+[DEBUG] Txn[10000059a] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[25] msg[TxnException: Write conflict, txnStartTS=435925520617308169, conflictStartTS=435925520617308168, conflictCommitTS=435925520709058563, key={tableID=587, handle=4004} primary={tableID=587, handle=905} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435925520617308169, conflictStartTS=435925520617308168, conflictCommitTS=435925520709058563, key={tableID=587, handle=4004} primary={tableID=587, handle=905} [try again later]
+[DEBUG] Txn[10000059a] abort

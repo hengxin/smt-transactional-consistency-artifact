@@ -1,0 +1,65 @@
+[DEBUG] Txn[100000507] start
+[DEBUG] Txn[100000507] try to commit
+[DEBUG] Txn[100000507] successfully commit
+[DEBUG] Txn[100000552] start
+[DEBUG] Txn[100000552] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[25] msg[TxnException: Write conflict, txnStartTS=435969718113009674, conflictStartTS=435969718060580906, conflictCommitTS=435969718152593426, key={tableID=1153, handle=7854} primary={tableID=1153, handle=190} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435969718113009674, conflictStartTS=435969718060580906, conflictCommitTS=435969718152593426, key={tableID=1153, handle=7854} primary={tableID=1153, handle=190} [try again later]
+[DEBUG] Txn[100000552] abort
+[DEBUG] Txn[1000005d8] start
+[DEBUG] Txn[1000005d8] try to commit
+[DEBUG] Txn[1000005d8] successfully commit
+[DEBUG] Txn[10000064b] start
+[DEBUG] Txn[10000064b] try to commit
+[DEBUG] Txn[10000064b] successfully commit
+[DEBUG] Txn[1000006c6] start
+[DEBUG] Txn[1000006c6] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[25] msg[TxnException: Write conflict, txnStartTS=435969718427582479, conflictStartTS=435969718375153686, conflictCommitTS=435969718466904086, key={tableID=1153, handle=6513} primary={tableID=1153, handle=16} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435969718427582479, conflictStartTS=435969718375153686, conflictCommitTS=435969718466904086, key={tableID=1153, handle=6513} primary={tableID=1153, handle=16} [try again later]
+[DEBUG] Txn[1000006c6] abort
+[DEBUG] Txn[100000743] start
+[DEBUG] Txn[100000743] try to commit
+[DEBUG] Txn[100000743] successfully commit
+[DEBUG] Txn[10000078e] start
+[DEBUG] Txn[10000078e] try to commit
+[DEBUG] Txn[10000078e] successfully commit
+[DEBUG] Txn[1000007d0] start
+[DEBUG] Txn[1000007d0] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[25] msg[TxnException: Write conflict, txnStartTS=435969718637297705, conflictStartTS=435969718597976084, conflictCommitTS=435969718689726506, key={tableID=1153, handle=1368} primary={tableID=1153, handle=1368} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435969718637297705, conflictStartTS=435969718597976084, conflictCommitTS=435969718689726506, key={tableID=1153, handle=1368} primary={tableID=1153, handle=1368} [try again later]
+[DEBUG] Txn[1000007d0] abort
+[DEBUG] Txn[100000854] start
+[DEBUG] Txn[100000854] try to commit
+[DEBUG] Txn[100000854] successfully commit
+[DEBUG] Txn[1000008d5] start
+[DEBUG] Txn[1000008d5] try to commit
+[DEBUG] Txn[1000008d5] successfully commit
+[DEBUG] Txn[100000950] start
+[DEBUG] Txn[100000950] try to commit
+[DEBUG] Txn[100000950] successfully commit
+[DEBUG] Txn[100000991] start
+[DEBUG] Txn[100000991] try to commit
+[DEBUG] Txn[100000991] successfully commit
+[DEBUG] Txn[100000a09] start
+[DEBUG] Txn[100000a09] try to commit
+[DEBUG] Txn[100000a09] successfully commit
+[DEBUG] Txn[100000a87] start
+[DEBUG] Txn[100000a87] try to commit
+[DEBUG] Txn[100000a87] successfully commit
+[DEBUG] Txn[100000ad1] start
+[DEBUG] Txn[100000ad1] try to commit
+[DEBUG] Txn[100000ad1] successfully commit
+[DEBUG] Txn[100000b49] start
+[DEBUG] Txn[100000b49] try to commit
+[DEBUG] Txn[100000b49] successfully commit
+[DEBUG] Txn[100000bc8] start
+[DEBUG] Txn[100000bc8] try to commit
+[DEBUG] Txn[100000bc8] successfully commit
+[DEBUG] Txn[100000c10] start
+[DEBUG] Txn[100000c10] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[25] msg[TxnException: Write conflict, txnStartTS=435969719541694484, conflictStartTS=435969719515480088, conflictCommitTS=435969719607230494, key={tableID=1153, handle=7776} primary={tableID=1153, handle=1048} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435969719541694484, conflictStartTS=435969719515480088, conflictCommitTS=435969719607230494, key={tableID=1153, handle=7776} primary={tableID=1153, handle=1048} [try again later]
+[DEBUG] Txn[100000c10] abort
+[DEBUG] Txn[100000c8b] start
+[DEBUG] Txn[100000c8b] try to commit
+[DEBUG] Txn[100000c8b] successfully commit

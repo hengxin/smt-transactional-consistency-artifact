@@ -1,0 +1,50 @@
+[DEBUG] Txn[1000007d5] start
+[DEBUG] Txn[1000007d5] try to commit
+[DEBUG] Txn[1000007d5] successfully commit
+[DEBUG] Txn[1000007f4] start
+[DEBUG] Txn[1000007f4] try to commit
+[DEBUG] Txn[1000007f4] successfully commit
+[DEBUG] Txn[10000080a] start
+[DEBUG] Txn[10000080a] try to commit
+[DEBUG] Txn[10000080a] successfully commit
+[DEBUG] Txn[10000081d] start
+[DEBUG] Txn[10000081d] try to commit
+[DEBUG] Txn[10000081d] successfully commit
+[DEBUG] Txn[10000082e] start
+[DEBUG] Txn[10000082e] try to commit
+[DEBUG] Txn[10000082e] successfully commit
+[DEBUG] Txn[10000084b] start
+[DEBUG] Txn[10000084b] try to commit
+[DEBUG] Txn[10000084b] successfully commit
+[DEBUG] Txn[100000869] start
+[DEBUG] Txn[100000869] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[37] msg[TxnException: Write conflict, txnStartTS=435947714125758475, conflictStartTS=435947714125758465, conflictCommitTS=435947714138865693, key={tableID=955, handle=1} primary={tableID=955, handle=1} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435947714125758475, conflictStartTS=435947714125758465, conflictCommitTS=435947714138865693, key={tableID=955, handle=1} primary={tableID=955, handle=1} [try again later]
+[DEBUG] Txn[100000869] abort
+[DEBUG] Txn[100000895] start
+[DEBUG] Txn[100000895] try to commit
+[DEBUG] Txn[100000895] successfully commit
+[DEBUG] Txn[1000008b4] start
+[DEBUG] Txn[1000008b4] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[37] msg[TxnException: Write conflict, txnStartTS=435947714178187290, conflictStartTS=435947714178187276, conflictCommitTS=435947714178187312, key={tableID=955, handle=1} primary={tableID=955, handle=1} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435947714178187290, conflictStartTS=435947714178187276, conflictCommitTS=435947714178187312, key={tableID=955, handle=1} primary={tableID=955, handle=1} [try again later]
+[DEBUG] Txn[1000008b4] abort
+[DEBUG] Txn[1000008d5] start
+[DEBUG] Txn[1000008d5] try to commit
+[DEBUG] Txn[1000008d5] successfully commit
+[DEBUG] Txn[1000008f3] start
+[DEBUG] [ERROR] [KvException|TxnException] Tid[37] msg[TxnException: Cannot delete a non-existing key]
+[DEBUG] TxnException: Cannot delete a non-existing key
+[DEBUG] Txn[1000008f3] abort
+[DEBUG] Txn[100000909] start
+[DEBUG] Txn[100000909] try to commit
+[DEBUG] Txn[100000909] successfully commit
+[DEBUG] Txn[10000091b] start
+[DEBUG] Txn[10000091b] try to commit
+[DEBUG] Txn[10000091b] successfully commit
+[DEBUG] Txn[10000093a] start
+[DEBUG] Txn[10000093a] try to commit
+[DEBUG] Txn[10000093a] successfully commit
+[DEBUG] Txn[10000094c] start
+[DEBUG] Txn[10000094c] try to commit
+[DEBUG] Txn[10000094c] successfully commit

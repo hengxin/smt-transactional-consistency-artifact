@@ -1,0 +1,27 @@
+[DEBUG] Txn[1000007dc] start
+[DEBUG] Txn[1000007dc] try to commit
+[DEBUG] [ERROR] [KvException|TxnException] Tid[28] msg[TxnException: Write conflict, txnStartTS=435947712277643320, conflictStartTS=435947712290750475, conflictCommitTS=435947712290750507, key={tableID=949, handle=1} primary={tableID=949, handle=1} [try again later]]
+[DEBUG] TxnException: Write conflict, txnStartTS=435947712277643320, conflictStartTS=435947712290750475, conflictCommitTS=435947712290750507, key={tableID=949, handle=1} primary={tableID=949, handle=1} [try again later]
+[DEBUG] Txn[1000007dc] abort
+[DEBUG] Txn[10000080b] start
+[DEBUG] Txn[10000080b] try to commit
+[DEBUG] Txn[10000080b] successfully commit
+[DEBUG] Txn[10000081d] start
+[DEBUG] Txn[10000081d] try to commit
+[DEBUG] Txn[10000081d] successfully commit
+[DEBUG] Txn[100000830] start
+[DEBUG] Txn[100000830] try to commit
+[DEBUG] Txn[100000830] successfully commit
+[DEBUG] Txn[10000084a] start
+[DEBUG] [ERROR] [KvException|TxnException] Tid[28] msg[TxnException: Cannot delete a non-existing key]
+[DEBUG] TxnException: Cannot delete a non-existing key
+[DEBUG] Txn[10000084a] abort
+[DEBUG] Txn[10000085c] start
+[DEBUG] Txn[10000085c] try to commit
+[DEBUG] Txn[10000085c] successfully commit
+[DEBUG] Txn[10000087a] start
+[DEBUG] Txn[10000087a] try to commit
+[DEBUG] Txn[10000087a] successfully commit
+[DEBUG] Txn[10000088d] start
+[DEBUG] Txn[10000088d] try to commit
+[DEBUG] Txn[10000088d] successfully commit
