@@ -188,5 +188,5 @@ template<class K, class V, V nil, class MkIndex = MkIndexDefault<K> >
 #endif
 
 //=================================================================================================
-} // namespace Minisat
+} // namespace MinisatSI
 #endif

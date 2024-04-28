@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <iostream>
 
-#include <acyclic_minisat.h>
+#include <acyclic_minisat_si.h>
 
 #include "acyclicMinisatSolver.h"
 
@@ -205,7 +205,7 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
 } */
 
 auto AcyclicMinisatSolver::solve() -> bool {
-  return Minisat::am_solve(n_vertices, am_known_graph, am_constraints);
+  return MinisatSI::am_solve(n_vertices, am_known_graph, am_constraints);
 }
 
 AcyclicMinisatSolver::~AcyclicMinisatSolver() = default;

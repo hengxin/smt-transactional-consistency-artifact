@@ -392,7 +392,7 @@ BoolOption Monosat::opt_decide_graph_pos(_cat_graph, "decide-graph-pos", "", tru
 
 BoolOption Monosat::opt_ignore_theories(_cat_graph, "ignore-theories", "", false);
 
-//BoolOption Minisat::opt_check_pure_theory_lits(_cat_graph,"pure-theory-lits","",false);
+//BoolOption MinisatSI::opt_check_pure_theory_lits(_cat_graph,"pure-theory-lits","",false);
 
 BoolOption Monosat::opt_decide_graph_chokepoints(_cat_graph, "decide-graph-chokepoints", "", false);
 IntOption Monosat::opt_sort_graph_decisions(_cat_graph, "decide-graph-sort",

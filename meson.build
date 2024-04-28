@@ -61,18 +61,18 @@ if not monosat_dep.found()
 endif
 
 # acyclic-minisat
-acyclic_minisat_dep = dependency('acyclic_minisat', required: false)
-if not acyclic_minisat_dep.found()
-  acyclic_minisat_pro = cmake.subproject('acyclic-minisat')
-  acyclic_minisat_dep = declare_dependency(
-    include_directories: include_directories('subprojects/acyclic-minisat/minisat/api'),
-    dependencies: acyclic_minisat_pro.dependency('minisat-lib-shared')
+acyclic_minisat_si_dep = dependency('acyclic_minisat_si', required: false)
+if not acyclic_minisat_si_dep.found()
+  acyclic_minisat_si_pro = cmake.subproject('acyclic-minisat-si')
+  acyclic_minisat_si_dep = declare_dependency(
+    include_directories: include_directories('subprojects/acyclic-minisat-si/minisat/api'),
+    dependencies: acyclic_minisat_si_pro.dependency('minisat-si-lib-shared')
   )
 endif
 
 subdir('src')
 
-checker_deps = [z3_dep, argparse_dep, boost_dep, monosat_dep, acyclic_minisat_dep]
+checker_deps = [z3_dep, argparse_dep, boost_dep, monosat_dep, acyclic_minisat_si_dep]
 checker_opts = ['cpp_std=c++20']
 checker_incs = ['src']
 checker_cflags = []

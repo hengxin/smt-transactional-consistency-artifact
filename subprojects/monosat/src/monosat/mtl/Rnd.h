@@ -71,5 +71,5 @@ static void randomShuffle(double& seed, vec<vec<T>>& xs){
 }
 
 //=================================================================================================
-}// namespace Minisat
+}// namespace MinisatSI
 #endif
