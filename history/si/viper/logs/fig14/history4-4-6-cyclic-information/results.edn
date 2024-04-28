@@ -1,0 +1,406 @@
+{:perf {:latency-graph {:valid? true},
+        :rate-graph {:valid? true},
+        :valid? true},
+ :clock {:valid? true},
+ :stats {:valid? true,
+         :count 1613,
+         :ok-count 1089,
+         :fail-count 0,
+         :info-count 524,
+         :by-f {:txn {:valid? true,
+                      :count 1613,
+                      :ok-count 1089,
+                      :fail-count 0,
+                      :info-count 524}}},
+ :exceptions {:valid? true},
+ :workload {:valid? false,
+            :anomaly-types (:G-nonadjacent
+                            :G-single
+                            :G1c
+                            :duplicate-elements),
+            :anomalies {:G-nonadjacent [{:cycle [{:type :ok,
+                                                  :f :txn,
+                                                  :value [[:append
+                                                           73
+                                                           7]
+                                                          [:r 75 []]],
+                                                  :time 22285083415,
+                                                  :process 34,
+                                                  :index 1028}
+                                                 {:type :ok,
+                                                  :f :txn,
+                                                  :value [[:r
+                                                           59
+                                                           [1
+                                                            3
+                                                            5
+                                                            4
+                                                            8
+                                                            7
+                                                            5]]
+                                                          [:append
+                                                           73
+                                                           5]
+                                                          [:r
+                                                           73
+                                                           [2
+                                                            3
+                                                            4
+                                                            6
+                                                            7
+                                                            5]]
+                                                          [:append
+                                                           75
+                                                           1]],
+                                                  :time 22814118909,
+                                                  :process 31,
+                                                  :index 1089}
+                                                 {:type :ok,
+                                                  :f :txn,
+                                                  :value [[:append
+                                                           66
+                                                           6]
+                                                          [:r 3 [2 3]]
+                                                          [:append
+                                                           59
+                                                           4]],
+                                                  :time 22057554064,
+                                                  :process 32,
+                                                  :index 999}
+                                                 {:type :ok,
+                                                  :f :txn,
+                                                  :value [[:append
+                                                           59
+                                                           8]
+                                                          [:append
+                                                           73
+                                                           3]
+                                                          [:r
+                                                           59
+                                                           [1 3 5 4 8]]
+                                                          [:append
+                                                           74
+                                                           1]],
+                                                  :time 22043493887,
+                                                  :process 33,
+                                                  :index 997}
+                                                 {:type :ok,
+                                                  :f :txn,
+                                                  :value [[:r
+                                                           73
+                                                           [2 3]]
+                                                          [:r
+                                                           69
+                                                           [1
+                                                            2
+                                                            3
+                                                            4
+                                                            6
+                                                            7]]],
+                                                  :time 22192099005,
+                                                  :process 32,
+                                                  :index 1017}
+                                                 {:type :ok,
+                                                  :f :txn,
+                                                  :value [[:append
+                                                           73
+                                                           4]
+                                                          [:r
+                                                           73
+                                                           [2 3 4]]],
+                                                  :time 22108561096,
+                                                  :process 33,
+                                                  :index 1010}
+                                                 {:type :ok,
+                                                  :f :txn,
+                                                  :value [[:append
+                                                           73
+                                                           6]],
+                                                  :time 22108465820,
+                                                  :process 50,
+                                                  :index 1009}
+                                                 {:type :ok,
+                                                  :f :txn,
+                                                  :value [[:append
+                                                           73
+                                                           7]
+                                                          [:r 75 []]],
+                                                  :time 22285083415,
+                                                  :process 34,
+                                                  :index 1028}],
+                                         :steps ({:type :ww,
+                                                  :key 73,
+                                                  :value 7,
+                                                  :value' 5,
+                                                  :a-mop-index 0,
+                                                  :b-mop-index 1}
+                                                 {:type :rw,
+                                                  :key 59,
+                                                  :value 5,
+                                                  :value' 4,
+                                                  :a-mop-index 0,
+                                                  :b-mop-index 2}
+                                                 {:type :ww,
+                                                  :key 59,
+                                                  :value 4,
+                                                  :value' 8,
+                                                  :a-mop-index 2,
+                                                  :b-mop-index 0}
+                                                 {:type :wr,
+                                                  :key 73,
+                                                  :value 3,
+                                                  :a-mop-index 1,
+                                                  :b-mop-index 0}
+                                                 {:type :rw,
+                                                  :key 73,
+                                                  :value 3,
+                                                  :value' 4,
+                                                  :a-mop-index 0,
+                                                  :b-mop-index 0}
+                                                 {:type :ww,
+                                                  :key 73,
+                                                  :value 4,
+                                                  :value' 6,
+                                                  :a-mop-index 0,
+                                                  :b-mop-index 0}
+                                                 {:type :ww,
+                                                  :key 73,
+                                                  :value 6,
+                                                  :value' 7,
+                                                  :a-mop-index 0,
+                                                  :b-mop-index 0}),
+                                         :type :G-nonadjacent}],
+                        :G-single [{:cycle [{:type :ok,
+                                             :f :txn,
+                                             :value [[:r 59 [1 3 5]]
+                                                     [:append 63 3]
+                                                     [:r
+                                                      63
+                                                      [1 4 6 5 7 3]]],
+                                             :time 22077542470,
+                                             :process 31,
+                                             :index 1004}
+                                            {:type :ok,
+                                             :f :txn,
+                                             :value [[:append 66 6]
+                                                     [:r 3 [2 3]]
+                                                     [:append 59 4]],
+                                             :time 22057554064,
+                                             :process 32,
+                                             :index 999}
+                                            {:type :ok,
+                                             :f :txn,
+                                             :value [[:r
+                                                      68
+                                                      [2
+                                                       4
+                                                       5
+                                                       6
+                                                       1
+                                                       8
+                                                       7
+                                                       3]]
+                                                     [:r
+                                                      66
+                                                      [2 5 7 4 8 6]]
+                                                     [:r
+                                                      66
+                                                      [2 5 7 4 8 6]]
+                                                     [:append 59 5]],
+                                             :time 22285347273,
+                                             :process 43,
+                                             :index 1030}
+                                            {:type :ok,
+                                             :f :txn,
+                                             :value [[:r 59 [1 3 5]]
+                                                     [:append 63 3]
+                                                     [:r
+                                                      63
+                                                      [1 4 6 5 7 3]]],
+                                             :time 22077542470,
+                                             :process 31,
+                                             :index 1004}],
+                                    :steps ({:type :rw,
+                                             :key 59,
+                                             :value 5,
+                                             :value' 4,
+                                             :a-mop-index 0,
+                                             :b-mop-index 2}
+                                            {:type :wr,
+                                             :key 66,
+                                             :value 6,
+                                             :a-mop-index 0,
+                                             :b-mop-index 1}
+                                            {:type :wr,
+                                             :key 59,
+                                             :value 5,
+                                             :a-mop-index 3,
+                                             :b-mop-index 0}),
+                                    :type :G-single}],
+                        :G1c [{:cycle [{:type :ok,
+                                        :f :txn,
+                                        :value [[:r
+                                                 68
+                                                 [2 4 5 6 1 8 7 3]]
+                                                [:r 66 [2 5 7 4 8 6]]
+                                                [:r 66 [2 5 7 4 8 6]]
+                                                [:append 59 5]],
+                                        :time 22285347273,
+                                        :process 43,
+                                        :index 1030}
+                                       {:type :ok,
+                                        :f :txn,
+                                        :value [[:r 59 [1 3 5]]
+                                                [:append 68 3]],
+                                        :time 21944169782,
+                                        :process 33,
+                                        :index 993}
+                                       {:type :ok,
+                                        :f :txn,
+                                        :value [[:r
+                                                 68
+                                                 [2 4 5 6 1 8 7 3]]
+                                                [:r 66 [2 5 7 4 8 6]]
+                                                [:r 66 [2 5 7 4 8 6]]
+                                                [:append 59 5]],
+                                        :time 22285347273,
+                                        :process 43,
+                                        :index 1030}],
+                               :steps ({:type :wr,
+                                        :key 59,
+                                        :value 5,
+                                        :a-mop-index 3,
+                                        :b-mop-index 0}
+                                       {:type :wr,
+                                        :key 68,
+                                        :value 3,
+                                        :a-mop-index 1,
+                                        :b-mop-index 0}),
+                               :type :G1c}],
+                        :duplicate-elements ({:op {:type :ok,
+                                                   :f :txn,
+                                                   :value [[:r
+                                                            59
+                                                            [1
+                                                             3
+                                                             5
+                                                             4
+                                                             8
+                                                             7
+                                                             5]]
+                                                           [:append
+                                                            73
+                                                            5]
+                                                           [:r
+                                                            73
+                                                            [2
+                                                             3
+                                                             4
+                                                             6
+                                                             7
+                                                             5]]
+                                                           [:append
+                                                            75
+                                                            1]],
+                                                   :time 22814118909,
+                                                   :process 31,
+                                                   :index 1089},
+                                              :mop [:r
+                                                    59
+                                                    [1 3 5 4 8 7 5]],
+                                              :duplicates {5 2}}
+                                             {:op {:type :ok,
+                                                   :f :txn,
+                                                   :value [[:append
+                                                            104
+                                                            6]
+                                                           [:r
+                                                            3
+                                                            [2 3 3 4]]],
+                                                   :time 35202761213,
+                                                   :process 100,
+                                                   :index 1560},
+                                              :mop [:r 3 [2 3 3 4]],
+                                              :duplicates {3 2}}
+                                             {:op {:type :ok,
+                                                   :f :txn,
+                                                   :value [[:r
+                                                            3
+                                                            [2
+                                                             3
+                                                             3
+                                                             4
+                                                             5]]
+                                                           [:r
+                                                            93
+                                                            [1
+                                                             3
+                                                             2
+                                                             5
+                                                             6
+                                                             7]]
+                                                           [:append
+                                                            111
+                                                            2]
+                                                           [:r 113 []]],
+                                                   :time 35388637360,
+                                                   :process 62,
+                                                   :index 1612},
+                                              :mop [:r 3 [2 3 3 4 5]],
+                                              :duplicates {3 2}}
+                                             {:op {:type :ok,
+                                                   :f :txn,
+                                                   :value [[:r 114 []]
+                                                           [:append
+                                                            119
+                                                            2]
+                                                           [:append
+                                                            119
+                                                            3]
+                                                           [:r
+                                                            3
+                                                            [2
+                                                             3
+                                                             3
+                                                             4
+                                                             5]]],
+                                                   :time 35539436158,
+                                                   :process 120,
+                                                   :index 1679},
+                                              :mop [:r 3 [2 3 3 4 5]],
+                                              :duplicates {3 2}}
+                                             {:op {:type :ok,
+                                                   :f :txn,
+                                                   :value [[:r
+                                                            3
+                                                            [2
+                                                             3
+                                                             3
+                                                             4
+                                                             5]]
+                                                           [:r
+                                                            113
+                                                            [1 2]]
+                                                           [:r 118 []]],
+                                                   :time 35546699037,
+                                                   :process 85,
+                                                   :index 1681},
+                                              :mop [:r 3 [2 3 3 4 5]],
+                                              :duplicates {3 2}})},
+            :not #{:read-uncommitted},
+            :also-not #{:consistent-view
+                        :cursor-stability
+                        :forward-consistent-view
+                        :monotonic-atomic-view
+                        :monotonic-snapshot-read
+                        :monotonic-view
+                        :read-committed
+                        :repeatable-read
+                        :serializable
+                        :snapshot-isolation
+                        :strict-serializable
+                        :strong-session-serializable
+                        :strong-session-snapshot-isolation
+                        :strong-snapshot-isolation
+                        :update-serializable}},
+ :valid? false}

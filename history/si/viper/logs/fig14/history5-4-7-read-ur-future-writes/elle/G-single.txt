@@ -1,0 +1,14 @@
+G-single #0
+Let:
+  T1 = {:type :ok, :f :txn, :value [[:r 589 [1]] [:r 586 [1 2 3]] [:r 592 []] [:r 592 []]], :time 86840144458, :process 257, :index 8488}
+  T2 = {:type :ok, :f :txn, :value [[:append 586 4] [:r 586 [1 2 3 4]] [:r 591 []]], :time 86826123368, :process 263, :index 8472}
+  T3 = {:type :ok, :f :txn, :value [[:r 585 [2 3 4 8 1]] [:r 586 [1 2 3 4]] [:r 585 [2 3 4 8 1]] [:append 586 1]], :time 86838929736, :process 272, :index 8483}
+  T4 = {:type :ok, :f :txn, :value [[:append 579 2] [:append 586 2]], :time 86798084625, :process 269, :index 8442}
+  T5 = {:type :ok, :f :txn, :value [[:append 587 7] [:r 588 []] [:append 586 3]], :time 86824555661, :process 345, :index 8465}
+
+Then:
+  - T1 < T2, because T1 did not observe T2's append of 4 to 586.
+  - T2 < T3, because T3 observed T2's append of 4 to key 586.
+  - T3 < T4, because T4 appended 2 after T3 appended 1 to 586.
+  - T4 < T5, because T5 appended 3 after T4 appended 2 to 586.
+  - However, T5 < T1, because T1 observed T5's append of 3 to key 586: a contradiction!

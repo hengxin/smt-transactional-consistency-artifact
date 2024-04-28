@@ -1,0 +1,8 @@
+G1c #0
+Let:
+  T1 = {:type :ok, :f :txn, :value [[:r 68 [2 4 5 6 1 8 7 3]] [:r 66 [2 5 7 4 8 6]] [:r 66 [2 5 7 4 8 6]] [:append 59 5]], :time 22285347273, :process 43, :index 1030}
+  T2 = {:type :ok, :f :txn, :value [[:r 59 [1 3 5]] [:append 68 3]], :time 21944169782, :process 33, :index 993}
+
+Then:
+  - T1 < T2, because T2 observed T1's append of 5 to key 59.
+  - However, T2 < T1, because T1 observed T2's append of 3 to key 68: a contradiction!

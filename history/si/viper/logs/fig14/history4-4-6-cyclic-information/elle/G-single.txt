@@ -1,0 +1,10 @@
+G-single #0
+Let:
+  T1 = {:type :ok, :f :txn, :value [[:r 59 [1 3 5]] [:append 63 3] [:r 63 [1 4 6 5 7 3]]], :time 22077542470, :process 31, :index 1004}
+  T2 = {:type :ok, :f :txn, :value [[:append 66 6] [:r 3 [2 3]] [:append 59 4]], :time 22057554064, :process 32, :index 999}
+  T3 = {:type :ok, :f :txn, :value [[:r 68 [2 4 5 6 1 8 7 3]] [:r 66 [2 5 7 4 8 6]] [:r 66 [2 5 7 4 8 6]] [:append 59 5]], :time 22285347273, :process 43, :index 1030}
+
+Then:
+  - T1 < T2, because T1 did not observe T2's append of 4 to 59.
+  - T2 < T3, because T3 observed T2's append of 6 to key 66.
+  - However, T3 < T1, because T1 observed T3's append of 5 to key 59: a contradiction!
