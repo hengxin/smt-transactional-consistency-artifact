@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include <acyclic_minisat.h>
+#include <acyclic_minisat_si.h>
 
 #include "acyclicMinisatSolver.h"
 
@@ -22,7 +23,10 @@ namespace checker::solver {
 
 AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known_graph,
                                            const history::Constraints &constraints,
-                                           const history::HistoryMetaInfo &history_meta_info) {
+                                           const history::HistoryMetaInfo &history_meta_info,
+                                           const std::string &isolation_level) {
+  target_isolation_level = isolation_level;
+
   // 0. touch n_vertices
   n_vertices = known_graph.num_vertices();
 
@@ -225,7 +229,14 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
 } */
 
 auto AcyclicMinisatSolver::solve() -> bool {
-  return Minisat::am_solve(n_vertices, am_known_graph, am_constraints, n_sessions, n_total_transactions, n_total_events, write_steps, read_steps);
+  bool ret = true;
+  if (target_isolation_level == "ser") {
+    ret = Minisat::am_solve(n_vertices, am_known_graph, am_constraints, n_sessions, n_total_transactions, n_total_events, write_steps, read_steps);
+  } else if (target_isolation_level == "si") {
+    // TODO: heuristic pruning in SI
+    ret = MinisatSI::am_solve(n_vertices, am_known_graph, am_constraints);
+  }
+  return ret;
 }
 
 AcyclicMinisatSolver::~AcyclicMinisatSolver() = default;

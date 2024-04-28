@@ -1,5 +1,5 @@
-#ifndef MINISAT_ACYCLIC_MINISAT_TYPES_H
-#define MINISAT_ACYCLIC_MINISAT_TYPES_H
+#ifndef MINISAT_SI_ACYCLIC_MINISAT_TYPES_H
+#define MINISAT_SI_ACYCLIC_MINISAT_TYPES_H
 
 #include <utility>
 #include <vector>
@@ -20,4 +20,4 @@ using Constraints = std::pair<std::vector<WWConstraint>, std::vector<WRConstrain
 
 } // namespace MinisatSI
 
-#endif // MINISAT_ACYCLIC_MINISAT_TYPES_H
+#endif // MINISAT_SI_ACYCLIC_MINISAT_TYPES_H

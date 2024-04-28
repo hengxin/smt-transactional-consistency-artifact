@@ -1,5 +1,5 @@
-#ifndef MINISAT_AGNF_H
-#define MINISAT_AGNF_H
+#ifndef MINISAT_SI_AGNF_H
+#define MINISAT_SI_AGNF_H
 
 // #define USE_FSTREAM
 
@@ -142,4 +142,4 @@ Polygraph *construct(const fs::path &agnf_path, Solver &solver) {
 
 }; // namespace MinisatSI
 
-#endif // MINISAT_AGNF_H
+#endif // MINISAT_SI_AGNF_H

@@ -214,9 +214,17 @@ auto main(int argc, char **argv) -> int {
     
     auto pruned = true;
     if (pruning_method == "normal") {
-      accept = solver::prune_constraints(dependency_graph, constraints);
+      if (isolation_level == "ser") {
+        accept = solver::prune_constraints(dependency_graph, constraints);
+      } else if (isolation_level == "si") {
+        accept = solver::prune_si_constraints(dependency_graph, constraints); // hard encode, bad implementation!
+      }
     } else if (pruning_method == "fast") {
-      accept = solver::fast_prune_constraints(dependency_graph, constraints);
+      if (isolation_level == "ser") {
+        accept = solver::fast_prune_constraints(dependency_graph, constraints);
+      } else if (isolation_level == "si") {
+        accept = solver::fast_prune_si_constraints(dependency_graph, constraints); // hard encode, bad implementation!
+      }
     } else {
       pruned = false;
       BOOST_LOG_TRIVIAL(info) << "unknown pruning method \"" 
@@ -240,7 +248,8 @@ auto main(int argc, char **argv) -> int {
     auto solver = solver::SolverFactory::getSolverFactory().make(solver_type, 
                                                                  dependency_graph, 
                                                                  constraints, 
-                                                                 history_meta_info);
+                                                                 history_meta_info,
+                                                                 isolation_level);
 
     {
       auto curr_time = chrono::steady_clock::now();

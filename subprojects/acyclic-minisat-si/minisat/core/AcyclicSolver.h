@@ -1,5 +1,5 @@
-#ifndef MINISAT_ACYCLICSOLVER_H
-#define MINISAT_ACYCLICSOLVER_H
+#ifndef MINISAT_SI_ACYCLICSOLVER_H
+#define MINISAT_SI_ACYCLICSOLVER_H
 
 #include <vector>
 #include <unordered_map>
@@ -45,4 +45,4 @@ public:
 };
 } // namespace MinisatSI
 
-#endif // MINISAT_ACYCLICSOLVER_H
+#endif // MINISAT_SI_ACYCLICSOLVER_H

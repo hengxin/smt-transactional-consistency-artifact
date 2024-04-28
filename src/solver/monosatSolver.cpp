@@ -23,7 +23,12 @@ namespace checker::solver {
 
 MonosatSolver::MonosatSolver(const history::DependencyGraph &known_graph,
                              const history::Constraints &constraints,
-                             const history::HistoryMetaInfo &history_meta_info) {
+                             const history::HistoryMetaInfo &history_meta_info,
+                             const std::string &isolation_level) {
+  if (isolation_level == "si") {
+    std::cerr << "Not implemented yet!" << std::endl;
+    throw std::runtime_error{"MonosatSolver is not supporting SI checking now"};
+  }
   auto unique_filename = []() -> std::string {
     auto currentTime = std::chrono::system_clock::now();
     auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime.time_since_epoch()).count();

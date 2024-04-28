@@ -1,5 +1,5 @@
-#ifndef MINISAT_GRAPH_H
-#define MINISAT_GRAPH_H
+#ifndef MINISAT_SI_GRAPH_H
+#define MINISAT_SI_GRAPH_H
 
 // class Graph will act as a util, mainly for the very first edge elimination and AcyclicTheory to detect cycles
 
@@ -131,4 +131,4 @@ public:
 
 } // namespace MinisatSI
 
-#endif // MINISAT_GRAPH_H
+#endif // MINISAT_SI_GRAPH_H

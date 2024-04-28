@@ -1,10 +1,10 @@
-#ifndef MINISAT_ACYCLIC_MINISAT_H
-#define MINISAT_ACYCLIC_MINISAT_H
+#ifndef MINISAT_SI_ACYCLIC_MINISAT_H
+#define MINISAT_SI_ACYCLIC_MINISAT_H
 
 #include <utility>
 #include <vector>
 
-#include "minisat/api/acyclic_minisat_types.h"
+#include "minisat/api/acyclic_minisat_si_types.h"
 
 namespace MinisatSI {
 
@@ -13,4 +13,4 @@ bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &
 
 } // namespace MinisatSI
 
-#endif // MINISAT_ACYCLIC_MINISAT_H
+#endif // MINISAT_SI_ACYCLIC_MINISAT_H

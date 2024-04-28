@@ -21,7 +21,8 @@ struct Z3Solver : AbstractSolver {
 
   Z3Solver(const history::DependencyGraph &known_graph,
          const history::Constraints &constraints,
-         const history::HistoryMetaInfo &history_meta_info);
+         const history::HistoryMetaInfo &history_meta_info,
+         const std::string &isolation_level);
 
   auto solve() -> bool override;
 

@@ -1,5 +1,5 @@
-#ifndef MINISAT_ICDGRAPH_H
-#define MINISAT_ICDGRAPH_H
+#ifndef MINISAT_SI_ICDGRAPH_H
+#define MINISAT_SI_ICDGRAPH_H
 
 #include <tuple>
 #include <vector>
@@ -87,4 +87,4 @@ auto reasons2str(const std::unordered_multiset<std::tuple<int, int, int>, declty
 
 } // namespace MinisatSI::Logger
 
-#endif // MINISAT_ICDGRAPH_H
+#endif // MINISAT_SI_ICDGRAPH_H

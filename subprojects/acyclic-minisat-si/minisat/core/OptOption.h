@@ -1,5 +1,5 @@
-#ifndef MINISAT_OPT_OPTION_H
-#define MINISAT_OPT_OPTION_H
+#ifndef MINISAT_SI_OPT_OPTION_H
+#define MINISAT_SI_OPT_OPTION_H
 
 // optimization options switch here
 

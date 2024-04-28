@@ -1,5 +1,5 @@
-#ifndef MINISAT_PAIRCONFLICT_H
-#define MINISAT_PAIRCONFLICT_H
+#ifndef MINISAT_SI_PAIRCONFLICT_H
+#define MINISAT_SI_PAIRCONFLICT_H
 
 #include <iostream>
 
@@ -127,4 +127,4 @@ bool init_pair_conflict(AcyclicSolver &solver) {
 
 } // namespace MinisatSI
 
-#endif // MINISAT_PAIR_CONFLICT_H
+#endif // MINISAT_SI_PAIR_CONFLICT_H

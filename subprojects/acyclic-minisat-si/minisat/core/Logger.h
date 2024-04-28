@@ -1,5 +1,5 @@
-#ifndef MINISAT_LOGGER_H
-#define MINISAT_LOGGER_H
+#ifndef MINISAT_SI_LOGGER_H
+#define MINISAT_SI_LOGGER_H
 
 #include <iostream>
 #include <string>
@@ -98,4 +98,4 @@ auto lits2str(vec<Lit> &lits) -> std::string;
 
 } // namespace MinisatSI::Logger
 
-#endif // MINISAT_LOGGER_H
+#endif // MINISAT_SI_LOGGER_H

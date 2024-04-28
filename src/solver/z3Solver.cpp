@@ -107,7 +107,8 @@ namespace checker::solver {
 
 Z3Solver::Z3Solver(const history::DependencyGraph &known_graph,
                    const history::Constraints &constraints,
-                   const history::HistoryMetaInfo &history_meta_info) {
+                   const history::HistoryMetaInfo &history_meta_info,
+                   const std::string &isolation_level) {
   std::cerr << "Not implemented!" << std::endl;
   assert(0);
 }

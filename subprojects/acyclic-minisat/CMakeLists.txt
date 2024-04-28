@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
-project(minisat)
+project(acyclic-minisat)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -76,14 +76,14 @@ else()
   target_link_libraries(minisat_simp minisat-lib-shared)
 endif()
 
-set_target_properties(minisat-lib-static PROPERTIES OUTPUT_NAME "minisat")
+set_target_properties(minisat-lib-static PROPERTIES OUTPUT_NAME "acyclic-minisat")
 set_target_properties(minisat-lib-shared
   PROPERTIES
-    OUTPUT_NAME "minisat" 
+    OUTPUT_NAME "acyclic-minisat" 
     VERSION ${MINISAT_VERSION}
     SOVERSION ${MINISAT_SOVERSION})
 
-set_target_properties(minisat_simp       PROPERTIES OUTPUT_NAME "minisat")
+set_target_properties(minisat_simp       PROPERTIES OUTPUT_NAME "acyclic-minisat")
 
 #--------------------------------------------------------------------------------------------------
 # Installation targets:

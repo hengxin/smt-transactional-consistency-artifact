@@ -1,5 +1,5 @@
-#ifndef MINISAT_CONSTRCUTOR_H
-#define MINISAT_CONSTRCUTOR_H
+#ifndef MINISAT_SI_CONSTRCUTOR_H
+#define MINISAT_SI_CONSTRCUTOR_H
 
 #include <cassert>
 #include <fmt/format.h>
@@ -126,4 +126,4 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
 
 } // namespace MinisatSI
 
-#endif // MINISAT_CONSTRCUTOR_H
+#endif // MINISAT_SI_CONSTRCUTOR_H

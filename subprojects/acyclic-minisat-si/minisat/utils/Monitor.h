@@ -1,5 +1,5 @@
-#ifndef MINISAT_MONITOR_H
-#define MINISAT_MONITOR_H
+#ifndef MINISAT_SI_MONITOR_H
+#define MINISAT_SI_MONITOR_H
 
 #include <cstdint>
 
@@ -28,4 +28,4 @@ public:
 
 } // namespace MinisatSI::Monitor
 
-#endif // MINISAT_MONITOR_H
+#endif // MINISAT_SI_MONITOR_H

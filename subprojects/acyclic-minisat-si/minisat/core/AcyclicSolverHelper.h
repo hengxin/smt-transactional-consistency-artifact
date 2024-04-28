@@ -1,5 +1,5 @@
-#ifndef MINISAT_ACYCLICSOLVER_HELPER
-#define MINISAT_ACYCLICSOLVER_HELPER
+#ifndef MINISAT_SI_ACYCLICSOLVER_HELPER
+#define MINISAT_SI_ACYCLICSOLVER_HELPER
 
 #include <vector>
 #include <set>
@@ -80,4 +80,4 @@ auto wr_to2str(const std::unordered_set<std::pair<int, int64_t>, decltype(pair_h
 }; // namespace MinisatSI::Logger
 
 }
-#endif // MINISAT_ACYCLICSOLVER_HELPER
+#endif // MINISAT_SI_ACYCLICSOLVER_HELPER

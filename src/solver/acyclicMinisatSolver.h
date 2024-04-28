@@ -23,6 +23,8 @@ struct AcyclicMinisatSolver : AbstractSolver {
   using AMWRConstraint = std::tuple<int, std::vector<int>, int64_t>; // <read, write(s), key> 
   using AMConstraints = std::pair<std::vector<AMWWConstraint>, std::vector<AMWRConstraint>>;
 
+  std::string target_isolation_level;
+
   fs::path agnf_path;
 
   int n_vertices;
@@ -34,7 +36,8 @@ struct AcyclicMinisatSolver : AbstractSolver {
 
   AcyclicMinisatSolver(const history::DependencyGraph &known_graph,
                        const history::Constraints &constraints,
-                       const history::HistoryMetaInfo &history_meta_info);
+                       const history::HistoryMetaInfo &history_meta_info,
+                       const std::string &isolation_level);
 
   auto solve() -> bool override;
 

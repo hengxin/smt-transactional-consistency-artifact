@@ -41,6 +41,9 @@ struct DependencyGraph {
 
   auto num_vertices() const -> size_t { return boost::num_vertices(*so.graph); }
 
+  auto dep_edges() const -> std::ranges::range auto { return std::array{so.edges(), wr.edges(), ww.edges()} | std::ranges::views::join; }
+  auto anti_dep_edges() const -> std::ranges::range auto { return std::array{rw.edges()} | std::ranges::views::join; }
+
   friend auto operator<<(std::ostream &os, const DependencyGraph &graph)
       -> std::ostream &;
 };

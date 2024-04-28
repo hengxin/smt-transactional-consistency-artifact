@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
-project(acyclic_minisat_si)
+project(acyclic-minisat-si)
 
 set(CMAKE_CXX_STANDARD 20)
 

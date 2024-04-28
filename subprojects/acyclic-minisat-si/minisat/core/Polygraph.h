@@ -1,5 +1,5 @@
-#ifndef MINISAT_POLYGRAPH_H
-#define MINISAT_POLYGRAPH_H
+#ifndef MINISAT_SI_POLYGRAPH_H
+#define MINISAT_SI_POLYGRAPH_H
 
 #include <cstdint>
 #include <set>
@@ -95,4 +95,4 @@ public:
 
 } // namespace MinisatSI
 
-#endif // MINISAT_POLYGRAPH_H
+#endif // MINISAT_SI_POLYGRAPH_H
