@@ -95,14 +95,30 @@ auto instrument_known_ww(const History &history, DependencyGraph &known_graph, c
   auto txn_of_key_value = unordered_map<int64_t, unordered_map<int64_t, int64_t>>{}; // key -> (value -> txn_id)
   for (const auto &[key, value, type, txn_id] : history.events()) {
     if (type == EventType::READ) continue;
-    if (txn_of_key_value[key][value] != 0) return false;
+    if (txn_of_key_value[key][value] != 0) return false; // reject non-uniquevalue histories
     txn_of_key_value[key][value] = txn_id;
   }
+
+  auto write_order_per_txn = unordered_map<int64_t, unordered_map<int64_t, unordered_map<int64_t, int64_t>>> {};
+  for (const auto &txn : history.transactions()) {
+    int64_t cnt = 0;
+    for (const auto &[key, value, type, txn_id] : txn.events) {
+      ++cnt;
+      write_order_per_txn[txn_id][key][value] = cnt;
+    }
+  }
+
   int known_ww_cnt = 0;
   for (const auto &[key, value1, value2] : known_ww) {
+    if (value1 == value2) return false; // impossible read
     auto txn1 = txn_of_key_value[key][value1];
     auto txn2 = txn_of_key_value[key][value2];
-    if (txn1 == txn2) continue;
+    if (txn1 == txn2) {
+      auto write_order1 = write_order_per_txn[txn1][key][value1];
+      auto write_order2 = write_order_per_txn[txn1][key][value2];
+      if (write_order2 < write_order1) return false; // violate INT axiom
+      continue;
+    }
     add_dep_ww_edge(txn1, txn2, (EdgeInfo) { .type = EdgeType::WW, .keys = {key} });
     ++known_ww_cnt;
   }
