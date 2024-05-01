@@ -9,13 +9,17 @@
 #include <vector>
 #include <unordered_map>
 
+using std::unordered_map;
+
 namespace checker::history {
 
 enum class EventType { READ, WRITE };
 
 struct Event {
+  int64_t id; // event id
   int64_t key;
-  int64_t value;
+  int64_t write_value;
+  std::vector<int64_t> read_values;
   EventType type;
   int64_t transaction_id;
 };
@@ -56,7 +60,11 @@ struct History {
 
 struct HistoryMetaInfo {
   int n_sessions, n_total_transactions, n_total_events;
-  std::unordered_map<int64_t, std::unordered_map<int64_t, int>> write_steps, read_steps; // write_steps read_steps [txn][key] = step
+  int64_t n_nodes;
+  unordered_map<int64_t, int64_t> begin_node, end_node; // txn_id -> node_id
+  unordered_map<int64_t, int64_t> write_node; // event_id -> node_id for write event
+  unordered_map<int64_t, unordered_map<int64_t, int64_t>> read_node; // event_id -> (index -> node_id) for read event
+  unordered_map<int64_t, int64_t> event_value; // node_id -> value(write_value or a single read_value)
 };
 
 auto compute_history_meta_info(const History &history) -> HistoryMetaInfo;
@@ -77,7 +85,7 @@ auto compute_history_meta_info(const History &history) -> HistoryMetaInfo;
  */
 auto parse_dbcop_history(std::istream &is) -> History;
 auto parse_cobra_history(const std::string &history_dir) -> History;
-auto parse_elle_list_append_history(std::ifstream &is) -> std::pair<History, std::vector<std::tuple<int64_t, int64_t, int64_t>>>;
+auto parse_elle_list_append_history(std::ifstream &is) -> History;
 
 auto n_txns_of(History &history) -> int;
 auto n_rw_same_key_txns_of(History &history) -> int;

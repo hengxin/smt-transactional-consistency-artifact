@@ -22,6 +22,7 @@ using std::ranges::views::filter;
 namespace checker::history {
 
 auto known_graph_of(const History &history) -> DependencyGraph {
+  // TODO: construct known graph, including SO and PO
   auto graph = DependencyGraph{};
   auto transactions = unordered_map<int64_t, const Transaction *>{};
 
@@ -45,39 +46,6 @@ auto known_graph_of(const History &history) -> DependencyGraph {
     }
   }
   return graph; // if UniqueValue constraint is relaxed, known graph only constains SO edges.
-
-  // add WR edges
-  // auto hash_pair = [](const pair<int64_t, int64_t> &p) {
-  //   return std::hash<int64_t>{}(p.first) ^ std::hash<int64_t>{}(p.second);
-  // };
-  // auto writes = std::unordered_map<pair<int64_t, int64_t>, const Transaction *,
-  //                                  decltype(hash_pair)>{};
-  // auto filter_by_type = [](EventType t) {
-  //   return filter([=](const auto &ev) { return ev.type == t; });
-  // };
-
-  // for (const auto &ev : history.events() | filter_by_type(EventType::WRITE)) {
-  //   writes.try_emplace({ev.key, ev.value}, transactions[ev.transaction_id]);
-  // }
-
-  // for (const auto &ev : history.events() | filter_by_type(EventType::READ)) {
-  //   auto write_txn = writes[{ev.key, ev.value}];
-  //   auto txn = transactions.at(ev.transaction_id);
-
-  //   if (write_txn == txn) {
-  //     continue;
-  //   }
-
-  //   if (auto edge = graph.wr.edge(write_txn->id, txn->id); edge) {
-  //     edge.value().get().keys.emplace_back(ev.key);
-  //   } else {
-  //     graph.wr.add_edge(
-  //         write_txn->id, txn->id,
-  //         EdgeInfo{.type = EdgeType::WR, .keys = std::vector{ev.key}});
-  //   }
-  // }
-
-  // return graph;
 }
 
 auto instrument_known_ww(const History &history, DependencyGraph &known_graph, const std::vector<std::tuple<int64_t, int64_t, int64_t>> &known_ww) -> bool {
@@ -158,6 +126,9 @@ auto operator<<(std::ostream &os, const EdgeInfo &edge_info) -> std::ostream & {
     case EdgeType::SO:
       out << "SO";
       break;
+    case EdgeType::PO:
+      out << "PO";
+      break;
   }
 
   return os;
@@ -173,7 +144,9 @@ auto operator<<(std::ostream &os, const DependencyGraph &graph)
       << "SO:\n"
       << graph.so << '\n'
       << "WR:\n"
-      << graph.wr << '\n';
+      << graph.wr << '\n'
+      << "PO:\m"
+      << graph.po << '\n';
 
   return os;
 }

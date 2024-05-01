@@ -115,22 +115,24 @@ auto main(int argc, char **argv) -> int {
   auto known_ww = std::vector<std::tuple<int64_t, int64_t, int64_t>>{};
   if (history_type == "dbcop") {
     // read history
-    auto history_file = std::ifstream{args.get("history")};
-    if (!history_file.is_open()) {
-      std::ostringstream os;
-      os << "Cannot open file '" << args.get("history") << "'";
-      throw std::runtime_error{os.str()};
-    }
+    throw std::runtime_error{"Not Implemented"};
+    // auto history_file = std::ifstream{args.get("history")};
+    // if (!history_file.is_open()) {
+    //   std::ostringstream os;
+    //   os << "Cannot open file '" << args.get("history") << "'";
+    //   throw std::runtime_error{os.str()};
+    // }
 
-    history = history::parse_dbcop_history(history_file);
+    // history = history::parse_dbcop_history(history_file);
   } else if (history_type == "cobra") {
-    auto history_dir = args.get("history");
-    try {
-      history = history::parse_cobra_history(history_dir);
-    } catch (const std::runtime_error &e) {
-      std::cerr << e.what() << std::endl;
-      return 1;
-    }
+    throw std::runtime_error{"Not Implemented"};
+    // auto history_dir = args.get("history");
+    // try {
+    //   history = history::parse_cobra_history(history_dir);
+    // } catch (const std::runtime_error &e) {
+    //   std::cerr << e.what() << std::endl;
+    //   return 1;
+    // }
   } else if (history_type == "elle-list-append") {
     auto history_file = std::ifstream{args.get("history")};
     if (!history_file.is_open()) {
@@ -139,11 +141,12 @@ auto main(int argc, char **argv) -> int {
       throw std::runtime_error{os.str()};
     }
 
-    auto && [history_, known_ww_] = history::parse_elle_list_append_history(history_file);
-    history = history_, known_ww = known_ww_;
+    history = history::parse_elle_list_append_history(history_file);
   } else {
     assert(0);
   }
+
+  auto history_meta_info = history::compute_history_meta_info(history);
 
   // compute known graph (WR edges) and constraints from history
   auto dependency_graph = history::known_graph_of(history);
@@ -184,7 +187,6 @@ auto main(int argc, char **argv) -> int {
   // };
   // display_constraints(constraints, "Constraints before Pruning:");
 
-  auto history_meta_info = history::compute_history_meta_info(history);
 
   {
     auto curr_time = chrono::steady_clock::now();

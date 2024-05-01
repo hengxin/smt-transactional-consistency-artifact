@@ -16,11 +16,11 @@
 
 namespace checker::history {
 
-enum class EdgeType { WW, RW, WR, SO };
+enum class EdgeType { WW, RW, WR, SO, PO };
 
 struct EdgeInfo {
   EdgeType type;
-  std::vector<int64_t> keys;
+  std::vector<int64_t> keys; // len(keys) == 0 or 1
 
   friend auto operator<<(std::ostream &os, const EdgeInfo &edge_info)
       -> std::ostream &;
@@ -33,9 +33,10 @@ struct DependencyGraph {
   SubGraph rw;
   SubGraph wr;
   SubGraph ww;
+  SubGraph po;
 
   auto edges() const -> std::ranges::range auto{
-    return std::array{so.edges(), rw.edges(), wr.edges(), ww.edges()}  //
+    return std::array{so.edges(), rw.edges(), wr.edges(), ww.edges(), po.edges()}  //
            | std::ranges::views::join;
   }
 
