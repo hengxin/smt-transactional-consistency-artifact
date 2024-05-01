@@ -200,6 +200,7 @@ auto main(int argc, char **argv) -> int {
         accept = solver::prune_si_constraints(dependency_graph, constraints); // hard encode, bad implementation!
       }
     } else if (pruning_method == "fast") {
+      // must use fast pruning
       if (isolation_level == "ser") {
         accept = solver::fast_prune_constraints(dependency_graph, constraints);
       } else if (isolation_level == "si") {

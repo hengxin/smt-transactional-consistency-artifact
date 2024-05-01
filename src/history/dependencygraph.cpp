@@ -117,7 +117,7 @@ auto operator<<(std::ostream &os, const DependencyGraph &graph)
       << graph.so << '\n'
       << "WR:\n"
       << graph.wr << '\n'
-      << "PO:\m"
+      << "PO:\n"
       << graph.po << '\n';
 
   return os;

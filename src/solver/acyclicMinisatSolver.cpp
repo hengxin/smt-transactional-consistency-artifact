@@ -81,19 +81,19 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
   n_total_transactions = history_meta_info.n_total_transactions;
   n_total_events = history_meta_info.n_total_events;
   
-  auto map_composite = [](
-    const std::unordered_map<int64_t, int> &node_id, 
-    const std::unordered_map<int64_t, std::unordered_map<int64_t, int>> &steps_map
-    ) -> std::unordered_map<int, std::unordered_map<int64_t, int>> {
-    auto result_map = std::unordered_map<int, std::unordered_map<int64_t, int>>{};
-    for (const auto &[raw_txn_id, rest_map] : steps_map) {
-      result_map[node_id.at(raw_txn_id)] = rest_map;
-    }
-    return result_map;
-  };
-  // TODO: efficiency concerning of map_composite
-  write_steps = map_composite(node_id, history_meta_info.write_steps);
-  read_steps = map_composite(node_id, history_meta_info.read_steps);
+  // auto map_composite = [](
+  //   const std::unordered_map<int64_t, int> &node_id, 
+  //   const std::unordered_map<int64_t, std::unordered_map<int64_t, int>> &steps_map
+  //   ) -> std::unordered_map<int, std::unordered_map<int64_t, int>> {
+  //   auto result_map = std::unordered_map<int, std::unordered_map<int64_t, int>>{};
+  //   for (const auto &[raw_txn_id, rest_map] : steps_map) {
+  //     result_map[node_id.at(raw_txn_id)] = rest_map;
+  //   }
+  //   return result_map;
+  // };
+  // // TODO: efficiency concerning of map_composite
+  // write_steps = map_composite(node_id, history_meta_info.write_steps);
+  // read_steps = map_composite(node_id, history_meta_info.read_steps);
 }
 
 /*

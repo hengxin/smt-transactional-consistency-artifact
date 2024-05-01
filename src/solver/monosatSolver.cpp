@@ -25,6 +25,11 @@ MonosatSolver::MonosatSolver(const history::DependencyGraph &known_graph,
                              const history::Constraints &constraints,
                              const history::HistoryMetaInfo &history_meta_info,
                              const std::string &isolation_level) {
+  std::cerr << "Not implemented yet!" << std::endl;
+  throw std::runtime_error{"MonosatSolver is not supporting general list append workloads"};
+
+
+  // deprecated
   if (isolation_level == "si") {
     std::cerr << "Not implemented yet!" << std::endl;
     throw std::runtime_error{"MonosatSolver is not supporting SI checking now"};

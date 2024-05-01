@@ -66,6 +66,7 @@ namespace checker::history {
 
 auto parse_dbcop_history(std::istream &is) -> History {
   std::cerr << "Not Implemented" << std::endl;
+  assert(0);
   // constexpr int64_t init_session_id = 0;
   // constexpr int64_t init_txn_id = 0;
 
@@ -163,6 +164,8 @@ auto parse_dbcop_history(std::istream &is) -> History {
 
 auto parse_cobra_history(const std::string &history_dir) -> History {
   std::cerr << "Not Implemented" << std::endl;
+  assert(0);
+
   // fs::path history_dir_path{history_dir};
   // if (!fs::exists(history_dir_path)) {
   //   std::ostringstream os;
@@ -441,7 +444,7 @@ auto parse_elle_list_append_history(std::ifstream &is) -> History {
 
   constexpr int64_t init_session_id = 0;
   constexpr int64_t init_txn_id = 0;
-  constexpr int64_t INIT_VALUE = 0x7ff7f7f7f7f7f7f7; // useless now, for we have [] as INIT_VALUE
+  // constexpr int64_t INIT_VALUE = 0x7ff7f7f7f7f7f7f7; // useless now, for we have [] as INIT_VALUE
 
   int n_lines = 0;
   is >> n_lines;
@@ -528,7 +531,6 @@ auto compute_history_meta_info(const History &history) -> HistoryMetaInfo {
 
   int64_t node_cnt = -1; // 0-start index
   for (const auto &txn : history.transactions()) {
-    int64_t last_node = -1;
     for (const auto &[event_id, key, wv, rvs, type, txn_id] : txn.events) {
       assert(txn_id == txn.id);
       if (type == EventType::READ) {

@@ -98,7 +98,7 @@ auto constraints_of(const History &history, const HistoryMetaInfo &history_meta)
       // type == EventType::READ
       int64_t index = 0;
       for (const auto &v : event.read_values) {
-        int64_t read_node_id = read_node[event.id][index];
+        int64_t read_node_id = read_node.at(event.id).at(index);
         auto write_node_ids = write_nodes_per_key_per_value[event.key][v]; // copy
         if (write_node_ids.empty()) {
           std::cerr << "read node id = " << read_node_id << ", " 
