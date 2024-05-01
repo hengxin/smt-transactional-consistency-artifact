@@ -158,25 +158,13 @@ auto main(int argc, char **argv) -> int {
 
   auto constraints = std::pair<std::vector<history::WWConstraint>, std::vector<history::WRConstraint>>{};
   try {
-    constraints = history::constraints_of(history); 
+    constraints = history::constraints_of(history, history_meta_info); 
   } catch (std::runtime_error &e) {
     std::cerr << e.what() << std::endl;
     auto accept = false;
     std::cout << "accept: " << std::boolalpha << accept << std::endl;
     return 0;
   }
-
-  // std::cout << dependency_graph << std::endl;
-
-  // auto display_constraints = [](const history::Constraints &constraints, std::string info = {""}) -> void {
-  //   if (info != "") std::cout << info << std::endl;
-  //   for (auto constraint : constraints) {
-  //     std::cout << constraint << std::endl;
-  //   }
-  //   std::cout << std::endl;
-  // };
-  // display_constraints(constraints, "Constraints before Pruning:");
-
 
   {
     auto curr_time = chrono::steady_clock::now();

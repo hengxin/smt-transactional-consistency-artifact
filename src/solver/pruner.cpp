@@ -397,8 +397,8 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
         BOOST_LOG_TRIVIAL(debug) << "conflict found in wr pruning:";
         CHECKER_LOG_COND(debug, logger) {
           logger << "key = " << key << "\n";
-          logger << "read_txn_id = " << read_txn_id << "\n";
-          logger << "write_txn_id = {";
+          logger << "read_node_id = " << read_txn_id << "\n";
+          logger << "write_node_id = {";
           for (auto id : erased_wids) {
             logger << id << ", ";
           }
@@ -444,6 +444,10 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
 
 auto prune_constraints(DependencyGraph &dependency_graph,
                        Constraints &constraints) -> bool {
+  std::cerr << "Not Implemented, use fast pruning instead!" << std::endl;
+  return false;
+
+  // deprecated
   auto &[ww_constraints, wr_constraints] = constraints;
   auto &&vertex_map = dependency_graph.rw.vertex_map.left;
   auto pruned_ww_constraints = unordered_set<WWConstraint *>{};
@@ -1171,6 +1175,11 @@ auto fast_prune_si_constraints(DependencyGraph &dependency_graph,
 
 auto prune_si_constraints(DependencyGraph &dependency_graph,
                        Constraints &constraints) -> bool {
+  std::cerr << "Not Implemented, use fast pruning instead!" << std::endl;
+  return false;
+
+
+  // deprecated
   auto &[ww_constraints, wr_constraints] = constraints;
 
   auto n = dependency_graph.num_vertices();
