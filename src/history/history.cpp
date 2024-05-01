@@ -554,6 +554,7 @@ auto compute_history_meta_info(const History &history) -> HistoryMetaInfo {
     history_meta_info.end_node[txn.id] = node_cnt;
   }
 
+  ++node_cnt; // [0, node_cnt)
   history_meta_info.n_nodes = node_cnt;
   return history_meta_info;
 };

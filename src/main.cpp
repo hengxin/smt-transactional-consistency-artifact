@@ -149,7 +149,7 @@ auto main(int argc, char **argv) -> int {
   auto history_meta_info = history::compute_history_meta_info(history);
 
   // compute known graph (WR edges) and constraints from history
-  auto dependency_graph = history::known_graph_of(history);
+  auto dependency_graph = history::known_graph_of(history, history_meta_info);
 
   CHECKER_LOG_COND(trace, logger) {
     logger << "history: " << history << "\ndependency graph:\n"
@@ -164,16 +164,6 @@ auto main(int argc, char **argv) -> int {
     auto accept = false;
     std::cout << "accept: " << std::boolalpha << accept << std::endl;
     return 0;
-  }
-
-  if (history_type == "elle-list-append") {
-    // assert(!known_ww.empty());
-    bool accept = history::instrument_known_ww(history, dependency_graph, known_ww);
-    if (!accept) {
-      BOOST_LOG_TRIVIAL(debug) << "conflict found in instrument_known_ww()";
-      std::cout << "accept: " << std::boolalpha << accept << std::endl;
-      return 0;
-    }
   }
 
   // std::cout << dependency_graph << std::endl;

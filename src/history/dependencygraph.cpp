@@ -21,77 +21,49 @@ using std::ranges::views::filter;
 
 namespace checker::history {
 
-auto known_graph_of(const History &history) -> DependencyGraph {
+auto known_graph_of(const History &history, const HistoryMetaInfo &history_meta) -> DependencyGraph {
   // TODO: construct known graph, including SO and PO
+  const auto &[
+    n_sess,
+    n_total_txns,
+    n_total_evts,
+    n_nodes,
+    begin_node,
+    end_node,
+    write_node,
+    read_node,
+    event_value
+  ] = history_meta;
   auto graph = DependencyGraph{};
-  auto transactions = unordered_map<int64_t, const Transaction *>{};
 
-  for (const auto &txn : history.transactions()) {
-    transactions.emplace(txn.id, &txn);
-
-    for (auto subgraph : {&graph.rw, &graph.so, &graph.wr, &graph.ww}) {
-      subgraph->add_vertex(txn.id);
+  for (int64_t i = 0; i < n_nodes; i++) {
+    for (auto subgraph : {&graph.rw, &graph.so, &graph.wr, &graph.ww, &graph.po}) {
+      subgraph->add_vertex(i);
     }
   }
 
-  // add SO edges
+  // 1. add SO edges
   for (const auto &sess : history.sessions) {
     auto prev_txn = (const Transaction *){};
     for (const auto &txn : sess.transactions) {
       if (prev_txn) {
-        graph.so.add_edge(prev_txn->id, txn.id, EdgeInfo{.type = EdgeType::SO});
+        graph.so.add_edge(end_node.at(prev_txn->id), begin_node.at(txn.id), EdgeInfo{.type = EdgeType::SO});
       }
 
       prev_txn = &txn;
     }
   }
-  return graph; // if UniqueValue constraint is relaxed, known graph only constains SO edges.
-}
 
-auto instrument_known_ww(const History &history, DependencyGraph &known_graph, const std::vector<std::tuple<int64_t, int64_t, int64_t>> &known_ww) -> bool {
-  auto add_dep_ww_edge = [&](int64_t from, int64_t to, EdgeInfo info) -> void {
-    if (info.type == EdgeType::WW) {
-      if (auto e = known_graph.ww.edge(from, to); e) {
-        std::ranges::copy(info.keys, back_inserter(e.value().get().keys));
-      } else {
-        known_graph.ww.add_edge(from, to, info);
-      }
-    } else {
-      assert(false);
-    }
-  };
-  auto txn_of_key_value = unordered_map<int64_t, unordered_map<int64_t, int64_t>>{}; // key -> (value -> txn_id)
-  for (const auto &[key, value, type, txn_id] : history.events()) {
-    if (type == EventType::READ) continue;
-    if (txn_of_key_value[key][value] != 0) return false; // reject non-uniquevalue histories
-    txn_of_key_value[key][value] = txn_id;
-  }
-
-  auto write_order_per_txn = unordered_map<int64_t, unordered_map<int64_t, unordered_map<int64_t, int64_t>>> {};
+  // 2. add PO edges
   for (const auto &txn : history.transactions()) {
-    int64_t cnt = 0;
-    for (const auto &[key, value, type, txn_id] : txn.events) {
-      ++cnt;
-      write_order_per_txn[txn_id][key][value] = cnt;
+    int64_t begin = begin_node.at(txn.id), end = end_node.at(txn.id);
+    for (int64_t node = begin; node < end; ++node) {
+      graph.po.add_edge(node, node + 1, EdgeInfo{.type = EdgeType::PO});
     }
   }
-
-  int known_ww_cnt = 0;
-  for (const auto &[key, value1, value2] : known_ww) {
-    if (value1 == value2) return false; // impossible read
-    auto txn1 = txn_of_key_value[key][value1];
-    auto txn2 = txn_of_key_value[key][value2];
-    if (txn1 == txn2) {
-      auto write_order1 = write_order_per_txn[txn1][key][value1];
-      auto write_order2 = write_order_per_txn[txn1][key][value2];
-      if (write_order2 < write_order1) return false; // violate INT axiom
-      continue;
-    }
-    add_dep_ww_edge(txn1, txn2, (EdgeInfo) { .type = EdgeType::WW, .keys = {key} });
-    ++known_ww_cnt;
-  }
-  BOOST_LOG_TRIVIAL(debug) << "#known_ww: " << known_ww_cnt;
-  return true;
+  return graph; 
+  // if UniqueValue constraint is relaxed, known graph only constains SO edges.
+  // In the non-UniqueValue list append problem, known graph contains PO edges as well.
 }
 
 auto operator<<(std::ostream &os, const EdgeInfo &edge_info) -> std::ostream & {
