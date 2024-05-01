@@ -45,6 +45,7 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
       case EdgeType::WW : t = 1; break;
       case EdgeType::WR : t = 2; break;
       case EdgeType::RW : t = 3; break;
+      case EdgeType::PO : t = 0; break; // reduce to SO, recheck required when port to SI
       default: assert(false);
     }
     assert(t != -1);
@@ -94,6 +95,7 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
   // // TODO: efficiency concerning of map_composite
   // write_steps = map_composite(node_id, history_meta_info.write_steps);
   // read_steps = map_composite(node_id, history_meta_info.read_steps);
+  write_steps = read_steps = {}; // disable heuristic pruning
 }
 
 /*

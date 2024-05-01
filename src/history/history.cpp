@@ -423,6 +423,7 @@ auto n_txns_of(History &history) -> int {
 
 auto n_written_key_txns_of(History &history) -> std::unordered_map<int64_t, int> {
   // TODO later
+  assert(0);
   // std::unordered_map<int64_t, std::unordered_set<int64_t>> written_txns_of_key;
   // for (auto transaction : history.transactions()) {
   //   for (auto [key, value, type, txn_id] : transaction.events) {

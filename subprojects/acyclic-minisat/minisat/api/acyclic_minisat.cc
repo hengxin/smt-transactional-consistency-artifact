@@ -90,22 +90,22 @@ bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &
   Logger::log("[Acyclic Minisat QxQ]");
 
   bool accept = false;
-  int test_round = 0;
-  for (int dist = std::max(1, n_total_events / n_total_transactions * 6); dist <= n_total_events; dist <<= 1) { // TODO: incresing strategy
-    Logger::log(fmt::format("suggest dist = {}", dist));
-    std::cout << "suggest dist = " << dist << std::endl;
-    accept = am_solve_with_suggestion(n_vertices, known_graph, constraints, dist, write_steps, read_steps);
-    ++test_round;
-    if (accept) break;
-  }
+  // int test_round = 0;
+  // for (int dist = std::max(1, n_total_events / n_total_transactions * 6); dist <= n_total_events; dist <<= 1) { // TODO: incresing strategy
+  //   Logger::log(fmt::format("suggest dist = {}", dist));
+  //   std::cout << "suggest dist = " << dist << std::endl;
+  //   accept = am_solve_with_suggestion(n_vertices, known_graph, constraints, dist, write_steps, read_steps);
+  //   ++test_round;
+  //   if (accept) break;
+  // }
   if (!accept) {
     std::cout << "suggest dist = -1\n";
     accept = am_solve_with_suggestion(n_vertices, known_graph, constraints, /* dist = */ -1, write_steps, read_steps);
-    ++test_round;
+    // ++test_round;
   } 
 
-  std::cout << "Solve Round = " << test_round << std::endl;
-  Logger::log(fmt::format("[Solve Round = {}]", test_round));
+  // std::cout << "Solve Round = " << test_round << std::endl;
+  // Logger::log(fmt::format("[Solve Round = {}]", test_round));
   Logger::log(fmt::format("[Eventual Accept = {}]", accept));
   return accept;
 }
