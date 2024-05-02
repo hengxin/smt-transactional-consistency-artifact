@@ -67,6 +67,10 @@ namespace checker::history {
 auto parse_dbcop_history(std::istream &is) -> History {
   std::cerr << "Not Implemented" << std::endl;
   assert(0);
+
+
+
+
   // constexpr int64_t init_session_id = 0;
   // constexpr int64_t init_txn_id = 0;
 
@@ -445,7 +449,7 @@ auto parse_elle_list_append_history(std::ifstream &is) -> History {
 
   constexpr int64_t init_session_id = 0;
   constexpr int64_t init_txn_id = 0;
-  // constexpr int64_t INIT_VALUE = 0x7ff7f7f7f7f7f7f7; // useless now, for we have [] as INIT_VALUE
+  constexpr int64_t INIT_VALUE = 0x7ff7f7f7f7f7f7f7;
 
   int n_lines = 0;
   is >> n_lines;
@@ -461,13 +465,15 @@ auto parse_elle_list_append_history(std::ifstream &is) -> History {
     if (type == "R") { // read
       int n_list = 0;
       is >> n_list;
-      read_values.assign(n_list, 0);
-      for (int i = 0; i < n_list; i++) is >> read_values[i];
-      if (n_list == 0) {
-        init_write_keys.insert(key);
-      }
+      read_values.assign(n_list + 1, 0);
+      read_values[0] = INIT_VALUE;
+      for (int i = 1; i <= n_list; i++) is >> read_values[i];
+      init_write_keys.insert(key);
     } else if (type == "A") { // append
       is >> write_value;
+      if (write_value == INIT_VALUE) {
+        BOOST_LOG_TRIVIAL(info) << "WARNING: checker internal magic number INIT_VALUE has been directly written in history, it may leads to strange error";
+      }
     }
     if (!txns.contains(txn_id)) {
       txns[txn_id] = Transaction{ .id = txn_id, .events = {}, .session_id = session_id, };
@@ -493,7 +499,7 @@ auto parse_elle_list_append_history(std::ifstream &is) -> History {
                       return Event{
                           .id = 0,
                           .key = key,
-                          .write_value = 0,
+                          .write_value = INIT_VALUE,
                           .read_values = {},
                           .type = EventType::WRITE,
                           .transaction_id = init_txn_id,
