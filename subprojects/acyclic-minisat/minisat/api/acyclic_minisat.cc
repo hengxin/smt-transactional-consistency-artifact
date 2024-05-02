@@ -65,7 +65,7 @@ bool am_solve_with_suggestion(int n_vertices, const KnownGraph &known_graph, con
   delete polygraph;
 
 #ifdef MONITOR_ENABLED
-        Monitor::get_monitor()->show_statistics();
+  Monitor::get_monitor()->show_statistics();
 #endif
 
   Logger::log(fmt::format("[Accept = {}]", accept));
@@ -91,15 +91,15 @@ bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &
 
   bool accept = false;
   int test_round = 0;
-  for (int dist = std::max(1, n_total_events / n_total_transactions * 6); dist <= n_total_events; dist <<= 1) { // TODO: incresing strategy
-    Logger::log(fmt::format("suggest dist = {}", dist));
-    std::cout << "suggest dist = " << dist << std::endl;
-    accept = am_solve_with_suggestion(n_vertices, known_graph, constraints, dist, write_steps, read_steps);
-    ++test_round;
-    if (accept) break;
-  }
+  // for (int dist = std::max(1, n_total_events / n_total_transactions * 6); dist <= n_total_events; dist <<= 1) { // TODO: incresing strategy
+  //   Logger::log(fmt::format("suggest dist = {}", dist));
+  //   std::cout << "suggest dist = " << dist << std::endl;
+  //   accept = am_solve_with_suggestion(n_vertices, known_graph, constraints, dist, write_steps, read_steps);
+  //   ++test_round;
+  //   if (accept) break;
+  // }
   if (!accept) {
-    std::cout << "suggest dist = -1\n";
+    // std::cout << "suggest dist = -1\n";
     accept = am_solve_with_suggestion(n_vertices, known_graph, constraints, /* dist = */ -1, write_steps, read_steps);
     ++test_round;
   } 

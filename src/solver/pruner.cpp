@@ -189,7 +189,6 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
   auto add_duration = chrono::milliseconds(0);
   
   bool changed = true;
-  auto pruned_ww_from = unordered_map<int64_t, vector<int64_t>>{}; // to -> { from }
 
   // 4. pruning passes
   while (changed) {
@@ -242,12 +241,17 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
       return r;
     }();
 
+    auto can_reach = [&reachability, &vertex_map](int64_t from, int64_t to) -> bool {
+      return reachability.at(vertex_map.at(from)).test(vertex_map.at(to));
+    };
+
     {
       auto curr_time = chrono::steady_clock::now();
       reachability_duration += chrono::duration_cast<chrono::milliseconds>(curr_time - time);
       time = curr_time;
     }
 
+    auto pruned_ww = unordered_map<int64_t, vector<Edge>>{}; // from -> { (from, to, edge_info) }
     BOOST_LOG_TRIVIAL(trace) << "1. check ww constraints:";
     for (auto &&c : ww_constraints | not_pruned_ww) {
       auto check_ww_edges = [&](WWConstraint::Edge &edge) -> bool {
@@ -320,12 +324,16 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
       if (add_or) {
         add_ww_edges(c.or_edges.at(0));
         changed = pruned = true;
-        // pruned_ww_from[c.either_txn_id].emplace_back(c.or_txn_id);
+        // if (!can_reach(c.or_txn_id, c.either_txn_id)) {
+        //   pruned_ww[c.or_txn_id].emplace_back(c.or_edges.at(0));
+        // }
       } else if (add_either) {
         add_ww_edges(c.either_edges.at(0));
         changed = pruned = true;
         added_edges_name = "either";
-        // pruned_ww_from[c.or_txn_id].emplace_back(c.either_txn_id);
+        // if (!can_reach(c.either_txn_id, c.or_txn_id)) {
+        //   pruned_ww[c.either_txn_id].emplace_back(c.either_edges.at(0));
+        // }
       }
 
       {
@@ -385,10 +393,11 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
       for (auto write_txn_id : write_txn_ids) {
         // direct WW optimization
         // bool erased = false;
-        // for (const auto &ww_from_txn_id : pruned_ww_from[write_txn_id]) {
-        //   if (write_txn_ids.contains(ww_from_txn_id)) {
-        //     erased_wids.emplace_back(write_txn_id);
+        // for (const auto &[from, to, info] : pruned_ww[write_txn_id]) {
+        //   assert(from == write_txn_id);
+        //   if (write_txn_ids.contains(to) && can_reach(to, read_txn_id)) { // info.keys.contains(key)
         //     erased = true;
+        //     erased_wids.emplace_back(write_txn_id);
         //     break;
         //   }
         // }
