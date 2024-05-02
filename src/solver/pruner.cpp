@@ -189,6 +189,7 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
   auto add_duration = chrono::milliseconds(0);
   
   bool changed = true;
+  auto pruned_ww_from = unordered_map<int64_t, vector<int64_t>>{}; // to -> { from }
 
   // 4. pruning passes
   while (changed) {
@@ -319,11 +320,12 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
       if (add_or) {
         add_ww_edges(c.or_edges.at(0));
         changed = pruned = true;
-        pruned = true;
+        // pruned_ww_from[c.either_txn_id].emplace_back(c.or_txn_id);
       } else if (add_either) {
         add_ww_edges(c.either_edges.at(0));
         changed = pruned = true;
         added_edges_name = "either";
+        // pruned_ww_from[c.or_txn_id].emplace_back(c.either_txn_id);
       }
 
       {
@@ -381,6 +383,17 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
       auto &[key, read_txn_id, write_txn_ids] = c;
       auto erased_wids = vector<int64_t>{};
       for (auto write_txn_id : write_txn_ids) {
+        // direct WW optimization
+        // bool erased = false;
+        // for (const auto &ww_from_txn_id : pruned_ww_from[write_txn_id]) {
+        //   if (write_txn_ids.contains(ww_from_txn_id)) {
+        //     erased_wids.emplace_back(write_txn_id);
+        //     erased = true;
+        //     break;
+        //   }
+        // }
+        // if (erased) continue;
+
         if (!check_wr_edges(write_txn_id, read_txn_id, key)) {
           erased_wids.emplace_back(write_txn_id);
         }

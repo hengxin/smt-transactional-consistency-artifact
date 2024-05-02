@@ -212,6 +212,22 @@ void ICDGraph::construct_propagated_lits(std::unordered_set<int> &forward_visite
   // now pass
 }
 
+auto select_reason(const std::unordered_multiset<std::pair<int, int>, decltype(pair_hash_endpoint2)> &reasons) -> std::pair<int, int> {
+  int cnt = 3;
+  auto reason = std::pair<int, int>{};
+  for (const auto &[r1, r2] : reasons) {
+    int cur = 0;
+    if (r1 != -1) ++cur;
+    if (r2 != -1) ++cur;
+    if (cur < cnt) {
+      reason = {r1, r2};
+      cnt = cur;
+      if (cnt == 0) return reason;
+    } 
+  }
+  return reason;
+}
+
 bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int from, int to, std::pair<int, int> reason) {
   auto vars = std::vector<int>{};
 
@@ -224,7 +240,8 @@ bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int fro
   for (int x = to; x != from; ) {
     const int pred = backward_pred[x];
     assert(reasons_of.contains(x) && reasons_of[x].contains(pred) && !reasons_of[x][pred].empty());
-    const auto [reason1, reason2] = *reasons_of[x][pred].begin();
+    // const auto [reason1, reason2] = *reasons_of[x][pred].begin();
+    const auto [reason1, reason2] = select_reason(reasons_of[x][pred]);
     add_var(reason1), add_var(reason2);
     x = pred;
   }
@@ -241,6 +258,12 @@ bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int fro
     // std::cerr << v << " ";
   }
   // std::cerr << std::endl;
+
+#ifdef MONITOR_ENABLED
+  Monitor::get_monitor()->find_cycle_times++;
+  Monitor::get_monitor()->cycle_edge_count_sum += vars.size();
+#endif
+
   return true;  // always returns true
 }
 
@@ -258,7 +281,8 @@ bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred,
   for (int x = middle; x != to; ) {
     const int pred = forward_pred[x];
     assert(reasons_of.contains(pred) && reasons_of[pred].contains(x) && !reasons_of[pred][x].empty());
-    const auto [reason1, reason2] = *reasons_of[pred][x].begin();
+    // const auto [reason1, reason2] = *reasons_of[pred][x].begin();
+    const auto [reason1, reason2] = select_reason(reasons_of[pred][x]);
     add_var(reason1), add_var(reason2);
     x = pred;
   }
@@ -266,7 +290,8 @@ bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred,
   for (int x = middle; x != from; ) {
     const int pred = backward_pred[x];
     assert(reasons_of.contains(x) && reasons_of[x].contains(pred) && !reasons_of[x][pred].empty());
-    const auto [reason1, reason2] = *reasons_of[x][pred].begin();
+    // const auto [reason1, reason2] = *reasons_of[x][pred].begin();
+    const auto [reason1, reason2] = select_reason(reasons_of[x][pred]);
     add_var(reason1), add_var(reason2);
     x = pred;
   }
@@ -283,6 +308,10 @@ bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred,
     // std::cerr << v << " ";
   }
   // std::cerr << std::endl;
+#ifdef MONITOR_ENABLED
+  Monitor::get_monitor()->find_cycle_times++;
+  Monitor::get_monitor()->cycle_edge_count_sum += vars.size();
+#endif
   return true; // always returns true
 }
 

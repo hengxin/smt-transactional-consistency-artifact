@@ -46,7 +46,7 @@ static auto check_history(const History &h) {
     // }
   }
   return checker::solver::prune_constraints(depgraph, cons) &&
-    checker::solver::MonosatSolver{depgraph, cons, hist_meta}.solve();
+    checker::solver::MonosatSolver{depgraph, cons}.solve();
 }
 
 static auto create_history(
