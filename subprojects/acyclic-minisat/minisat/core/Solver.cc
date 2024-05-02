@@ -133,7 +133,8 @@ Var Solver::newVar(lbool upol, bool dvar)
     vardata  .insert(v, mkVarData(CRef_Undef, 0));
     activity .insert(v, rnd_init_act ? drand(random_seed) * 0.00001 : 0);
     seen     .insert(v, 0);
-    polarity .insert(v, true);
+    // polarity .insert(v, true);
+    polarity .insert(v, false);
     user_pol .insert(v, upol);
     decision .reserve(v);
     trail    .capacity(v+1);
