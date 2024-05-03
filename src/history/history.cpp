@@ -426,7 +426,7 @@ auto operator<<(std::ostream &os, const InstrumentedHistory &ins_history) -> std
     out << "\n";
   }
 
-  out << "\nObserver:\n";
+  out << "\nObservers:\n";
   for (const auto &o_txn : ins_history.observer_txns) {
     out << "txn_id: " << o_txn.id << ": ";
     out << "R(" << o_txn.key << ", ";
