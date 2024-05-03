@@ -434,6 +434,18 @@ auto operator<<(std::ostream &os, const InstrumentedHistory &ins_history) -> std
     out << ")\n";
   }
 
+  out << "\nSO Orders:\n";
+  for (const auto &[from, to] : ins_history.so_orders) {
+    out << from << " -> " << to << ", ";
+  }
+  out << "\n";
+
+  out << "\nLO Orders:\n";
+  for (const auto &[from, to] : ins_history.lo_orders) {
+    out << from << " -> " << to << ", ";
+  }
+  out << "\n";
+
   return os;
 };
 
@@ -620,7 +632,8 @@ auto instrumented_history_of(const History &history) -> InstrumentedHistory {
     return true;
   };
 
-  auto txn_recount = 0;
+  int64_t txn_recount = 0;
+  auto id_map = unordered_map<int64_t, int64_t>{}; // txn_id -> new_txn_id
   auto max_length_lists = unordered_map<int64_t, vector<int64_t>>{};
   for (const auto &txn : history.transactions()) {
     auto read_value = unordered_map<int64_t, vector<int64_t>>{}; // key -> list
@@ -668,11 +681,25 @@ auto instrumented_history_of(const History &history) -> InstrumentedHistory {
       }
       participant_txn.key_operations[key] = key_operation;
     }
+
+    id_map[txn.id] = participant_txn.id;
     ins_history.participant_txns.emplace_back(participant_txn);
+  }
+
+  for (const auto &sess : history.sessions) {
+    auto prev_txn = (const Transaction *){};
+    for (const auto &txn : sess.transactions) {
+      if (prev_txn) {
+        ins_history.so_orders.emplace(id_map.at(prev_txn->id), id_map.at(txn.id));
+      }
+
+      prev_txn = &txn;
+    }
   }
 
   for (const auto &[key, list] : max_length_lists) {
     auto cur_list = vector<int64_t>{};
+    int64_t prev_txn_id = -1;
     for (const auto &v : list) {
       cur_list.emplace_back(v);
       ins_history.observer_txns.emplace_back(ObserverTransaction{
@@ -680,6 +707,10 @@ auto instrumented_history_of(const History &history) -> InstrumentedHistory {
         .key = key,
         .read_values = cur_list,
       });
+      if (prev_txn_id != -1) {
+        ins_history.lo_orders.emplace(prev_txn_id, txn_recount - 1);
+      }
+      prev_txn_id = txn_recount - 1;
     }
   }
 

@@ -84,6 +84,8 @@ struct InstrumentedHistory {
   vector<ParticipantTransaction> participant_txns;
   vector<ObserverTransaction> observer_txns;
 
+  unordered_map<int64_t, int64_t> so_orders, lo_orders;
+
   friend auto operator<<(std::ostream &os, const InstrumentedHistory &ins_history)
     -> std::ostream &;
 };
