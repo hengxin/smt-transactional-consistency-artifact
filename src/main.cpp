@@ -150,23 +150,38 @@ auto main(int argc, char **argv) -> int {
     assert(0);
   }
 
-  if (!check_single_write(history)) { // violates SingleWrite Constraint
-    throw std::runtime_error{"Detect multiple writes on 1 key in a transaction. This mode is not supported yet."};
+  CHECKER_LOG_COND(trace, logger) {
+    logger << "history: " << history;
   }
 
+  if (!check_single_write(history)) { // violates SingleWrite Constraint
+    BOOST_LOG_TRIVIAL(debug) << "check single write: failed";
+    BOOST_LOG_TRIVIAL(debug) << "This history violates SingleWrite constraint";
+    throw std::runtime_error{"Detect multiple writes on 1 key in a transaction. This mode is not supported yet."};
+  }
+  BOOST_LOG_TRIVIAL(debug) << "check single write: ok";
+
   if (!check_list_prefix(history)) { // violates LIST-PREFIX
+    BOOST_LOG_TRIVIAL(debug) << "check LIST-PREFIX: failed";
     auto accept = false;
     std::cout << "accept: " << std::boolalpha << accept << std::endl;
     return 0;
   }
+  BOOST_LOG_TRIVIAL(debug) << "check LIST-PREFIX: ok";
+
+  auto ins_history = history::instrumented_history_of(history);
+
+  CHECKER_LOG_COND(trace, logger) {
+    logger << "instrumented history: " << ins_history;
+  }
 
   auto history_meta_info = history::compute_history_meta_info(history);
-
+  
   // compute known graph (WR edges) and constraints from history
   auto dependency_graph = history::known_graph_of(history, history_meta_info);
 
   CHECKER_LOG_COND(trace, logger) {
-    logger << "history: " << history << "\ndependency graph:\n"
+    logger << "dependency graph:\n"
            << dependency_graph;
   }
 

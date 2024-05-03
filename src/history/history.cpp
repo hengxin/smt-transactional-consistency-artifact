@@ -28,6 +28,7 @@ namespace fs = std::filesystem;
 using std::ranges::count_if;
 using std::ranges::views::iota;
 using std::ranges::views::transform;
+using std::unordered_set;
 
 static auto read_int64(std::istream &in) -> int64_t {
   int64_t n;
@@ -400,6 +401,42 @@ auto operator<<(std::ostream &os, const History &history) -> std::ostream & {
   return os;
 }
 
+auto operator<<(std::ostream &os, const InstrumentedHistory &ins_history) -> std::ostream & {
+  auto out = std::osyncstream{os};
+
+  auto output_list = [&out](const vector<int64_t> &list) {
+    out << "[";
+    for (const auto &v : list) out << v << ", ";
+    out << "]";
+  };
+
+  out << "\nParticipants:\n";
+  for (const auto &p_txn : ins_history.participant_txns) {
+    out << "txn_id: " << p_txn.id << ": ";
+    for (const auto &[key, key_op] : p_txn.key_operations) {
+      if (key_op.read_values) {
+        out << "R(" << key << ", ";
+        output_list(*key_op.read_values);
+        out << "), ";
+      } 
+      if (key_op.write_value) {
+        out << "A(" << key << ", " << *key_op.write_value << "), ";
+      }
+    }
+    out << "\n";
+  }
+
+  out << "\nObserver:\n";
+  for (const auto &o_txn : ins_history.observer_txns) {
+    out << "txn_id: " << o_txn.id << ": ";
+    out << "R(" << o_txn.key << ", ";
+    output_list(o_txn.read_values);
+    out << ")\n";
+  }
+
+  return os;
+};
+
 auto n_rw_same_key_txns_of(History &history) -> int {
   return 0;
   // int ret = 0;
@@ -568,6 +605,85 @@ auto check_list_prefix(const History &history) -> bool {
     }
   }
   return true;
+}
+
+auto instrumented_history_of(const History &history) -> InstrumentedHistory {
+  // check INT axiom and construct instrumented history
+  auto ins_history = InstrumentedHistory{};
+
+  auto is_equal_to = [](const vector<int64_t> &a, const vector<int64_t> &b) -> bool {
+    if (a.size() != b.size()) return false;
+    auto n = a.size();
+    for (unsigned i = 0; i < n; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  };
+
+  auto txn_recount = 0;
+  auto max_length_lists = unordered_map<int64_t, vector<int64_t>>{};
+  for (const auto &txn : history.transactions()) {
+    auto read_value = unordered_map<int64_t, vector<int64_t>>{}; // key -> list
+    auto write_value = unordered_map<int64_t, int64_t>{};
+    auto keys = unordered_set<int64_t>{};
+    for (const auto &[event_id, key, wv, rvs, type, txn_id] : txn.events) {
+      // for each key, before the only write, all rvs are same
+      //  after the only write, all rvs' are same, and rvs' = rvs # wv
+      keys.insert(key);
+      if (type == EventType::WRITE) {
+        if (read_value.contains(key)) read_value[key].emplace_back(wv);
+        write_value[key] = wv; // last value must be wv
+      } else { // type == EventType::READ
+        if (!read_value.contains(key)) { // first read
+          if (write_value.contains(key)) {
+            if (write_value[key] != (*rvs.rbegin())) {
+              throw std::runtime_error{"This history violates INT axiom"};
+            }
+          }
+          read_value[key] = rvs; // TODO: optimization chance, incrementally update
+        } else { // not first read
+          if (!is_equal_to(read_value[key], rvs)) {
+            throw std::runtime_error{"This history violates INT axiom"};
+          }
+        }
+      }
+      
+      if (read_value.contains(key) && max_length_lists[key].size() < read_value[key].size()) {
+        max_length_lists[key] = read_value[key]; // to construct observer
+      }
+    }
+    auto participant_txn = ParticipantTransaction{};
+    participant_txn.id = txn_recount++;
+
+    for (const auto &key : keys) {
+      auto key_operation = KeyOperation{ .key = key, };
+      if (!read_value.contains(key)) {
+        key_operation.write_value = write_value.at(key);
+      } else {
+        key_operation.read_values = read_value.at(key);
+        if (write_value.contains(key)) {
+          assert(write_value[key] == *(key_operation.read_values->rbegin()));
+          key_operation.read_values->pop_back();
+        } 
+      }
+      participant_txn.key_operations[key] = key_operation;
+    }
+    ins_history.participant_txns.emplace_back(participant_txn);
+  }
+
+  for (const auto &[key, list] : max_length_lists) {
+    auto cur_list = vector<int64_t>{};
+    for (const auto &v : list) {
+      cur_list.emplace_back(v);
+      ins_history.observer_txns.emplace_back(ObserverTransaction{
+        .id = txn_recount++,
+        .key = key,
+        .read_values = cur_list,
+      });
+    }
+  }
+
+  return ins_history;
 }
 
 auto compute_history_meta_info(const History &history) -> HistoryMetaInfo {

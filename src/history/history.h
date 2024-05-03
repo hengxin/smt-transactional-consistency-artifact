@@ -7,10 +7,12 @@
 #include <iosfwd>
 #include <ranges>
 #include <vector>
+#include <optional>
 #include <unordered_map>
 
 using std::unordered_map;
 using std::vector;
+using std::optional;
 
 namespace checker::history {
 
@@ -59,6 +61,38 @@ struct History {
   }
 };
 
+enum class TransactionType { Observer, Pariticipant };
+
+struct KeyOperation {
+  int64_t key;
+  optional<vector<int64_t>> read_values;
+  optional<int64_t> write_value;
+};
+
+struct ParticipantTransaction {
+  int64_t id;
+  unordered_map<int64_t, KeyOperation> key_operations; // key -> keyOperation
+};
+
+struct ObserverTransaction {
+  int64_t id;
+  int64_t key;
+  vector<int64_t> read_values;
+};
+
+struct InstrumentedHistory {
+  vector<ParticipantTransaction> participant_txns;
+  vector<ObserverTransaction> observer_txns;
+
+  friend auto operator<<(std::ostream &os, const InstrumentedHistory &ins_history)
+    -> std::ostream &;
+};
+
+auto instrumented_history_of(const History &history) -> InstrumentedHistory;
+
+auto check_single_write(const History &history) -> bool;
+auto check_list_prefix(const History &history) -> bool;
+
 struct HistoryMetaInfo {
   int n_sessions, n_total_transactions, n_total_events;
   int64_t n_nodes;
@@ -91,9 +125,6 @@ auto parse_elle_list_append_history(std::ifstream &is) -> History;
 auto n_txns_of(History &history) -> int;
 auto n_rw_same_key_txns_of(History &history) -> int;
 auto n_written_key_txns_of(History &history) -> std::unordered_map<int64_t, int>;
-
-auto check_single_write(const History &history) -> bool;
-auto check_list_prefix(const History &history) -> bool;
 
 }  // namespace checker::history
 
