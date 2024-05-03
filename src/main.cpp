@@ -109,6 +109,10 @@ auto main(int argc, char **argv) -> int {
     throw std::invalid_argument{os.str()};
   }
 
+  if (history_type != "elle-list-append") {
+    throw std::runtime_error{"This instance only supports list append!"};
+  }
+
   auto time = chrono::steady_clock::now();
 
   history::History history;
@@ -144,6 +148,16 @@ auto main(int argc, char **argv) -> int {
     history = history::parse_elle_list_append_history(history_file);
   } else {
     assert(0);
+  }
+
+  if (!check_single_write(history)) { // violates SingleWrite Constraint
+    throw std::runtime_error{"Detect multiple writes on 1 key in a transaction. This mode is not supported yet."};
+  }
+
+  if (!check_list_prefix(history)) { // violates LIST-PREFIX
+    auto accept = false;
+    std::cout << "accept: " << std::boolalpha << accept << std::endl;
+    return 0;
   }
 
   auto history_meta_info = history::compute_history_meta_info(history);

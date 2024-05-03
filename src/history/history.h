@@ -90,6 +90,10 @@ auto parse_elle_list_append_history(std::ifstream &is) -> History;
 auto n_txns_of(History &history) -> int;
 auto n_rw_same_key_txns_of(History &history) -> int;
 auto n_written_key_txns_of(History &history) -> std::unordered_map<int64_t, int>;
+
+auto check_single_write(const History &history) -> bool;
+auto check_list_prefix(const History &history) -> bool;
+
 }  // namespace checker::history
 
 namespace std {

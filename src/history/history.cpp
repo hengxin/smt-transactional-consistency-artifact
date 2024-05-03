@@ -528,6 +528,18 @@ auto parse_elle_list_append_history(std::ifstream &is) -> History {
   return history;
 }
 
+auto check_single_write(const History &history) -> bool {
+  for (const auto &txn : history.transactions()) {
+    auto exist_write = unordered_map<int64_t, bool>{}; // key -> exist write
+    for (const auto &[event_id, key, wv, rvs, type, txn_id] : txn.events) {
+      if (type == EventType::READ) continue;
+      if (exist_write.contains(key)) return false;
+      exist_write[key] = true;
+    }
+  }
+  return true;
+};
+
 auto compute_history_meta_info(const History &history) -> HistoryMetaInfo {
   auto history_meta_info = HistoryMetaInfo{};
   history_meta_info.n_sessions = history.sessions.size();
