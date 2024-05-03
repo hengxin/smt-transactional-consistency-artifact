@@ -9,6 +9,8 @@
 
 #define INIT_PAIR_CONFLICT 1
 
+#define HARD_CODING_LO_WW 1
+
 // #define MONITOR_ENABLED 1
 
 // #define LOGGER_ENABLED 1

@@ -39,6 +39,10 @@ public:
   std::vector<std::vector<int>> wr_cons;
   std::unordered_map<int, int> wr_cons_index_of; // var -> wr_cons index
 
+  std::unordered_map<int, bool> is_observer;
+  std::unordered_map<int, int> lo_edges; // (from -> to)
+  std::unordered_map<int, std::vector<int>> observer_wr_candidates; // observer -> { cand_1, cand_2, ..., cand_n }
+
   Polygraph(int _n_vertices = 0) { n_vertices = _n_vertices, n_vars = 0; }
 
   void add_known_edge(int from, int to, int type, const std::vector<int64_t> &keys) { 

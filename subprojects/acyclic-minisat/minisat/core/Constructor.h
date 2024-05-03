@@ -28,6 +28,10 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
   for (const auto &[type, from, to, keys] : known_graph) {
     polygraph->add_known_edge(from, to, type, keys);
     Logger::log(fmt::format("{}: {} -> {}, keys = {}", Logger::type2str(type), from, to, Logger::vector2str(keys)));
+    if (type == 4) { // LO
+      polygraph->is_observer[from] = polygraph->is_observer[to] = true;
+      polygraph->lo_edges.emplace(from, to);
+    }
   }
 
   Logger::log("[Constraints]");
@@ -98,6 +102,9 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
       polygraph->map_wr_var(v, write, read, key);
       lits.push(mkLit(v));
       cons.emplace_back(v);
+      if (polygraph->is_observer.contains(read)) {
+        polygraph->observer_wr_candidates[read].emplace_back(v);
+      }
     }
     if (lits.size() != 1) {
       solver.addClause_(lits); // v1 | v2 | ... | vn
@@ -117,6 +124,30 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
     //       another part which may introduce great power of unit propagate is to be considered
     Logger::log(Logger::lits2str(lits));
   }
+
+#ifdef HARD_CODING_LO_WW
+  for (const auto &[from, to] : polygraph->lo_edges) {
+    for (const auto &wr_v1 : polygraph->observer_wr_candidates.at(from)) {
+      const auto &[v1_from, v1_to, v1_keys] = polygraph->ww_info.at(wr_v1);
+      for (const auto &wr_v2 : polygraph->observer_wr_candidates.at(to)) {
+        const auto &[v2_from, v2_to, v2_key] = polygraph->ww_info.at(wr_v2);
+        if (v1_from == v2_from) {
+          // wr_v1 & wr_v2 => false(v1_from -> v2_from, selfloop directly leads to conflict)
+          vec<Lit> lits;
+          lits.push(~mkLit(wr_v1)), lits.push(~mkLit(wr_v2)); // (~wr_v1) || (~wr_v2)
+          solver.addClause_(lits);
+        } else {
+          assert(polygraph->ww_var_of.contains(v1_from) && polygraph->ww_var_of[v1_from].contains(v2_from));
+          int ww_v = polygraph->ww_var_of[v1_from][v2_from];
+          // wr_v1 & wr_v2 => ww_v
+          vec<Lit> lits;
+          lits.push(~mkLit(wr_v1)), lits.push(~mkLit(wr_v2)), lits.push(~mkLit(ww_v));
+          solver.addClause_(lits);
+        }
+      }
+    }
+  }
+#endif
 
   polygraph->set_n_vars(var_count);
 

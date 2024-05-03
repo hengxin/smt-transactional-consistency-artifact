@@ -65,7 +65,7 @@ bool am_solve_with_suggestion(int n_vertices, const KnownGraph &known_graph, con
   delete polygraph;
 
 #ifdef MONITOR_ENABLED
-        Monitor::get_monitor()->show_statistics();
+  Monitor::get_monitor()->show_statistics();
 #endif
 
   Logger::log(fmt::format("[Accept = {}]", accept));
