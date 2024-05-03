@@ -37,7 +37,7 @@ auto known_graph_of(const History &history, const HistoryMetaInfo &history_meta)
   auto graph = DependencyGraph{};
 
   for (int64_t i = 0; i < n_nodes; i++) {
-    for (auto subgraph : {&graph.rw, &graph.so, &graph.wr, &graph.ww, &graph.po}) {
+    for (auto subgraph : {&graph.rw, &graph.so, &graph.wr, &graph.ww, &graph.lo}) {
       subgraph->add_vertex(i);
     }
   }
@@ -58,12 +58,38 @@ auto known_graph_of(const History &history, const HistoryMetaInfo &history_meta)
   for (const auto &txn : history.transactions()) {
     int64_t begin = begin_node.at(txn.id), end = end_node.at(txn.id);
     for (int64_t node = begin; node < end; ++node) {
-      graph.po.add_edge(node, node + 1, EdgeInfo{.type = EdgeType::PO});
+      graph.lo.add_edge(node, node + 1, EdgeInfo{.type = EdgeType::LO});
     }
   }
   return graph; 
   // if UniqueValue constraint is relaxed, known graph only constains SO edges.
   // In the non-UniqueValue list append problem, known graph contains PO edges as well.
+}
+
+auto known_graph_of(const InstrumentedHistory &ins_history, const HistoryMetaInfo &history_meta) -> DependencyGraph {
+  auto graph = DependencyGraph{};
+
+  // 1. add vertex(txn id)
+  for (const auto &txn : ins_history.participant_txns) {
+    for (auto subgraph : {&graph.rw, &graph.so, &graph.wr, &graph.ww, &graph.lo}) {
+      subgraph->add_vertex(txn.id);
+    } 
+  }
+  for (const auto &txn : ins_history.observer_txns) {
+    for (auto subgraph : {&graph.rw, &graph.so, &graph.wr, &graph.ww, &graph.lo}) {
+      subgraph->add_vertex(txn.id);
+    } 
+  }
+
+  // 2. add SO and LO edges
+  for (const auto &[from, to] : ins_history.so_orders) {
+    graph.so.add_edge(from, to, EdgeInfo{.type = EdgeType::SO});
+  }
+  for (const auto &[from, to] : ins_history.lo_orders) {
+    graph.lo.add_edge(from, to, EdgeInfo{.type = EdgeType::LO});
+  }
+
+  return graph;
 }
 
 auto operator<<(std::ostream &os, const EdgeInfo &edge_info) -> std::ostream & {
