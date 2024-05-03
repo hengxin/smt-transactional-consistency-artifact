@@ -73,7 +73,49 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
   }
   auto &&i_vertex_map = unordered_map<int, int64_t>{}; // inversed vertex map
   for (auto &&[v, desc] : vertex_map) i_vertex_map[desc] = v; 
- 
+
+  // 0. get LO info
+  auto observers = unordered_set<int64_t>{};
+  auto next_lo = unordered_map<int64_t, int64_t>{};
+  auto prev_lo = unordered_map<int64_t, int64_t>{};
+  for (const auto &[from, to, _] : dependency_graph.lo.edges()) {
+    observers.insert(from), observers.insert(to);
+    assert(!next_lo.contains(from));
+    next_lo[from] = to;
+    assert(!prev_lo.contains(to));
+    prev_lo[to] = from;
+  }
+  int64_t lo_chain_id_cnt = 0;
+  auto lo_chain_id = unordered_map<int64_t, int64_t>{}; // lo txn -> lo chain id
+  auto relative_lo_chain_order = unordered_map<int64_t, int64_t>{}; // lo txn -> relative order
+  for (const auto &observer : observers) {
+    if (lo_chain_id.contains(observer)) continue;
+    lo_chain_id[observer] = ++lo_chain_id_cnt;
+    relative_lo_chain_order[observer] = 0;
+    if (next_lo.contains(observer)) {
+      int64_t relative_order = 0;
+      for (auto t = next_lo[observer]; ; ) {
+        assert(!lo_chain_id.contains(t));
+        lo_chain_id[t] = lo_chain_id_cnt;
+        assert(!relative_lo_chain_order.contains(t));
+        relative_lo_chain_order[t] = ++relative_order;
+        if (!next_lo.contains(t)) break;
+        t = next_lo[t];
+      }
+    }
+    if (prev_lo.contains(observer)) {
+      int64_t relative_order = 0;
+      for (auto t = prev_lo[observer]; ; ) {
+        assert(!lo_chain_id.contains(t));
+        lo_chain_id[t] = lo_chain_id_cnt;
+        assert(!relative_lo_chain_order.contains(t));
+        relative_lo_chain_order[t] = --relative_order;
+        if (!prev_lo.contains(t)) break;
+        t = prev_lo[t];
+      }
+    }
+  }
+  
   auto rw_edges = unordered_map<int64_t, unordered_map<int64_t, unordered_set<int64_t>>> {}; // (from, to) -> keys
   auto add_dep_edge = [&](int64_t from, int64_t to, EdgeInfo info) -> void {
     if (info.type == EdgeType::WW) {
@@ -106,6 +148,20 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
     }
   };
 
+  auto wr_from_of_lo = unordered_map<int64_t, unordered_map<int64_t, int64_t>>{}; // lo chain id -> (lo txn id -> matched wr from)
+  auto add_lo_wr_edge = [&](int64_t from, int64_t to) -> void { // (from, to) is a WR edge
+    assert(observers.contains(to));
+    int64_t chain_id = lo_chain_id.at(to);
+    for (const auto &[lo_txn, lo_from] : wr_from_of_lo[chain_id]) {
+      int64_t ww_from = lo_from, ww_to = from;
+      if (relative_lo_chain_order.at(lo_txn) > relative_lo_chain_order.at(to)) std::swap(ww_from, ww_to);
+      add_dep_edge(ww_from, ww_to, EdgeInfo{ .type = EdgeType::WW, .keys = {} });
+    }
+    assert(!wr_from_of_lo[chain_id].contains(to));
+    wr_from_of_lo[chain_id][to] = from;
+  };
+
+
   // 1. prune unit wr constaint
   BOOST_LOG_TRIVIAL(trace) << "0. prune unit wr constraints";
   for (auto &&c : wr_constraints) {
@@ -115,6 +171,9 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
         .type = EdgeType::WR,
         .keys = {key},
       });
+      if (observers.contains(read)) {
+        add_lo_wr_edge(*writes.begin(), read);
+      }
       pruned_wr_constraints.emplace(&c);
       BOOST_LOG_TRIVIAL(trace) << "pruned unit wr constraint, added cons: " 
                                << c;
@@ -744,6 +803,7 @@ auto prune_constraints(DependencyGraph &dependency_graph,
 
 auto fast_prune_si_constraints(DependencyGraph &dependency_graph,
                             Constraints &constraints) -> bool {
+  // TODO
   auto &[ww_constraints, wr_constraints] = constraints;
   auto pruned_ww_constraints = unordered_set<WWConstraint *>{};
   auto not_pruned_ww = filter([&](auto &&c) { return !pruned_ww_constraints.contains(&c); });
