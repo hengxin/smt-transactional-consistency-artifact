@@ -126,23 +126,27 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
   }
 
 #ifdef HARD_CODING_LO_WW
+  Logger::log("[3. LO -> WW Constraints]");
   for (const auto &[from, to] : polygraph->lo_edges) {
-    for (const auto &wr_v1 : polygraph->observer_wr_candidates.at(from)) {
-      const auto &[v1_from, v1_to, v1_keys] = polygraph->ww_info.at(wr_v1);
-      for (const auto &wr_v2 : polygraph->observer_wr_candidates.at(to)) {
-        const auto &[v2_from, v2_to, v2_key] = polygraph->ww_info.at(wr_v2);
+    assert(polygraph->observer_wr_candidates.contains(from));
+    for (const auto &wr_v1 : polygraph->observer_wr_candidates[from]) {
+      const auto &[v1_from, v1_to, v1_keys] = polygraph->wr_info.at(wr_v1);
+      for (const auto &wr_v2 : polygraph->observer_wr_candidates[to]) {
+        const auto &[v2_from, v2_to, v2_keys] = polygraph->wr_info.at(wr_v2);
         if (v1_from == v2_from) {
           // wr_v1 & wr_v2 => false(v1_from -> v2_from, selfloop directly leads to conflict)
           vec<Lit> lits;
           lits.push(~mkLit(wr_v1)), lits.push(~mkLit(wr_v2)); // (~wr_v1) || (~wr_v2)
           solver.addClause_(lits);
+          Logger::log(Logger::lits2str(lits));
         } else {
           assert(polygraph->ww_var_of.contains(v1_from) && polygraph->ww_var_of[v1_from].contains(v2_from));
           int ww_v = polygraph->ww_var_of[v1_from][v2_from];
           // wr_v1 & wr_v2 => ww_v
           vec<Lit> lits;
-          lits.push(~mkLit(wr_v1)), lits.push(~mkLit(wr_v2)), lits.push(~mkLit(ww_v));
+          lits.push(~mkLit(wr_v1)), lits.push(~mkLit(wr_v2)), lits.push(mkLit(ww_v));
           solver.addClause_(lits);
+          Logger::log(Logger::lits2str(lits));
         }
       }
     }

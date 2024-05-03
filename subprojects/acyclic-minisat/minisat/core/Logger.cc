@@ -20,6 +20,7 @@ auto type2str(int type) -> std::string {
     case 1: ret = "WW"; break;
     case 2: ret = "WR"; break;
     case 3: ret = "RW"; break;
+    case 4: ret = "LO"; break;
     default: assert(false);
   } 
   return ret;
