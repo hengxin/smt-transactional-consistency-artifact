@@ -175,10 +175,11 @@ auto main(int argc, char **argv) -> int {
     logger << "instrumented history: " << ins_history;
   }
 
+  // TODO: history meta info
   auto history_meta_info = history::compute_history_meta_info(history);
   
   // compute known graph (WR edges) and constraints from history
-  auto dependency_graph = history::known_graph_of(history, history_meta_info);
+  auto dependency_graph = history::known_graph_of(ins_history);
 
   CHECKER_LOG_COND(trace, logger) {
     logger << "dependency graph:\n"
@@ -187,7 +188,7 @@ auto main(int argc, char **argv) -> int {
 
   auto constraints = std::pair<std::vector<history::WWConstraint>, std::vector<history::WRConstraint>>{};
   try {
-    constraints = history::constraints_of(history, history_meta_info); 
+    constraints = history::constraints_of(ins_history); 
   } catch (std::runtime_error &e) {
     std::cerr << e.what() << std::endl;
     auto accept = false;

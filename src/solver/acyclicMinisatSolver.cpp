@@ -45,7 +45,7 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
       case EdgeType::WW : t = 1; break;
       case EdgeType::WR : t = 2; break;
       case EdgeType::RW : t = 3; break;
-      case EdgeType::PO : t = 0; break; // reduce to SO, recheck required when port to SI
+      case EdgeType::LO : t = 3; break;
       default: assert(false);
     }
     assert(t != -1);

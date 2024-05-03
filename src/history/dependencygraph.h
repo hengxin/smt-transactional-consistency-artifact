@@ -51,7 +51,7 @@ struct DependencyGraph {
 };
 
 auto known_graph_of(const History &history, const HistoryMetaInfo &history_meta) -> DependencyGraph;
-auto known_graph_of(const InstrumentedHistory &ins_history, const HistoryMetaInfo &history_meta) -> DependencyGraph;
+auto known_graph_of(const InstrumentedHistory &ins_history) -> DependencyGraph;
 
 }  // namespace checker::history
 

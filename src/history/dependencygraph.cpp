@@ -66,7 +66,7 @@ auto known_graph_of(const History &history, const HistoryMetaInfo &history_meta)
   // In the non-UniqueValue list append problem, known graph contains PO edges as well.
 }
 
-auto known_graph_of(const InstrumentedHistory &ins_history, const HistoryMetaInfo &history_meta) -> DependencyGraph {
+auto known_graph_of(const InstrumentedHistory &ins_history) -> DependencyGraph {
   auto graph = DependencyGraph{};
 
   // 1. add vertex(txn id)
