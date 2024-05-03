@@ -124,8 +124,8 @@ auto operator<<(std::ostream &os, const EdgeInfo &edge_info) -> std::ostream & {
     case EdgeType::SO:
       out << "SO";
       break;
-    case EdgeType::PO:
-      out << "PO";
+    case EdgeType::LO:
+      out << "LO";
       break;
   }
 
@@ -143,8 +143,8 @@ auto operator<<(std::ostream &os, const DependencyGraph &graph)
       << graph.so << '\n'
       << "WR:\n"
       << graph.wr << '\n'
-      << "PO:\n"
-      << graph.po << '\n';
+      << "LO:\n"
+      << graph.lo << '\n';
 
   return os;
 }
