@@ -540,6 +540,36 @@ auto check_single_write(const History &history) -> bool {
   return true;
 };
 
+auto check_list_prefix(const History &history) -> bool {
+  auto lists = unordered_map<int64_t, vector<int64_t>>{};
+
+  auto is_a_prefix_of = [](const vector<int64_t> &a, const vector<int64_t> &b) -> bool { // a is a prefix of b
+    if (a.size() > b.size()) return false;
+    for (unsigned i = 0; i < a.size(); i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  };
+  auto check_and_update = [&is_a_prefix_of](vector<int64_t> &source_list, const vector<int64_t> &dest_list) -> bool {
+    if (source_list.size() >= dest_list.size()) {
+      return is_a_prefix_of(dest_list, source_list);
+    } 
+    // dest_list.size() > source_list.size()
+    bool satisfy_list_prefix = is_a_prefix_of(source_list, dest_list);
+    if (!satisfy_list_prefix) return false;
+    source_list = dest_list; // TODO: optimization chance, incrementally update
+    return true;
+  };
+
+  for (const auto &txn : history.transactions()) {
+    for (const auto &[event_id, key, wv, rvs, type, txn_id] : txn.events) {
+      if (type == EventType::WRITE) continue;
+      if (!check_and_update(lists[key], rvs)) return false;
+    }
+  }
+  return true;
+}
+
 auto compute_history_meta_info(const History &history) -> HistoryMetaInfo {
   auto history_meta_info = HistoryMetaInfo{};
   history_meta_info.n_sessions = history.sessions.size();

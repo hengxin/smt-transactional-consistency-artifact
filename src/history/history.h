@@ -10,6 +10,7 @@
 #include <unordered_map>
 
 using std::unordered_map;
+using std::vector;
 
 namespace checker::history {
 
