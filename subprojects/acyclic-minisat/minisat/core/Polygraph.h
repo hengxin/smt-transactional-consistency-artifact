@@ -42,6 +42,7 @@ public:
   std::unordered_map<int, bool> is_observer;
   std::unordered_map<int, int> lo_edges; // (from -> to)
   std::unordered_map<int, std::vector<int>> observer_wr_candidates; // observer -> { cand_1, cand_2, ..., cand_n }
+  std::unordered_map<int, int> observer_matched_ww_from; // observer -> matched ww from
 
   Polygraph(int _n_vertices = 0) { n_vertices = _n_vertices, n_vars = 0; }
 

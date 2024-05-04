@@ -411,6 +411,15 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
             return false; // rw edge forms a cycle
           }
         }
+        // lo -> ww
+        if (observers.contains(to)) {
+          int64_t chain_id = lo_chain_id.at(to);
+          for (const auto &[lo_txn, lo_from] : wr_from_of_lo[chain_id]) {
+            int64_t ww_from = lo_from, ww_to = from;
+            if (relative_lo_chain_order.at(lo_txn) > relative_lo_chain_order.at(to)) std::swap(ww_from, ww_to);
+            if (reachability.at(vertex_map.at(ww_to)).test(vertex_map.at(ww_from))) return false;
+          }
+        }
         return true;
       };
       auto add_wr_edges = [&](int64_t from, int64_t to, int64_t key) -> void {
@@ -431,9 +440,14 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
             }
           );
         }
+        // lo -> ww
+        if (observers.contains(to)) {
+          // WW which is derived by LO -> WW will not derive any RW edge, for keys = {}
+          add_lo_wr_edge(from, to);
+        }
         // add (from, to, key) into wr_to
         wr_to[vertex_map.at(from)][key].emplace_back(vertex_map.at(to));
-      };
+       };
 
       time = chrono::steady_clock::now();
 
