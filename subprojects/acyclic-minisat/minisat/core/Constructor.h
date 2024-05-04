@@ -138,6 +138,17 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
 
 #ifdef HARD_CODING_LO_WW
   Logger::log("[3. LO -> WW Constraints]");
+
+  auto get_or_insert_ww_var = [&](int from, int to) -> int {
+    if (polygraph->ww_var_of.contains(from) && polygraph->ww_var_of[from].contains(to)) {
+      return polygraph->ww_var_of[from][to];
+    }
+    solver.newVar();
+    int v = var_count++;
+    polygraph->map_ww_var(v, from, to, {}); // this WW will not derive any RW
+    return v;
+  };
+
   for (const auto &[from, to] : polygraph->lo_edges) {
     assert(polygraph->observer_wr_candidates.contains(from) || polygraph->observer_matched_ww_from.contains(from));
     assert(polygraph->observer_wr_candidates.contains(to) || polygraph->observer_matched_ww_from.contains(to));
@@ -159,8 +170,7 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
           unit_lits.emplace_back(lits[0]);
           Logger::log(Logger::lits2str(lits));
         } else {
-          assert(polygraph->ww_var_of.contains(v1_from) && polygraph->ww_var_of[v1_from].contains(v2_from));
-          int ww_v = polygraph->ww_var_of[v1_from][v2_from];
+          int ww_v = get_or_insert_ww_var(v1_from, v2_from);
           // wr_v1 & wr_v2 => ww_v
           vec<Lit> lits;
           lits.push(~mkLit(wr_v2)), lits.push(mkLit(ww_v));
@@ -179,9 +189,7 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
           unit_lits.emplace_back(lits[0]);
           Logger::log(Logger::lits2str(lits));
         } else {
-          assert(polygraph->ww_var_of.contains(v1_from) && polygraph->ww_var_of[v1_from].contains(v2_from));
-          int ww_v = polygraph->ww_var_of[v1_from][v2_from];
-          // wr_v1 & wr_v2 => ww_v
+          int ww_v = get_or_insert_ww_var(v1_from, v2_from);          // wr_v1 & wr_v2 => ww_v
           vec<Lit> lits;
           lits.push(~mkLit(wr_v1)), lits.push(mkLit(ww_v));
           solver.addClause_(lits);
@@ -200,9 +208,7 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
             solver.addClause_(lits);
             Logger::log(Logger::lits2str(lits));
           } else {
-            assert(polygraph->ww_var_of.contains(v1_from) && polygraph->ww_var_of[v1_from].contains(v2_from));
-            int ww_v = polygraph->ww_var_of[v1_from][v2_from];
-            // wr_v1 & wr_v2 => ww_v
+            int ww_v = get_or_insert_ww_var(v1_from, v2_from);            // wr_v1 & wr_v2 => ww_v
             vec<Lit> lits;
             lits.push(~mkLit(wr_v1)), lits.push(~mkLit(wr_v2)), lits.push(mkLit(ww_v));
             solver.addClause_(lits);

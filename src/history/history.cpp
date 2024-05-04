@@ -677,6 +677,7 @@ auto instrumented_history_of(const History &history) -> InstrumentedHistory {
         if (write_value.contains(key)) {
           assert(write_value[key] == *(key_operation.read_values->rbegin()));
           key_operation.read_values->pop_back();
+          key_operation.write_value = write_value.at(key);
         } 
       }
       participant_txn.key_operations[key] = key_operation;
