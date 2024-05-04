@@ -12,9 +12,12 @@ def var_name(p):
 
 history_type = 'elle-list-append'
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
-history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'general')
+# history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'general')
+# history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'single-write-uv')
+history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'single-write-uv2')
 transform_script_path = os.path.join(root_path, 'scripts', 'edn2txt', 'edn2txt.py')
 checker = 'nuser'
+print(f'checker = {checker}')
 if checker == 'elle':
   checker_path = '/home/rikka/elle-cli/target/elle-cli-0.1.7-standalone.jar' # this is the absolute path of the built PolySI
 else:
@@ -23,10 +26,17 @@ else:
   print('use [{}] as backend solver'.format(solver))
 
 # params
+# general and single-write-uv
+# params = {
+#   'op': ['op2', 'op5', 'op10'],
+#   'session': ['sess2', 'sess5', 'sess10', 'sess15', 'sess20'],
+#   'txn': ['txns-per-session50', 'txns-per-session100', 'txns-per-session150', 'txns-per-session200', 'txns-per-session250'],
+# }
+# single-write-uv2
 params = {
-  'op': ['op2', 'op5', 'op10'],
-  'session': ['sess2', 'sess5', 'sess10', 'sess15', 'sess20'],
-  'txn': ['txns-per-session50', 'txns-per-session100', 'txns-per-session150', 'txns-per-session200', 'txns-per-session250'],
+  'op': ['op2', 'op5', 'op10', 'op15', 'op20'],
+  'session': ['sess5', 'sess10', 'sess15', 'sess20', 'sess25'],
+  'txn': ['txns-per-session50', 'txns-per-session100', 'txns-per-session200', 'txns-per-session300', 'txns-per-session400', 'txns-per-session500'],
 }
 
 def run_single(history_dir, bincode):
