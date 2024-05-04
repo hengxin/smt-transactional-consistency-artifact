@@ -139,8 +139,8 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
 #ifdef HARD_CODING_LO_WW
   Logger::log("[3. LO -> WW Constraints]");
   for (const auto &[from, to] : polygraph->lo_edges) {
-    assert(polygraph->observer_wr_candidates.contains(from));
-    assert(polygraph->observer_wr_candidates.contains(to));
+    assert(polygraph->observer_wr_candidates.contains(from) || polygraph->observer_matched_ww_from.contains(from));
+    assert(polygraph->observer_wr_candidates.contains(to) || polygraph->observer_matched_ww_from.contains(to));
 
     bool matched_from = polygraph->observer_matched_ww_from.contains(from);
     bool matched_to = polygraph->observer_matched_ww_from.contains(to);
