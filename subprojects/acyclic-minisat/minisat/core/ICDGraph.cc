@@ -259,11 +259,6 @@ bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int fro
   }
   // std::cerr << std::endl;
 
-#ifdef MONITOR_ENABLED
-  Monitor::get_monitor()->find_cycle_times++;
-  Monitor::get_monitor()->cycle_edge_count_sum += vars.size();
-#endif
-
   return true;  // always returns true
 }
 
@@ -308,10 +303,6 @@ bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred,
     // std::cerr << v << " ";
   }
   // std::cerr << std::endl;
-#ifdef MONITOR_ENABLED
-  Monitor::get_monitor()->find_cycle_times++;
-  Monitor::get_monitor()->cycle_edge_count_sum += vars.size();
-#endif
   return true; // always returns true
 }
 
