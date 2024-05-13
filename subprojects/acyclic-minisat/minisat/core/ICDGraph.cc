@@ -22,11 +22,12 @@ namespace Minisat {
 
 ICDGraph::ICDGraph() {}
 
-void ICDGraph::init(int _n_vertices = 0, int n_vars = 0) {
+void ICDGraph::init(int _n_vertices = 0, int n_vars = 0, Polygraph *_polygraph = nullptr) {
   // note: currently n_vars is useless
   n = _n_vertices, m = max_m = 0;
   level.assign(n, 1), in.assign(n, {}), out.assign(n, {});
   assigned.assign(n_vars, false);
+  polygraph = _polygraph;
 }
 
 void ICDGraph::add_inactive_edge(int from, int to, std::pair<int, int> reason) { 
@@ -242,7 +243,9 @@ bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int fro
     assert(reasons_of.contains(x) && reasons_of[x].contains(pred) && !reasons_of[x][pred].empty());
     const auto [reason1, reason2] = *reasons_of[x][pred].begin();
     // const auto [reason1, reason2] = select_reason(reasons_of[x][pred]);
-    add_var(reason1), add_var(reason2);
+    if (!polygraph->reachable_in_known_graph(x, pred)) {
+      add_var(reason1), add_var(reason2);
+    }
     x = pred;
   }
 
@@ -278,7 +281,9 @@ bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred,
     assert(reasons_of.contains(pred) && reasons_of[pred].contains(x) && !reasons_of[pred][x].empty());
     const auto [reason1, reason2] = *reasons_of[pred][x].begin();
     // const auto [reason1, reason2] = select_reason(reasons_of[pred][x]);
-    add_var(reason1), add_var(reason2);
+    if (!polygraph->reachable_in_known_graph(pred, x)) {
+      add_var(reason1), add_var(reason2);
+    }
     x = pred;
   }
 
@@ -287,7 +292,9 @@ bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred,
     assert(reasons_of.contains(x) && reasons_of[x].contains(pred) && !reasons_of[x][pred].empty());
     const auto [reason1, reason2] = *reasons_of[x][pred].begin();
     // const auto [reason1, reason2] = select_reason(reasons_of[x][pred]);
-    add_var(reason1), add_var(reason2);
+    if (!polygraph->reachable_in_known_graph(x, pred)) {
+      add_var(reason1), add_var(reason2);
+    }
     x = pred;
   }
 

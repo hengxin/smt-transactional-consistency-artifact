@@ -54,9 +54,7 @@ bool am_solve_with_suggestion(int n_vertices, const KnownGraph &known_graph, con
   init_pair_conflict(S);
 #endif
 
-#ifdef MONITOR_ENABLED
   assert(polygraph->construct_known_graph_reachablity());
-#endif
 
   if (!S.simplify()) {
     Logger::log("[Conflict detected in simplify()!]");

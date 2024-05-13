@@ -9,6 +9,7 @@
 
 #include "minisat/mtl/Vec.h"
 #include "minisat/core/SolverTypes.h"
+#include "minisat/core/Polygraph.h"
 
 namespace Minisat {
 
@@ -42,6 +43,8 @@ class ICDGraph {
 
   std::vector<bool> assigned;
 
+  Polygraph *polygraph; // to know reachability of known graph, bad implementation!
+
   // --- deprecated ---
   int check_cnt = 0;
   std::queue<int> vars_queue;
@@ -61,7 +64,7 @@ class ICDGraph {
 
 public:
   ICDGraph();
-  void init(int _n_vertices, int n_vars);
+  void init(int _n_vertices, int n_vars, Polygraph *_polygraph);
   void add_inactive_edge(int from, int to, std::pair<int, int> reason);
   bool add_known_edge(int from, int to); // reason default set to (-1, -1)
   bool add_edge(int from, int to, std::pair<int, int> reason); // add (from, to, label)

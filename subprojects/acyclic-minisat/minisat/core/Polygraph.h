@@ -141,6 +141,7 @@ public:
         reachability.at(x) |= reachability.at(y);
       }
     }
+    return true;
   }   
 
   bool reachable_in_known_graph(int from, int to) {

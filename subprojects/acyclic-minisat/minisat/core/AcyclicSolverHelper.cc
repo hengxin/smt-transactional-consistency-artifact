@@ -21,7 +21,7 @@ namespace Minisat {
 
 AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   polygraph = _polygraph;
-  icd_graph.init(polygraph->n_vertices, polygraph->n_vars);
+  icd_graph.init(polygraph->n_vertices, polygraph->n_vars, polygraph);
   conflict_clauses.clear();
   ww_to.assign(polygraph->n_vertices, {});
   wr_to.assign(polygraph->n_vertices, {});
