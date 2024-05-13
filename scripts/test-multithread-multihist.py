@@ -49,12 +49,11 @@ logging.info(f'history type = {history_type}')
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 logging.info(f'root path = {root_path}')
 # will run all histories under this path
-# history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_general_all_writes')
-history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_general_partition_writes')
+history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'various')
 logging.info(f'history path = {history_path}')
 
-checker_path = os.path.join(root_path, 'builddir', 'checker')
-# checker_path = os.path.join(root_path, 'builddir-release', 'checker')
+# checker_path = os.path.join(root_path, 'builddir', 'checker')
+checker_path = os.path.join(root_path, 'builddir-release', 'checker')
 logging.info(f'checker path = {checker_path}')
 
 solver = 'acyclic-minisat'

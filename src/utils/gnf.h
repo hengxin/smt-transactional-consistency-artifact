@@ -10,6 +10,7 @@
 #include <cassert>
 #include <cstdint>
 #include <unordered_map>
+#include <chrono>
 
 #include "utils/literal.h"
 #include "history/constraint.h"
@@ -353,6 +354,7 @@ auto write_to_gnf_file(fs::path &gnf_path,
   }
 
   // 3. output to .gnf file
+  auto write_file_st_time = std::chrono::steady_clock::now();
   std::ofstream ofs;
   ofs.open(gnf_path, std::ios::out | std::ios::trunc); 
   // 3.1 basic info, like .cnf
@@ -370,6 +372,9 @@ auto write_to_gnf_file(fs::path &gnf_path,
   }
   ofs << "acyclic 0 " << acyclicity_var << "\n";
   ofs.close();
+  
+  auto write_file_ed_time = std::chrono::steady_clock::now();
+  // BOOST_LOG_TRIVIAL(info) << "write .gnf time: " << std::chrono::duration_cast<std::chrono::milliseconds>(write_file_ed_time -write_file_st_time);
 }
 } // namespace checker::utils
 

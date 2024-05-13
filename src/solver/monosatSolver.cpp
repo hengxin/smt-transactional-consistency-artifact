@@ -63,7 +63,11 @@ MonosatSolver::MonosatSolver(const history::DependencyGraph &known_graph,
 // }
 
 auto MonosatSolver::solve() -> bool {
+  // auto read_file_st_time = std::chrono::steady_clock::now();
   readGNF(solver, gnf_path.c_str());
+  // auto read_file_ed_time = std::chrono::steady_clock::now();
+
+  // BOOST_LOG_TRIVIAL(info) << "read .gnf time: " << std::chrono::duration_cast<std::chrono::milliseconds>(read_file_ed_time - read_file_st_time);
   // std::cout << gnf_path << std::endl;
   bool ret = solveWrapper(solver);
   return ret;
