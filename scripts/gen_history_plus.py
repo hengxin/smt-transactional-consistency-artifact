@@ -7,10 +7,10 @@ from rich.progress import track
 
 # === config ===
 histories_to_be_added = [
-  # '25_400_8_5000_0.3_r_0.5_100',
+  '25_400_8_5000_0.8_r_0.5_100',
   # '25_400_8_5000_0.5_r_0.5_100',
   # '25_400_8_5000_0.95_r_0.5_100',
-  '25_400_8_5000_0.5_r_1.5_20',
+  # '25_400_8_5000_0.5_r_1.5_20',
 ]
 
 dbcop = '/home/rikka/dbcop-plus/target/release/dbcop'
