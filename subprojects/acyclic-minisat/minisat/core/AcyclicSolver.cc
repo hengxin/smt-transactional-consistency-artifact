@@ -162,7 +162,7 @@ CRef AcyclicSolver::propagate() {
         Monitor::get_monitor()->cycle_edge_count_sum += clause.size();
         int width = 0;
         for (Lit l : conflict_clause) {
-          if (solver_helper->get_polygraph()->is_wr_var(var(l))) continue;
+          // TODO: see what RW edges bring
           ++width;
         }
         Monitor::get_monitor()->cycle_width_count[width]++;

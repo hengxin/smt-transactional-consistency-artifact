@@ -56,6 +56,105 @@ namespace chrono = std::chrono;
 
 namespace checker::solver {
 
+auto prune_unit_constraints(DependencyGraph &dependency_graph,
+                            Constraints &constraints) -> bool {
+  auto &[ww_constraints, wr_constraints] = constraints;
+  auto pruned_ww_constraints = unordered_set<WWConstraint *>{};
+  auto not_pruned_ww = filter([&](auto &&c) { return !pruned_ww_constraints.contains(&c); });
+  auto pruned_wr_constraints = unordered_set<WRConstraint *>{};
+  auto not_pruned_wr = filter([&](auto &&c) { return !pruned_wr_constraints.contains(&c); });
+
+  auto &&vertex_map = dependency_graph.rw.vertex_map.left;
+  CHECKER_LOG_COND(trace, logger) {
+    logger << "vertex_map:";
+    for (auto &&[v, desc] : vertex_map) {
+      logger << " (" << v << ", " << desc << ')';
+    }
+  }
+  auto &&i_vertex_map = unordered_map<int, int64_t>{}; // inversed vertex map
+  for (auto &&[v, desc] : vertex_map) i_vertex_map[desc] = v; 
+  
+  auto rw_edges = unordered_map<int64_t, unordered_map<int64_t, unordered_set<int64_t>>> {}; // (from, to) -> keys
+  auto add_dep_edge = [&](int64_t from, int64_t to, EdgeInfo info) -> void {
+    if (info.type == EdgeType::WW) {
+      if (auto e = dependency_graph.ww.edge(from, to); e) {
+        copy(info.keys, back_inserter(e.value().get().keys));
+      } else {
+        dependency_graph.ww.add_edge(from, to, info);
+      }
+    } else if (info.type == EdgeType::RW) {
+      auto ins_keys = vector<int64_t> {};
+      for (const auto &key : info.keys) {
+        // prevent duplicated rw edges being added into dep graph
+        if (rw_edges[from][to].contains(key)) continue;
+        ins_keys.emplace_back(key);
+      }
+      if (auto e = dependency_graph.rw.edge(from, to); e) {
+        copy(ins_keys, back_inserter(e.value().get().keys));
+      } else {
+        dependency_graph.rw.add_edge(from, to, info);
+      }
+      rw_edges[from][to].insert(ins_keys.begin(), ins_keys.end());
+    } else if (info.type == EdgeType::WR) {
+      if (auto e = dependency_graph.wr.edge(from, to); e) {
+        copy(info.keys, back_inserter(e.value().get().keys));
+      } else {
+        dependency_graph.wr.add_edge(from, to, info);
+      }
+    } else {
+      assert(false);
+    }
+  };
+
+  // 1. prune unit wr constaint
+  BOOST_LOG_TRIVIAL(trace) << "prune unit wr constraints";
+  for (auto &&c : wr_constraints) {
+    const auto &[key, read, writes] = c;
+    if (writes.size() == 1) { // unit wr constaint
+      add_dep_edge(*writes.begin(), read, EdgeInfo{
+        .type = EdgeType::WR,
+        .keys = {key},
+      });
+      pruned_wr_constraints.emplace(&c);
+      BOOST_LOG_TRIVIAL(trace) << "pruned unit wr constraint, added cons: " 
+                               << c;
+    }
+  }
+
+  // 2. check acyclicity
+  {
+    auto known_graph = adjacency_list<>{dependency_graph.num_vertices()};
+    for (auto &&[from, to, _] : dependency_graph.edges()) {
+      add_edge(vertex_map.at(from), vertex_map.at(to), known_graph);
+    }
+
+    auto reverse_topo_order =
+        [&]() -> optional<vector<adjacency_list<>::vertex_descriptor>> {
+      auto v = vector<adjacency_list<>::vertex_descriptor>(dependency_graph.num_vertices());
+
+      try {
+        topological_sort(known_graph, v.begin(), no_named_parameters());
+      } catch (not_a_dag &e) {
+        return nullopt;
+      }
+
+      return {std::move(v)};
+    }();
+
+    if (!reverse_topo_order) {
+      BOOST_LOG_TRIVIAL(debug) << "conflict found in toposort of pruning";
+      return false;
+    }
+  }
+
+  ww_constraints = ww_constraints | not_pruned_ww | to<vector<WWConstraint>>;
+  wr_constraints = wr_constraints | not_pruned_wr | to<vector<WRConstraint>>;
+
+  BOOST_LOG_TRIVIAL(debug) << "#ww constraints after pruning: " << ww_constraints.size();
+  BOOST_LOG_TRIVIAL(debug) << "#wr constraints after pruning: " << wr_constraints.size();
+  return true;
+}
+
 auto fast_prune_constraints(DependencyGraph &dependency_graph,
                             Constraints &constraints) -> bool {
   auto &[ww_constraints, wr_constraints] = constraints;

@@ -225,6 +225,12 @@ auto main(int argc, char **argv) -> int {
       } else if (isolation_level == "si") {
         accept = solver::fast_prune_si_constraints(dependency_graph, constraints); // hard encode, bad implementation!
       }
+    } else if (pruning_method == "unit") {
+      if (isolation_level == "ser") {
+        accept = solver::prune_unit_constraints(dependency_graph, constraints);
+      } else if (isolation_level == "si") {
+        throw std::runtime_error{"Not Implemented!"};
+      }
     } else {
       pruned = false;
       BOOST_LOG_TRIVIAL(info) << "unknown pruning method \"" 

@@ -21,6 +21,9 @@ class Polygraph {
   using WWVarInfo = std::tuple<int, int, std::set<int64_t>>; // <from, to, keys>
   using WRVarInfo = std::tuple<int, int, int64_t>; // <from, to, key>
 
+  static const int MAX_N_VERTICES = 200000;
+  std::vector<std::bitset<MAX_N_VERTICES>> reachability; 
+
 public:
   int n_vertices; // indexed in [0, n_vertices - 1]
   int n_vars; // indexed in [0, n_vars - 1]
@@ -90,7 +93,59 @@ public:
     if (!wr_cons_index_of.contains(v)) return nullptr;
     int index = wr_cons_index_of[v];
     return &wr_cons[index];
-  } 
+  }
+
+  bool construct_known_graph_reachablity() {
+    if (n_vertices > MAX_N_VERTICES) {
+      std::cerr << "Failed to construct known graph reachability for n_vertices(" << n_vertices << " now)"
+                << "> magic number MAX_N_VERTICES(200000 now)";
+      return false;
+    }
+    std::vector<std::vector<int>> edges;
+    edges.assign(n_vertices, std::vector<int>{});
+
+    for (const auto &[from, to, type] : known_edges) {
+      edges[from].emplace_back(to);
+    }
+
+    reachability.assign(n_vertices, std::bitset<MAX_N_VERTICES>());
+
+    auto reversed_topo_order = [&]() {
+      std::vector<int> order;
+      std::vector<int> deg(n_vertices, 0);
+      for (int x = 0; x < n_vertices; x++) {
+        for (int y : edges[x]) {
+          ++deg[y];
+        }
+      }
+      std::queue<int> q;
+      for (int x = 0; x < n_vertices; x++) {
+        if (!deg[x]) { q.push(x); }
+      }
+      while (!q.empty()) {
+        int x = q.front(); q.pop();
+        order.push_back(x);
+        for (int y : edges[x]) {
+          --deg[y];
+          if (!deg[y]) q.push(y);
+        }
+      }
+      assert(int(order.size()) == n_vertices);
+      std::reverse(order.begin(), order.end());
+      return order;
+    }();
+
+    for (int x : reversed_topo_order) {
+      reachability.at(x).set(x);
+      for (int y : edges[x]) {
+        reachability.at(x) |= reachability.at(y);
+      }
+    }
+  }   
+
+  bool reachable_in_known_graph(int from, int to) {
+    return reachability.at(from).test(to);
+  }
 };
 
 } // namespace Minisat
