@@ -44,6 +44,8 @@ using Constraints = std::pair<WWConstraints, WRConstraints>;
 auto constraints_of(const History &history)
     -> Constraints;
 
+auto measuring_repeat_values(const Constraints &constraints) -> void;
+
 }  // namespace checker::history
 
 #endif /* CHECKER_HISTORY_CONSTRAINT_H */

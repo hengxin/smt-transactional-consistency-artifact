@@ -279,6 +279,31 @@ auto constraints_of(const History &history)
   return std::make_pair(ww_constraints, wr_constraints);
 }
 
+auto measuring_repeat_values(const Constraints &constraints) -> void {
+  const auto &[ww_cons, wr_cons] = constraints;
+  auto n_wr_cons = 0u;
+  auto n_unit_wr_cons = 0u;
+  auto max_wr_length = 0u;
+  auto sum_wr_length = 0u;
+  for (const auto &[key, read, writes] : wr_cons) {
+    ++n_wr_cons;
+    if (writes.size() == 1u) ++n_unit_wr_cons;
+    max_wr_length = std::max(max_wr_length, (unsigned)writes.size());
+    sum_wr_length += (unsigned)writes.size();
+  }
+
+  if (n_wr_cons == n_unit_wr_cons) {
+    BOOST_LOG_TRIVIAL(debug) << "This history satisfies UniqueValue!";
+  } else {
+    BOOST_LOG_TRIVIAL(debug) << "This history does NOT satisfy UniqueValue!";
+    BOOST_LOG_TRIVIAL(debug) << "#unit wr constraints = " << n_unit_wr_cons;
+    BOOST_LOG_TRIVIAL(debug) << "unit wr ratio = " << 1.0 * n_unit_wr_cons / n_wr_cons;
+    BOOST_LOG_TRIVIAL(debug) << "max wr length = " << max_wr_length;
+    BOOST_LOG_TRIVIAL(debug) << "average wr length = " << 1.0 * sum_wr_length / n_wr_cons;
+    BOOST_LOG_TRIVIAL(debug) << "average wr length(w/o unit cons) = " << 1.0 * (sum_wr_length - n_unit_wr_cons) / (n_wr_cons - n_unit_wr_cons);
+  }
+}
+
 auto operator<<(std::ostream &os, const WWConstraint &constraint)
     -> std::ostream & {
   auto out = std::osyncstream{os};

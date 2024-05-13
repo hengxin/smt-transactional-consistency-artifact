@@ -42,6 +42,10 @@ auto main(int argc, char **argv) -> int {
   args.add_argument("--isolation-level")
       .help("Target isolation level")
       .default_value(std::string{"ser"});
+  args.add_argument("--measuring-repeat-values")
+      .help("Measure the degree of repeated values")
+      .default_value(false)
+      .implicit_value(true);
 
   try {
     args.parse_args(argc, argv);
@@ -171,6 +175,10 @@ auto main(int argc, char **argv) -> int {
       std::cout << "accept: " << std::boolalpha << accept << std::endl;
       return 0;
     }
+  }
+
+  if (args["--measuring-repeat-values"] == true) {
+    history::measuring_repeat_values(constraints);
   }
 
   // std::cout << dependency_graph << std::endl;
