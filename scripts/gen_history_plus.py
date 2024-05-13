@@ -6,11 +6,14 @@ from rich.progress import track
 
 
 # === config ===
+
+n_hist = '3'
 histories_to_be_added = [
-  '25_400_8_5000_0.8_r_0.5_100',
+  # '25_400_8_5000_0.3_r_0.5_100',
   # '25_400_8_5000_0.5_r_0.5_100',
   # '25_400_8_5000_0.95_r_0.5_100',
-  # '25_400_8_5000_0.5_r_1.5_20',
+  # '25_400_8_5000_0.5_r_1.5_50',
+  '25_200_8_5000_0.5_r_1.5_500',
 ]
 
 dbcop = '/home/rikka/dbcop-plus/target/release/dbcop'
@@ -52,14 +55,16 @@ for history in track(histories_to_be_added):
                   '--key_distrib', 'zipf',
                   '--repeat_value',
                   '-s', zipf_s,
-                  '-N', zipf_N]
+                  '-N', zipf_N,
+                  '--nhist', n_hist]
   else: # unique value
     cmd = [dbcop, 'generate', '-d', '/tmp/gen', 
                   '-n', n_sess,
                   '-t', n_txns,
                   '-e', n_evts,
                   '-v', n_keys,
-                  '--readp', read_p]
+                  '--readp', read_p,
+                  '--nhist', n_hist]
   subprocess.run(cmd) 
   # will gen hist-00000.bincode under /tmp/gen
   subprocess.run([dbcop, 'run', '-d', '/tmp/gen/', '--db', 'postgres-ser', '-o', '/tmp/hist', '127.0.0.1:5432'])
@@ -71,7 +76,7 @@ for history in track(histories_to_be_added):
     print(f'path {specific_path} is already existed, skip')
   else:
     os.mkdir(specific_path)
-  shutil.move('/tmp/hist/hist-00000', os.path.join(specific_path, 'hist-00000'))
+  shutil.move('/tmp/hist', specific_path)
   
   
 
