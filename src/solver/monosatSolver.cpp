@@ -24,11 +24,15 @@ namespace checker::solver {
 MonosatSolver::MonosatSolver(const history::DependencyGraph &known_graph,
                              const history::Constraints &constraints,
                              const history::HistoryMetaInfo &history_meta_info,
-                             const std::string &isolation_level) {
+                             const std::string &isolation_level,
+                             const bool _enable_unique_encoding = false) {
   if (isolation_level == "si") {
     std::cerr << "Not implemented yet!" << std::endl;
     throw std::runtime_error{"MonosatSolver is not supporting SI checking now"};
   }
+
+  enable_unique_encoding = _enable_unique_encoding;
+
   auto unique_filename = []() -> std::string {
     auto currentTime = std::chrono::system_clock::now();
     auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime.time_since_epoch()).count();
@@ -41,7 +45,7 @@ MonosatSolver::MonosatSolver(const history::DependencyGraph &known_graph,
   gnf_path = fs::temp_directory_path();
   gnf_path = gnf_path / unique_filename();
   try {
-    utils::write_to_gnf_file(gnf_path, known_graph, constraints);
+    utils::write_to_gnf_file(gnf_path, known_graph, constraints, enable_unique_encoding);
   } catch (std::runtime_error &e) {
     // TODO
   }

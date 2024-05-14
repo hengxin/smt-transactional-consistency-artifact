@@ -108,7 +108,8 @@ static constexpr auto hash_txns_pair = [](const std::pair<int64_t, int64_t> &p) 
 
 auto write_to_gnf_file(fs::path &gnf_path, 
                        const history::DependencyGraph &known_graph,
-                       const history::Constraints &constraints) -> void {
+                       const history::Constraints &constraints,
+                       const bool enable_unique_encoding = false) -> void {
   const auto &[ww_constraints, wr_constraints] = constraints;
 
   // 0. generate rw constraints
@@ -343,6 +344,14 @@ auto write_to_gnf_file(fs::path &gnf_path,
       clause.emplace_back(edge_id);
     }
     add_clause(clause);
+    if (enable_unique_encoding) {
+      unsigned n = clause.size();
+      for (unsigned i = 0; i < n; i++) {
+        for (unsigned j = i + 1; j < n; j++) {
+          add_clause({-clause[i], -clause[j]});
+        }
+      }
+    }
   }
   // 2.5 acyclicity
   add_clause({acyclicity_var});

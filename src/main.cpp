@@ -76,7 +76,7 @@ auto main(int argc, char **argv) -> int {
   }
 
   auto solver_type = args.get("--solver");
-  const auto all_solvers = std::set<std::string>{"z3", "monosat", "acyclic-minisat"};
+  const auto all_solvers = std::set<std::string>{"z3", "monosat", "acyclic-minisat", "monosat-baseline"};
   if (all_solvers.contains(solver_type)) {
     BOOST_LOG_TRIVIAL(debug)
         << "use "
@@ -219,6 +219,11 @@ auto main(int argc, char **argv) -> int {
   if (args.get("--pruning") != "none") {
     auto pruning_method = args.get("--pruning");
     BOOST_LOG_TRIVIAL(debug) << "pruning method: " << pruning_method;
+
+    if (solver_type == "monosat-baseline") {
+      pruning_method = "none";
+      BOOST_LOG_TRIVIAL(debug) << "pruning is banned! due to solver = monosat-baseline";
+    }
     
     auto pruned = true;
     if (pruning_method == "normal") {
@@ -239,7 +244,7 @@ auto main(int argc, char **argv) -> int {
       } else if (isolation_level == "si") {
         throw std::runtime_error{"Not Implemented!"};
       }
-    } else {
+    } else if (pruning_method != "none") {
       pruned = false;
       BOOST_LOG_TRIVIAL(info) << "unknown pruning method \"" 
                               << pruning_method
