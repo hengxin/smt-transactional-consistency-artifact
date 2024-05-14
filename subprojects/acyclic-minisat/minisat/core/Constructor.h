@@ -23,11 +23,30 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
                      const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps) {
   Polygraph *polygraph = new Polygraph(n_vertices); // unused n_vars
 
+#ifdef OUTER_RW_DERIVATION
+  using WW_Edge = std::tuple<int, int, int, std::set<int64_t>>; // (from, to, var, keys)
+  auto possible_ww_edges = std::vector<WW_Edge>{}; 
+  using WR_Edge = std::tuple<int, int64_t, int>; // from -> { (to, key, var) }
+  auto possible_wr_edges = std::unordered_map<int, std::vector<WR_Edge>>{}; // 
+#endif
+
   Logger::log("[Known Graph]");
   Logger::log(fmt::format("n = {}", n_vertices));
   for (const auto &[type, from, to, keys] : known_graph) {
     polygraph->add_known_edge(from, to, type, keys);
     Logger::log(fmt::format("{}: {} -> {}, keys = {}", Logger::type2str(type), from, to, Logger::vector2str(keys)));
+  
+  #ifdef OUTER_RW_DERIVATION
+    if (type == 1) { // WW
+      possible_ww_edges.emplace_back(WW_Edge{from, to, /* var = */ -1, std::set(keys.begin(), keys.end())});
+    } else if (type == 2) { // WR
+      for (const auto &key : keys) {
+        possible_wr_edges[from].emplace_back(WR_Edge{to, key, /* var = */ -1});
+      }
+    }
+    // ignore known RW edges here
+  #endif  
+  
   }
 
   Logger::log("[Constraints]");
@@ -77,6 +96,11 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
         unit_lits.emplace_back(mkLit(suggest_v));
       } 
     } 
+
+    #ifdef OUTER_RW_DERIVATION
+      possible_ww_edges.emplace_back(WW_Edge{either_, or_, /* var = */ v1, keys_set});
+      possible_ww_edges.emplace_back(WW_Edge{or_, either_, /* var = */ v2, keys_set});
+    #endif
   }
 
   Logger::log(fmt::format("suggest ww count = {}", suggest_ww_cnt));
@@ -98,6 +122,10 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
       polygraph->map_wr_var(v, write, read, key);
       lits.push(mkLit(v));
       cons.emplace_back(v);
+
+      #ifdef OUTER_RW_DERIVATION
+        possible_wr_edges[write].emplace_back(WR_Edge{read, key, v});
+      #endif
     }
     if (lits.size() != 1) {
       solver.addClause_(lits); // v1 | v2 | ... | vn
@@ -118,6 +146,43 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
     Logger::log(Logger::lits2str(lits));
   }
 
+#ifdef OUTER_RW_DERIVATION
+  // encoding RW derivation
+  auto rw_var = std::unordered_map<int, std::unordered_map<int, int>>{};
+  auto rw_var_of = [&rw_var, &var_count, &polygraph, &solver](int from, int to) {
+    // temporarily ignore those known RW edges
+    if (!rw_var.contains(from) || !rw_var[from].contains(to)) {
+      solver.newVar();
+      int v = var_count++;
+      polygraph->map_rw_var(v, from, to);
+      return rw_var[from][to] = var_count++;
+    }
+    return rw_var[from][to];
+  };
+
+  for (const auto &[from, ww_to, ww_var, ww_keys] : possible_ww_edges) {
+    for (const auto &[wr_to, wr_key, wr_var] : possible_wr_edges[from]) {
+      if (ww_to == wr_to) continue;
+      if (!ww_keys.contains(wr_key)) continue;
+      int rw_var = rw_var_of(wr_to, ww_to);
+      assert(rw_var != -1);
+      // ww_var & wr_var -> rw_var
+      if (ww_var == -1 && wr_var == -1) {
+        unit_lits.emplace_back(mkLit(rw_var));
+      } else {
+        vec<Lit> lits;
+        if (ww_var != -1 && wr_var != -1) {
+          lits.push(~mkLit(ww_var)); lits.push(~mkLit(wr_var)); lits.push(mkLit(rw_var));
+        } else {
+          int v = ww_var != -1 ? ww_var : wr_var;
+          lits.push(~mkLit(v)); lits.push(mkLit(rw_var));
+        }
+        solver.addClause_(lits);
+      }
+    }
+  }
+#endif
+
   polygraph->set_n_vars(var_count);
 
   Logger::log("[Var to Theory Interpretion]");
@@ -128,6 +193,9 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
     } else if (polygraph->is_wr_var(v)) {
       const auto &[from, to, key] = polygraph->wr_info[v];
       Logger::log(fmt::format("{}: WR({}), {} -> {}", v, key, from, to));
+    } else if (polygraph->is_rw_var(v)) {
+      const auto &[from, to] = polygraph->rw_info[v];
+      Logger::log(fmt::format("{}: RW, {} -> {}", v, from, to));
     } else {
       assert(false);
     }

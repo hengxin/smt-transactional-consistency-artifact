@@ -7,6 +7,7 @@ import time
 import sys
 
 # === config ===
+inf = 0x7fffffffffffffff
 participants = [
   {
     'name': 'ours',
@@ -71,6 +72,8 @@ def adjust_memory(memory):
 
 
 def to_int(s):
+  if s == 'TO':
+    return inf
   if isinstance(s, int):
     return s
   if s.endswith('ms'):

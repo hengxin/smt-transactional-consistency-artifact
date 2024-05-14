@@ -138,7 +138,6 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
 }
 
 void AcyclicSolverHelper::add_var(int var) {
-  // TODO: test add_var()
   // add_var adds the var into vars_heap
   int n_edges = known_induced_edges_of[var].size();
   vars_heap.insert({n_edges, var});
@@ -146,7 +145,6 @@ void AcyclicSolverHelper::add_var(int var) {
 } 
 
 void AcyclicSolverHelper::remove_var(int var) {
-  // TODO: test remove_var()
   // remove_var removes the var from vars_heap
   int n_edges = known_induced_edges_of[var].size();
   if (vars_heap.contains({n_edges, var})) {

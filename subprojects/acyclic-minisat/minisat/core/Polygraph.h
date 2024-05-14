@@ -20,6 +20,7 @@ namespace Minisat {
 class Polygraph {
   using WWVarInfo = std::tuple<int, int, std::set<int64_t>>; // <from, to, keys>
   using WRVarInfo = std::tuple<int, int, int64_t>; // <from, to, key>
+  using RWVarInfo = std::pair<int, int>; // <from, to>
 
   static const int MAX_N_VERTICES = 200000;
   std::vector<std::bitset<MAX_N_VERTICES>> reachability; 
@@ -41,6 +42,8 @@ public:
 
   std::vector<std::vector<int>> wr_cons;
   std::unordered_map<int, int> wr_cons_index_of; // var -> wr_cons index
+
+  std::unordered_map<int, RWVarInfo> rw_info; // will only be enabled when OUTER_RW_DERIVATION is defined
 
   Polygraph(int _n_vertices = 0) { n_vertices = _n_vertices, n_vars = 0; }
 
@@ -67,11 +70,18 @@ public:
     ww_var_of[from][to] = var;
   }
 
+  void map_rw_var(int var, int from, int to) {
+    assert(!rw_info.contains(var));
+    rw_info[var] = RWVarInfo{from, to};
+  } 
+
   void set_n_vars(int n) { n_vars = n; }
 
   bool is_ww_var(int var) { return ww_info.contains(var); }
 
   bool is_wr_var(int var) { return wr_info.contains(var); }
+
+  bool is_rw_var(int var) { return rw_info.contains(var); }
   
   bool has_ww_keys(int from, int to) {
     return ww_keys.contains(from) && ww_keys[from].contains(to) && !ww_keys[from][to].empty();
@@ -144,9 +154,7 @@ public:
     return true;
   }   
 
-  bool reachable_in_known_graph(int from, int to) {
-    return reachability.at(from).test(to);
-  }
+  bool reachable_in_known_graph(int from, int to) { return reachability.at(from).test(to); }
 };
 
 } // namespace Minisat

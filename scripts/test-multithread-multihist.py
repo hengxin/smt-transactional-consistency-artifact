@@ -57,8 +57,8 @@ checker_path = os.path.join(root_path, 'builddir-release', 'checker')
 logging.info(f'checker path = {checker_path}')
 
 # solver = 'acyclic-minisat'
-solver = 'monosat'
-assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3'
+solver = 'monosat-baseline'
+assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3' or solver == 'monosat-baseline'
 logging.info(f'solver = {solver}')
 
 pruning_method = 'fast'
@@ -73,6 +73,8 @@ logging.info(f'use {n_threads} thread(s)')
 
 output_path = os.path.join(root_path, 'results', 'test-results.json')
 logging.info(f'output path = {output_path}')
+
+timeout_duration = 420 # s
 
 # === global variables ===
 # tasks = os.listdir(history_path)
@@ -159,6 +161,13 @@ def parse_logs(thread_id, logs, max_memory, task_name):
       logging.error(f'thread {thread_id} cannot parse log line "{log}"')
 
 
+def update_timeout(thread_id, task_name):
+  """update timeout"""
+  update_results(thread_id, task_name, 'max memory', 'TO')
+  update_results(thread_id, task_name, 'total time', 'TO')
+  update_results(thread_id, task_name, 'accept', 'TO')
+
+
 def read_stream(stream):
   output = ''
   for line in stream:
@@ -191,6 +200,8 @@ def run_task(thread_id, task):
 
   process_id = process.pid
   max_memory = 0
+  timeout_time = time.time() + timeout_duration
+  timeout = False
 
   while process.poll() is None:
     try:
@@ -201,19 +212,29 @@ def run_task(thread_id, task):
 
     except psutil.NoSuchProcess:
       break
-    
-  return_code = process.wait()
-  if return_code != 0:
-    logging.info(f'!subprocess of task {task} does not return 0')
-  time.sleep(1)
 
-  stdout = read_stream(process.stdout)
-  stderr = read_stream(process.stderr)
+    if time.time() > timeout_time:
+      process.terminate()
+      process.wait()
+      timeout = True
+      logging.info(f'!subprocess of task {task} timed out')
+      break
   
-  logging.debug(f'thread finished checking {task}, stdout = {stdout}, stderr = {stderr}')
-  logs = stdout.split(os.linesep)
-  parse_logs(thread_id, logs, max_memory, task)
-  logging.info(f'thread {thread_id} finished task {task}')
+  if not timeout:
+    return_code = process.wait()
+    if return_code != 0:
+      logging.info(f'!subprocess of task {task} does not return 0')
+    time.sleep(1)
+
+    stdout = read_stream(process.stdout)
+    stderr = read_stream(process.stderr)
+    
+    logging.debug(f'thread finished checking {task}, stdout = {stdout}, stderr = {stderr}')
+    logs = stdout.split(os.linesep)
+    parse_logs(thread_id, logs, max_memory, task)
+    logging.info(f'thread {thread_id} finished task {task}')
+  else:
+    update_timeout(thread_id, task)
 
   current_task_progress.stop_task(current_task_id)
   current_task_progress.update(current_task_id, description="[bold green]%s [green]:heavy_check_mark:" % (task, ), visible=False)
@@ -258,10 +279,17 @@ with Live(progress_group):
 
 for task in tasks:
   total_time = 0
+  timeout = False
   for key, value in results[task].items():
+    if value == 'TO':
+      timeout = True
+      break
     if key.endswith('time') and value.endswith('ms'):
       total_time += int(value[:-2])
-  results[task]['total time'] = f'{total_time}ms'
+  if not timeout:
+    results[task]['total time'] = f'{total_time}ms'
+  else:
+    results[task]['total time'] = 'TO'
 
 with open(output_path, 'w+') as json_file:
   json.dump(results, json_file, indent=2)
@@ -273,7 +301,10 @@ table.add_column('Memory', justify="center")
 table.add_column('Accept', justify="center")
 
 for task in tasks:
-  table.add_row(task, results[task]['total time'], humanize.naturalsize(results[task]['max memory']), "[bold green]✔" if results[task]['accept'] else "[bold red]✘")
+  table.add_row(task, 
+                results[task]['total time'], 
+                'TO' if results[task]['max memory'] == 'TO' else humanize.naturalsize(results[task]['max memory']), 
+                "[bold green]✔" if results[task]['accept'] else "[bold red]✘")
 
 console = Console()
 console.print(table, justify="center")
