@@ -155,7 +155,7 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
       solver.newVar();
       int v = var_count++;
       polygraph->map_rw_var(v, from, to);
-      return rw_var[from][to] = var_count++;
+      return rw_var[from][to] = v;
     }
     return rw_var[from][to];
   };

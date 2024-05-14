@@ -40,6 +40,9 @@ bool init_pair_conflict(AcyclicSolver &solver) {
       } else if (polygraph->is_wr_var(v)) {
         auto &&[from, to, _] = polygraph->wr_info[v];
         return {from, to};
+      } else if (polygraph->is_rw_var(v)) {
+        auto &&[from, to] = polygraph->rw_info[v];
+        return {from, to};
       }
       assert(false);
     };

@@ -55,8 +55,8 @@ history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(histor
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'scalability4')
 logging.info(f'history path = {history_path}')
 
-# checker_path = os.path.join(root_path, 'builddir', 'checker')
-checker_path = os.path.join(root_path, 'builddir-release', 'checker')
+checker_path = os.path.join(root_path, 'builddir', 'checker')
+# checker_path = os.path.join(root_path, 'builddir-release', 'checker')
 logging.info(f'checker path = {checker_path}')
 
 solver = 'acyclic-minisat'
@@ -73,7 +73,7 @@ logging.info(f'pruning method = {pruning_method}')
 n_threads = 1
 logging.info(f'use {n_threads} thread(s)')
 
-output_path = os.path.join(root_path, 'results', 'test-results.json')
+output_path = os.path.join(root_path, 'results', 'test-results2.json')
 logging.info(f'output path = {output_path}')
 
 # === global variables ===
