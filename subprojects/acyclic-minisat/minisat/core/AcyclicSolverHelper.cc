@@ -137,6 +137,11 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   // initialize vars_heap, sorting by n_edges_of_var
   int n_vars = polygraph->n_vars;
   for (int i = 0; i < n_vars; i++) vars_heap.insert({known_induced_edges_of[i].size(), i});
+
+
+  if (!icd_graph.preprocess()) {
+    throw std::runtime_error{"Conflict found in Known Graph!"};
+  }
 }
 
 void AcyclicSolverHelper::add_var(int var) {
@@ -390,6 +395,10 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   // initialize vars_heap, sorting by n_edges_of_var
   int n_vars = polygraph->n_vars;
   for (int i = 0; i < n_vars; i++) vars_heap.insert({0, i});
+
+  if (!icd_graph.preprocess()) {
+    throw std::runtime_error{"Conflict found in Known Graph!"};
+  }
 }
 
 void AcyclicSolverHelper::add_var(int var) {
