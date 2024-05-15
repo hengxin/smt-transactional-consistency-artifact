@@ -484,6 +484,7 @@ void ICDGraph::dfs_forward(int x, int upper_bound, std::vector<int> &forward_vis
   forward_visit.emplace_back(x);
   for (const auto &y : out[x]) {
     if (level[y] == upper_bound) { // y == to
+      pre[y] = x;
       cycle = true;
       return;
     }
