@@ -14,8 +14,8 @@ participants = [
     'data_path': 'various-ours'
   },
   {
-    'name': 'ours-mono',
-    'data_path': 'various-ours-mono'
+    'name': 'baseline',
+    'data_path': 'various-baseline'
   },
 ]
 
@@ -47,12 +47,12 @@ experiment_set = [
     'set': '20_100_15_5000_{}_r_0.5_100',
     'param': [0.05, 0.25, 0.5, 0.75, 0.95],
   },
-  {
-    'id': 'e',
-    'name': 'zipf_s',
-    'set': '20_100_15_5000_0.5_r_{}_100',
-    'param': [0, 0.5, 1, 1.5, 2, 2.5],
-  },
+  # {
+  #   'id': 'e',
+  #   'name': 'zipf_s',
+  #   'set': '20_100_15_5000_0.5_r_{}_100',
+  #   'param': [0, 0.5, 1, 1.5, 2, 2.5],
+  # },
 ]
 
 def adjust_time(time): # ms -> s
@@ -114,7 +114,7 @@ if __name__ == '__main__':
       runtime_df[participant['name']] = data
 
       # data = [adjust_memory(participant['data'][sub_exp['set'].format(_)]['max memory']) for _ in sub_exp['param']]
-      data = [adjust_time(get_avg_data(participant['data'], sub_exp['set'].format(_), 'max memory')) for _ in sub_exp['param']]
+      data = [adjust_memory(get_avg_data(participant['data'], sub_exp['set'].format(_), 'max memory')) for _ in sub_exp['param']]
       memory_df[participant['name']] = data
     
     runtime_df.to_csv(os.path.join(output_dir_path, 'runtime-' + sub_exp['name'] + '.csv'), index=False)

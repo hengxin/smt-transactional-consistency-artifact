@@ -104,7 +104,7 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
   }
 
   Logger::log(fmt::format("suggest ww count = {}", suggest_ww_cnt));
-  std::cout << "suggest ww cnt = " << suggest_ww_cnt << std::endl;
+  // std::cout << "suggest ww cnt = " << suggest_ww_cnt << std::endl;
 
   Logger::log("[2. WR Constraints]");
 
@@ -174,7 +174,7 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
         if (ww_var != -1 && wr_var != -1) {
           lits.push(~mkLit(ww_var)); lits.push(~mkLit(wr_var)); lits.push(mkLit(rw_var));
         } else {
-          int v = ww_var != -1 ? ww_var : wr_var;
+          int v = (ww_var != -1) ? ww_var : wr_var;
           lits.push(~mkLit(v)); lits.push(mkLit(rw_var));
         }
         solver.addClause_(lits);

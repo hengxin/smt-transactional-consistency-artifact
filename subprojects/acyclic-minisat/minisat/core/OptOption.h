@@ -7,7 +7,7 @@
 
 // #define SKIP_BRIDGE 1
 
-#define OUTER_RW_DERIVATION 1
+// #define OUTER_RW_DERIVATION 1
 
 #define INIT_PAIR_CONFLICT 1
 
@@ -16,7 +16,7 @@
 // #define LOGGER_ENABLED 1
 
 // WR constraint propagation
-#define ENABLE_WRCP 1 
+// #define ENABLE_WRCP 1 
 
 // #define ENABLE_UEP 1
 // !NOT Implemented
