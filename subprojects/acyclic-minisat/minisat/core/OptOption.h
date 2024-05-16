@@ -9,6 +9,11 @@
 
 // #define OUTER_RW_DERIVATION 1
 
+// #define ENDENSER_KNOWN_GRAPH 1
+// #define ENDENSER_RATIO 0.3
+
+#define REDUCE_KNOWN_GRAPH 1             
+
 // use ICD algorithm default
 #define PK_TOPO_ALGORITHM 1
 

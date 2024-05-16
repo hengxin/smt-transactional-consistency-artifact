@@ -18,6 +18,8 @@ public:
   int64_t uep_b_size_sum, uep_f_size_sum;
   int64_t propagated_lit_add_times;  
 
+  double var_divide_known_edge_ratio_sum;
+
   static Monitor *monitor;
 
   Monitor();

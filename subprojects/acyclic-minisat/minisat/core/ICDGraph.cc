@@ -453,6 +453,7 @@ void ICDGraph::construct_dfs_cycle(int from, int to, std::vector<int> &pre, std:
     return true;
   };
 
+  int var_edge_cnt = 0, edge_cnt = 0;
   for (int x = from; x != to; ) {
     assert(x != -1);
     int pred = pre[x];
@@ -461,6 +462,8 @@ void ICDGraph::construct_dfs_cycle(int from, int to, std::vector<int> &pre, std:
     const auto [reason1, reason2] = *reasons_of[pred][x].begin();
     if (!polygraph->reachable_in_known_graph(pred, x)) {
       add_var(reason1), add_var(reason2);
+      ++edge_cnt;
+      if (reason1 != -1 && reason2 != -1) ++var_edge_cnt;
     }
     x = pred;
   }
@@ -468,7 +471,13 @@ void ICDGraph::construct_dfs_cycle(int from, int to, std::vector<int> &pre, std:
   {
     const auto [reason1, reason2] = reason;
     add_var(reason1), add_var(reason2);
+    ++edge_cnt;
+    if (reason1 != -1 && reason2 != -1) ++var_edge_cnt;
   }
+
+#ifdef MONITOR_ENABLED
+  Monitor::get_monitor()->var_divide_known_edge_ratio_sum += 1.0 * var_edge_cnt / edge_cnt;
+#endif
 
   std::sort(vars.begin(), vars.end());
   vars.erase(std::unique(vars.begin(), vars.end()), vars.end());

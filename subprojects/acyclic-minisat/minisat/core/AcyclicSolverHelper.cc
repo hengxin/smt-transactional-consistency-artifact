@@ -8,6 +8,7 @@
 #include <tuple>
 #include <stack>
 #include <cassert>
+#include <random>
 #include <fmt/format.h>
 
 #include "minisat/core/Polygraph.h"
@@ -16,6 +17,7 @@
 #include "minisat/mtl/Vec.h"
 #include "minisat/core/OptOption.h"
 #include "minisat/core/Logger.h"
+#include "minisat/core/ReduceKnownGraph.h"
 
 namespace Minisat {
 
@@ -31,7 +33,9 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   known_induced_edges_of.assign(polygraph->n_vars, {});
   
   for (const auto &[from, to, type] : polygraph->known_edges) {
-    icd_graph.add_known_edge(from, to /*, reason = {-1, -1} */); 
+    #ifndef REDUCE_KNOWN_GRAPH
+      icd_graph.add_known_edge(from, to /*, reason = {-1, -1} */); 
+    #endif
     if (type == 1) { // WW
       assert(polygraph->has_ww_keys(from, to));
       const auto &keys = polygraph->ww_keys[from][to];
@@ -52,6 +56,19 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
       ww_keys[from][to].insert(keys.begin(), keys.end());
     }
   }
+
+#ifdef REDUCE_KNOWN_GRAPH
+  auto known_edges = std::vector<std::pair<int, int>>{}; // ignore edge types and keys
+  for (const auto &[from, to, _] : polygraph->known_edges) {
+    known_edges.emplace_back(from, to);
+  }
+  std::cout << "before reducing known graph, n_edges = " << known_edges.size() << std::endl;
+  reduce_known_graph(polygraph->n_vertices, known_edges);
+  std::cout << "after reducing known graph, n_edges = " << known_edges.size() << std::endl;
+  for (const auto &[from, to] : known_edges) {
+    icd_graph.add_known_edge(from, to);
+  }
+#endif
   
   {
     // initialize induced known edges
@@ -138,6 +155,29 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   int n_vars = polygraph->n_vars;
   for (int i = 0; i < n_vars; i++) vars_heap.insert({known_induced_edges_of[i].size(), i});
 
+#ifdef ENDENSER_KNOWN_GRAPH
+  if (polygraph->n_vertices > 100000) {
+    std::cerr << "Skip Endenser Known Graph due to n_vertices > MAX_N_VERTICES(this is a magic number, currently 100000)\n"; 
+  } else {
+    auto exist = std::unordered_map<int, std::unordered_map<int, bool>>{}; // from -> (to -> exist)
+    for (const auto &[from, to, _] : polygraph->known_edges) {
+      exist[from][to] = true;
+    }
+    auto rng = std::mt19937{};
+    rng.seed(std::random_device{}());
+    std::uniform_real_distribution<double> dice(0.0, 1.0);
+    for (int from = 0; from < polygraph->n_vertices; from++) {
+      for (int to = from + 1; to < polygraph->n_vertices; to++) {
+        if (!polygraph->reachable_in_known_graph(from, to)) continue;
+        if (exist[from][to]) continue;
+        if (dice(rng) < ENDENSER_RATIO) {
+          icd_graph.add_known_edge(from, to);
+          exist[from][to] = true;
+        }
+      }
+    }
+  }
+#endif
 
   if (!icd_graph.preprocess()) {
     throw std::runtime_error{"Conflict found in Known Graph!"};

@@ -17,6 +17,7 @@ Monitor::Monitor() {
   uep_b_size_sum = uep_f_size_sum = 0;
   propagated_lit_add_times = 0;
   cycle_width_count.clear();
+  var_divide_known_edge_ratio_sum = 0;
 }
 
 Monitor *Monitor::get_monitor() {
@@ -35,6 +36,8 @@ void Monitor::show_statistics() {
   for (const auto &[width, count] : cycle_width_count) {
     std::cerr << "width = " << width << ", count = " << count << std::endl;
   }
+  std::cerr << std::endl;
+  if (find_cycle_times != 0) std::cerr << "avg var_edge/total_edge in cycles = " << 1.0 * var_divide_known_edge_ratio_sum / find_cycle_times << std::endl;
   // std::cerr << "#construct unit-edge propagation times = " << construct_uep_count << "\n";
   // if (construct_uep_count != 0) {
   //   std::cerr << "avg b size = " << 1.0 * uep_b_size_sum / construct_uep_count << ", "

@@ -2,8 +2,8 @@ import json
 import os
 import sys
 
-data_name = 'all'
-# data_name = 'partition'
+# data_name = 'all'
+data_name = 'partition'
 
 # 1. load NuSer data
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')

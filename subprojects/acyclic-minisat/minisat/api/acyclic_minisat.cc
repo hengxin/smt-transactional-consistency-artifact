@@ -34,6 +34,8 @@ bool am_solve_with_suggestion(int n_vertices, const KnownGraph &known_graph, con
   auto unit_lits = std::vector<Lit>{};
   // This is a BAD Implementation, for we have to resolve the cycle dependency conflict of adding unit clauses into theory solver and initialization of SAT solver
   Polygraph *polygraph = construct(n_vertices, known_graph, constraints, S, unit_lits, suggest_distance, write_steps, read_steps);
+  assert(polygraph->construct_known_graph_reachablity());
+
   AcyclicSolverHelper *solver_helper = nullptr;
   try {
     solver_helper = new AcyclicSolverHelper(polygraph);
@@ -53,8 +55,6 @@ bool am_solve_with_suggestion(int n_vertices, const KnownGraph &known_graph, con
 #ifdef INIT_PAIR_CONFLICT
   init_pair_conflict(S);
 #endif
-
-  assert(polygraph->construct_known_graph_reachablity());
 
   if (!S.simplify()) {
     Logger::log("[Conflict detected in simplify()!]");
