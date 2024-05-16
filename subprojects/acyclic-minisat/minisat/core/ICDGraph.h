@@ -80,6 +80,7 @@ public:
   void set_var_assigned(int var, bool is_unassigned); 
   bool get_var_assigned(int var);
   bool preprocess(); // call after known edges are initialized, return false if detect cycles(conflict)
+  const int get_level(int x) const;
   // * note: this is a bad implementation, for ICDGraph's original responsibility prevent itself from seeing these info.
 };
 

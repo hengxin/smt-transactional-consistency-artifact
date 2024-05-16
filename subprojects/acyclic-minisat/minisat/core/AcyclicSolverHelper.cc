@@ -536,6 +536,7 @@ void AcyclicSolverHelper::construct_wr_cons_propagated_lits(int var) {
 
 Polygraph *AcyclicSolverHelper::get_polygraph() { return polygraph; }
 
+const int AcyclicSolverHelper::get_level(int x) const { return icd_graph.get_level(x); }
 
 namespace Logger {
 

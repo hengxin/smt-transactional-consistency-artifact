@@ -462,6 +462,7 @@ Lit AcyclicSolver::pickBranchLit() {
         }
     }
 
+#ifndef HEURISTIC_TOPO_ORDER
     // Choose polarity based on different polarity modes (global or per-variable):
     if (next == var_Undef)
         return lit_Undef;
@@ -471,6 +472,33 @@ Lit AcyclicSolver::pickBranchLit() {
         return mkLit(next, drand(random_seed) < 0.5);
     else
         return mkLit(next, polarity[next]);
+#else
+    if (next == var_Undef) {
+      return lit_Undef;
+    } else {
+      auto edge = [&](int v) -> std::pair<int, int> {
+        auto polygraph = solver_helper->get_polygraph();
+        if (polygraph->is_ww_var(v)) {
+          auto &[from, to, _] = polygraph->ww_info[v];
+          return {from, to};
+        } else if (polygraph->is_wr_var(v)) {
+          auto &&[from, to, _] = polygraph->wr_info[v];
+          return {from, to};
+        } else if (polygraph->is_rw_var(v)) {
+          auto &&[from, to] = polygraph->rw_info[v];
+          return {from, to};
+        }
+        assert(false);
+      };
+
+      auto [from, to] = edge(next);
+      if (solver_helper->get_level(from) < solver_helper->get_level(to)) {
+        return mkLit(next);
+      } else {
+        return ~mkLit(next);
+      }
+    }
+#endif
 }
 
 bool AcyclicSolver::solve() {

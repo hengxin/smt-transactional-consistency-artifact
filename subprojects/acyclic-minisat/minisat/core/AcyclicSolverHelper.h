@@ -54,7 +54,7 @@ public:
 
   // getter
   Polygraph *get_polygraph();
-
+  const int get_level(int x) const;
 }; // class AcyclicSolverHelper
 
 namespace Logger {

@@ -75,7 +75,7 @@ logging.info(f'use {n_threads} thread(s)')
 output_path = os.path.join(root_path, 'results', 'test-results.json')
 logging.info(f'output path = {output_path}')
 
-timeout_duration = 420 # s
+timeout_duration = 600 # s
 
 # === global variables ===
 # tasks = os.listdir(history_path)

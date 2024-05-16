@@ -9,30 +9,30 @@ import sys
 # === config ===
 inf = 0x7fffffffffffffff
 participants = [
+  # {
+  #   'name': 'ours',
+  #   'data_path': 'various-ours'
+  # },
+  # {
+  #   'name': 'ours-mono',
+  #   'data_path': 'various-ours-mono'
+  # },
+  # {
+  #   'name': 'ours-PK',
+  #   'data_path': 'various-ours-PK'
+  # },
   {
-    'name': 'ours',
-    'data_path': 'various-ours'
+    'name': 'reduce-kg',
+    'data_path': 'various+reduce'
   },
   {
-    'name': 'ours-mono',
-    'data_path': 'various-ours-mono'
+    'name': 'no-reduce',
+    'data_path': 'various+no-reduce'
   },
-  {
-    'name': 'ours-PK',
-    'data_path': 'various-ours-PK'
-  },
-  {
-    'name': 'PK-reduce-kg-enhance-pc',
-    'data_path': 'various-reduce-kg'
-  },
-  {
-    'name': 'PK-wo-reduce-kg-enhance-pc',
-    'data_path': 'various-wo-reduce-kg'
-  },
-  {
-    'name': 'baseline',
-    'data_path': 'various-baseline'
-  },
+  # {
+  #   'name': 'baseline',
+  #   'data_path': 'various-baseline'
+  # },
 ]
 
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
@@ -43,13 +43,13 @@ experiment_set = [
     'id': 'a',
     'name': 'sessions', # ${name}.json is the output file
     'set': '{}_100_15_5000_0.5_r_0.5_100',
-    'param': [5, 10, 15, 20, 25, 30],
+    'param': [5, 10, 15, 20, 25, 30, 40, 50],
   },
   {
     'id': 'b',
     'name': 'txns',
     'set': '20_{}_15_5000_0.5_r_0.5_100',
-    'param': [10, 20, 30, 40, 50, 100, 150, 200, 250],
+    'param': [10, 20, 30, 40, 50, 100, 150, 200, 250, 300, 400, 500],
   },
   {
     'id': 'c',
@@ -61,13 +61,13 @@ experiment_set = [
     'id': 'd',
     'name': 'readpct', 
     'set': '20_100_15_5000_{}_r_0.5_100',
-    'param': [0.05, 0.25, 0.5, 0.75, 0.95],
+    'param': [0.03, 0.05, 0.25, 0.5, 0.75, 0.95],
   },
   {
     'id': 'e',
     'name': 'zipf_s',
     'set': '20_100_15_5000_0.5_r_{}_100',
-    'param': [0, 0.5, 1, 1.5, 2, 2.5],
+    'param': [0, 0.5, 1, 1.5, 2, 2.5, 4],
   },
 ]
 

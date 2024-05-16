@@ -606,6 +606,11 @@ void ICDGraph::set_var_assigned(int var, bool assgined) { assigned[var] = assgin
 
 bool ICDGraph::get_var_assigned(int var) { return assigned[var]; }
 
+const int ICDGraph::get_level(int x) const {
+  assert(x >= 0 && x < n && x < level.size());
+  return level[x];
+}
+
 } // namespace Minisat
 
 namespace Minisat::Logger {
