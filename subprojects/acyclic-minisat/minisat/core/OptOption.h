@@ -10,7 +10,7 @@
 // #define OUTER_RW_DERIVATION 1
 
 // use ICD algorithm default
-// #define PK_TOPO_ALGORITHM 1
+#define PK_TOPO_ALGORITHM 1
 
 #define INIT_PAIR_CONFLICT 1
 

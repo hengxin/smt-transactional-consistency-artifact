@@ -31,29 +31,63 @@ bool init_pair_conflict(AcyclicSolver &solver) {
     graph.add_edge(from, to); // Graph helps handle duplicated edges
   }
 
-  auto conflict = [&polygraph, &graph](int v1, int v2) -> bool {
-    auto &&edge = [&polygraph](int v) -> std::pair<int, int> {
-      // * note: hard to extend to RW edges
-      if (polygraph->is_ww_var(v)) {
-        auto &[from, to, _] = polygraph->ww_info[v];
-        return {from, to};
-      } else if (polygraph->is_wr_var(v)) {
-        auto &&[from, to, _] = polygraph->wr_info[v];
-        return {from, to};
-      } else if (polygraph->is_rw_var(v)) {
-        auto &&[from, to] = polygraph->rw_info[v];
-        return {from, to};
-      }
-      assert(false);
-    };
+  auto edge = [&polygraph](int v) -> std::pair<int, int> {
+    // * note: hard to extend to RW edges
+    if (polygraph->is_ww_var(v)) {
+      auto &[from, to, _] = polygraph->ww_info[v];
+      return {from, to};
+    } else if (polygraph->is_wr_var(v)) {
+      auto &&[from, to, _] = polygraph->wr_info[v];
+      return {from, to};
+    } else if (polygraph->is_rw_var(v)) {
+      auto &&[from, to] = polygraph->rw_info[v];
+      return {from, to};
+    }
+    assert(false);
+  };
 
+  auto conflict = [&edge, &graph, &polygraph](int v1, int v2) -> bool {
     auto [from1, to1] = edge(v1);
     auto [from2, to2] = edge(v2);
 
-    return graph.reachable(to1, from2) && graph.reachable(to2, from1); 
+    // conflict case I: 2 edges
+    if (graph.reachable(to1, from2) && graph.reachable(to2, from1)) {
+      return true;
+    }
+
+    // conflict case II: 1 RW edge
+    if (from1 == from2) {
+      if (polygraph->is_wr_var(v1) && polygraph->is_ww_var(v2)) {
+        std::swap(v1, v2);
+        std::swap(to1, to2);
+        // from1 = from2
+      } 
+      if (polygraph->is_ww_var(v1) && polygraph->is_wr_var(v2) && to1 != to2) {
+        // derive RW edge: to2 -> to1
+        const auto &[_1, _2, wr_key] = polygraph->wr_info[v2];
+        const auto &[_3, _4, ww_keys] = polygraph->ww_info[v1];
+        if (ww_keys.contains(wr_key) && graph.reachable(to1, to2)) return true;
+      }
+    } 
+
+    return false;
+  };
+
+  auto self_conflict = [&edge, &graph](int v) -> bool {
+    // self_conflict will be True only if v is a RW variable when OUTER_RW_DERIVATION is enabled
+    auto [from, to] = edge(v);
+    return graph.reachable(to, from);
   };
 
   for (int v1 = 0; v1 < polygraph->n_vars; v1++) {
+    #ifdef OUTER_RW_DERIVATION
+      if (self_conflict(v1)) { // checking of v2 will also be included
+        vec<Lit> lits;
+        lits.push(~mkLit(v1));
+        solver.addClause_(lits); // here solver_helper has been initialized
+        Logger::log(Logger::lits2str(lits));
+      }
+    #endif
     for (int v2 = v1 + 1; v2 < polygraph->n_vars; v2++) {
       if (conflict(v1, v2)) {
         vec<Lit> lits;
