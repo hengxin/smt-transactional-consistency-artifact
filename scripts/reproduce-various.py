@@ -21,18 +21,34 @@ participants = [
   #   'name': 'ours-PK',
   #   'data_path': 'various-ours-PK'
   # },
-  {
-    'name': 'reduce-kg',
-    'data_path': 'various+reduce'
-  },
-  {
-    'name': 'no-reduce',
-    'data_path': 'various+no-reduce'
-  },
+  # {
+  #   'name': 'reduce-kg',
+  #   'data_path': 'various+reduce'
+  # },
+  # {
+  #   'name': 'no-reduce',
+  #   'data_path': 'various+no-reduce'
+  # },
   # {
   #   'name': 'baseline',
   #   'data_path': 'various-baseline'
   # },
+  {
+    'name': 'mono',
+    'data_path': 'various+ours-mono'
+  },
+  {
+    'name': 'ours',
+    'data_path': 'various+ours-heudist'
+  },
+  {
+    'name': 'ours-wo-heudist',
+    'data_path': 'various+ours'
+  },
+  {
+    'name': 'ours-wo-heudist-reduce',
+    'data_path': 'various+no-reduce'
+  },
 ]
 
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
