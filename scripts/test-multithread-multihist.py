@@ -49,8 +49,8 @@ logging.info(f'history type = {history_type}')
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 logging.info(f'root path = {root_path}')
 # will run all histories under this path
-# history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'various')
-history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_general_all_writes')
+history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'various')
+# history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_general_all_writes')
 logging.info(f'history path = {history_path}')
 
 # checker_path = os.path.join(root_path, 'builddir', 'checker')
@@ -69,7 +69,7 @@ logging.info(f'pruning method = {pruning_method}')
 # on 926 ubuntu, it's okay to set n_threads to 4
 # on local virtual machine, n_threads is recommanded to be set to 3
 # a large n_threads may lead to the not-full-usage of a cpu core, or trigger processes being incorrectly killed due to the exceeded memory usage
-n_threads = 6
+n_threads = 3
 logging.info(f'use {n_threads} thread(s)')
 
 output_path = os.path.join(root_path, 'results', 'test-results.json')

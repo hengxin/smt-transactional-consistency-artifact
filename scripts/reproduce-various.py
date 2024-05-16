@@ -22,6 +22,14 @@ participants = [
     'data_path': 'various-ours-PK'
   },
   {
+    'name': 'PK-reduce-kg-enhance-pc',
+    'data_path': 'various-reduce-kg'
+  },
+  {
+    'name': 'PK-wo-reduce-kg-enhance-pc',
+    'data_path': 'various-wo-reduce-kg'
+  },
+  {
     'name': 'baseline',
     'data_path': 'various-baseline'
   },
