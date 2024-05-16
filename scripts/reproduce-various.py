@@ -33,21 +33,25 @@ participants = [
   #   'name': 'baseline',
   #   'data_path': 'various-baseline'
   # },
-  {
-    'name': 'mono',
-    'data_path': 'various+ours-mono'
-  },
+  # {
+  #   'name': 'mono',
+  #   'data_path': 'various+ours-mono'
+  # },
   {
     'name': 'ours',
-    'data_path': 'various+ours-heudist'
+    'data_path': 'various+'
   },
   {
-    'name': 'ours-wo-heudist',
-    'data_path': 'various+ours'
+    'name': 'ours-HT',
+    'data_path': 'various+HT'
   },
   {
-    'name': 'ours-wo-heudist-reduce',
-    'data_path': 'various+no-reduce'
+    'name': 'ours-HT-HD',
+    'data_path': 'various+HT-HD'
+  },
+  {
+    'name': 'ours-HT-HD-R',
+    'data_path': 'various+HT-HD-R'
   },
 ]
 
