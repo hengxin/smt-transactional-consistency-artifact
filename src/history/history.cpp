@@ -515,6 +515,7 @@ auto compute_history_meta_info(const History &history) -> HistoryMetaInfo {
     int steps = 0; // for each session, calculate a steps
     for (const auto &txn : session.transactions) {
       ++steps;
+      history_meta_info.txn_distance[txn.id] = steps;
       auto cur_value = std::unordered_map<int64_t, int64_t>{}; // key -> value (for current txn)
       for (const auto &event : txn.events) {
         const auto &[key, value, type, txn_id] = event;

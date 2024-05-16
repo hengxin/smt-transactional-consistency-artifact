@@ -57,6 +57,7 @@ struct History {
 struct HistoryMetaInfo {
   int n_sessions, n_total_transactions, n_total_events;
   std::unordered_map<int64_t, std::unordered_map<int64_t, int>> write_steps, read_steps; // write_steps read_steps [txn][key] = step
+  std::unordered_map<int64_t, int> txn_distance;
 };
 
 auto compute_history_meta_info(const History &history) -> HistoryMetaInfo;

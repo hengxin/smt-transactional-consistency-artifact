@@ -94,6 +94,10 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
   // TODO: efficiency concerning of map_composite
   write_steps = map_composite(node_id, history_meta_info.write_steps);
   read_steps = map_composite(node_id, history_meta_info.read_steps);
+
+  for (const auto &[txn, dist] : history_meta_info.txn_distance) {
+    txn_distance.emplace(node_id.at(txn), dist);
+  }
 }
 
 /*
@@ -231,7 +235,7 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
 auto AcyclicMinisatSolver::solve() -> bool {
   bool ret = true;
   if (target_isolation_level == "ser") {
-    ret = Minisat::am_solve(n_vertices, am_known_graph, am_constraints, n_sessions, n_total_transactions, n_total_events, write_steps, read_steps);
+    ret = Minisat::am_solve(n_vertices, am_known_graph, am_constraints, n_sessions, n_total_transactions, n_total_events, write_steps, read_steps, txn_distance);
   } else if (target_isolation_level == "si") {
     // TODO: heuristic pruning in SI
     ret = MinisatSI::am_solve(n_vertices, am_known_graph, am_constraints);

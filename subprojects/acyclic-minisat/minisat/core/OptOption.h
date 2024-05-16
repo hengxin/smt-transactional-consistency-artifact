@@ -16,6 +16,8 @@
 
 #define HEURISTIC_TOPO_ORDER 1
 
+#define HEURISTIC_DIST_INIT_TOPO 1
+
 // use ICD algorithm default
 #define PK_TOPO_ALGORITHM 1
 

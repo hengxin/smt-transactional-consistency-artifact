@@ -20,8 +20,13 @@ namespace Minisat {
 Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constraints &constraints, AcyclicSolver &solver, std::vector<Lit> &unit_lits, 
                      int suggest_distance,
                      const std::unordered_map<int, std::unordered_map<int64_t, int>> &write_steps, 
-                     const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps) {
+                     const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps,
+                     const std::unordered_map<int, int> &txn_distance,
+                     const int n_sessions, const int n_total_transactions) {
   Polygraph *polygraph = new Polygraph(n_vertices); // unused n_vars
+  polygraph->txn_distance = txn_distance;
+  polygraph->n_total_txns = n_total_transactions;
+  polygraph->n_sess = n_sessions;
 
 #ifdef OUTER_RW_DERIVATION
   using WW_Edge = std::tuple<int, int, int, std::set<int64_t>>; // (from, to, var, keys)

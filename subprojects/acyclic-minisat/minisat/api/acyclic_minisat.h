@@ -18,7 +18,8 @@ bool am_solve(int n_vertices,
               const int n_total_transactions,
               const int n_total_events,
               const std::unordered_map<int, std::unordered_map<int64_t, int>> &write_steps,
-              const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps);
+              const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps,
+              const std::unordered_map<int, int> &txn_distance);
 
 bool am_solve_with_suggestion(int n_vertices, 
                               const KnownGraph &known_graph, 
@@ -26,7 +27,9 @@ bool am_solve_with_suggestion(int n_vertices,
                               int suggest_distance,
                               // history meta info
                               const std::unordered_map<int, std::unordered_map<int64_t, int>> &write_steps,
-                              const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps);
+                              const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps,
+                              const std::unordered_map<int, int> &txn_distance,
+                              const int n_sessions, const int n_total_transactions);
 
 } // namespace Minisat
 

@@ -219,8 +219,12 @@ void AcyclicSolver::cancelUntil(int level) {
     for (int c = trail.size() - 1; c >= trail_lim[level]; c--) {
       Var x = var(trail[c]);
       assigns[x] = l_Undef;
-      if (phase_saving > 1 || ((phase_saving == 1) && c > trail_lim.last()))
+      if (phase_saving > 1 || ((phase_saving == 1) && c > trail_lim.last())) {
         polarity[x] = sign(trail[c]);
+        #ifdef HEURISTIC_TOPO_ORDER
+          cancelled[x] = true;
+        #endif
+      }
       insertVarOrder(x);
 
       // --- addon begin ---
@@ -476,6 +480,8 @@ Lit AcyclicSolver::pickBranchLit() {
     if (next == var_Undef) {
       return lit_Undef;
     } else {
+      if (cancelled.contains(next)) return mkLit(next, polarity[next]); // Var is defined as int
+
       auto edge = [&](int v) -> std::pair<int, int> {
         auto polygraph = solver_helper->get_polygraph();
         if (polygraph->is_ww_var(v)) {

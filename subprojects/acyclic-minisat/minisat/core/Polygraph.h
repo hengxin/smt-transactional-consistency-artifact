@@ -45,6 +45,9 @@ public:
 
   std::unordered_map<int, RWVarInfo> rw_info; // will only be enabled when OUTER_RW_DERIVATION is defined
 
+  std::unordered_map<int, int> txn_distance;
+  int n_total_txns, n_sess;
+
   Polygraph(int _n_vertices = 0) { n_vertices = _n_vertices, n_vars = 0; }
 
   void add_known_edge(int from, int to, int type, const std::vector<int64_t> &keys) { 

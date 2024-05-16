@@ -331,6 +331,7 @@ bool ICDGraph::preprocess() {
     }
   }
 
+#ifndef HEURISTIC_DIST_INIT_TOPO
   {
     std::vector<int> order;
     std::vector<int> deg(n, 0);
@@ -354,6 +355,45 @@ bool ICDGraph::preprocess() {
     if (int(order.size()) != n) return false; // toposort failed! cycle detected in known graph!
     for (unsigned i = 0; i < order.size(); i++) level[order[i]] = i; 
   };
+#else
+  {
+    std::vector<int> order;
+    std::vector<int> deg(n, 0);
+    for (int x = 0; x < n; x++) {
+      for (int y : edges[x]) {
+        ++deg[y];
+      }
+    }
+
+    struct Node { int id, dist, enq_order; };
+    const int gap = std::max(1, polygraph->n_total_txns / polygraph->n_sess / 3);
+    struct NodeCmp {
+      int gap;
+      bool operator() (const Node &x, const Node &y) const {
+        if (std::abs(x.dist - y.dist) < gap) {
+          return x.enq_order < y.enq_order;
+        } else {
+          return x.dist < y.dist;
+        }
+      }
+    };
+    std::priority_queue<Node, std::vector<Node>, NodeCmp> q(NodeCmp{.gap = gap});
+    int enq_order_cnt = 0;
+    for (int x = 0; x < n; x++) {
+      if (!deg[x]) { q.push({.id = x, .dist = polygraph->txn_distance.at(x), .enq_order = ++enq_order_cnt}); }
+    }
+    while (!q.empty()) {
+      int x = q.top().id; q.pop();
+      order.push_back(x);
+      for (int y : edges[x]) {
+        --deg[y];
+        if (!deg[y]) q.push({.id = y, .dist = polygraph->txn_distance.at(y), .enq_order = ++enq_order_cnt});
+      }
+    }
+    if (int(order.size()) != n) return false; // toposort failed! cycle detected in known graph!
+    for (unsigned i = 0; i < order.size(); i++) level[order[i]] = i; 
+  };
+#endif
 
   return true;
 }
