@@ -228,7 +228,7 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
   };
   auto add_event = [&](Transaction *transaction, EventType type, int64_t key, int64_t value) {
     if (type == EventType::WRITE) {
-      if (!transactions.contains(transaction->id) || writes.contains({key, value})) {
+      if (!transactions.contains(transaction->id)) {
         throw std::runtime_error{"Invalid history: fail in add_event()!"};
       }
       writes.insert({key, value});
@@ -279,6 +279,7 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
           auto value = read_int64_big_endian(in);
           // add_event(current, EventType::WRITE, key, get_cobra_hash({write_id, current->id, value}));
           add_event(current, EventType::WRITE, key, get_cobra_hash({write_id, UNIVERSAL_TXN_ID, value}));
+          std::cerr << 'W' << " " << write_id << " " << UNIVERSAL_TXN_ID << " " << value << " " << get_cobra_hash({write_id, UNIVERSAL_TXN_ID, value}) << "\n";
           break;
         }
         case 'R': {
@@ -291,10 +292,10 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
           
           if (write_txn_id == INIT_TXN_ID || write_txn_id == NULL_TXN_ID) {
             if (write_id == INIT_WRITE_ID || write_id == NULL_TXN_ID) {
-              write_id = key;
+              // write_id = key;
               write_txn_id = INIT_TXN_ID;
               if (!init_writes.contains(key)) {
-                init_writes[key] = get_cobra_hash({key, INIT_TXN_ID, value});
+                init_writes[key] = get_cobra_hash({write_id, INIT_TXN_ID, value});
                 // std::cout << "R (" << key << ", " << value << ")" << std::endl;
               }
               // TODO: init_writes.computeIfAbsent(key, k -> new CobraValue(key, INIT_TXN_ID, value))
@@ -304,7 +305,7 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
             // }
           }
           
-          // std::cerr << write_id << " " << write_txn_id << " " << value << " " << get_cobra_hash({write_id, write_txn_id, value});
+          std::cerr << 'R' << " " << write_id << " " << write_txn_id << " " << value << " " << get_cobra_hash({write_id, write_txn_id, value}) << "\n";
           add_event(current, EventType::READ, key, get_cobra_hash({write_id, write_txn_id, value}));
           break;
         }
