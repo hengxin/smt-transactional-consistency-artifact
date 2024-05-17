@@ -59,7 +59,8 @@ logging.info(f'history path = {history_path}')
 checker_path = os.path.join(root_path, 'builddir-release', 'checker')
 logging.info(f'checker path = {checker_path}')
 
-solver = 'acyclic-minisat'
+# solver = 'acyclic-minisat'
+solver = 'monosat'
 assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3'
 logging.info(f'solver = {solver}')
 

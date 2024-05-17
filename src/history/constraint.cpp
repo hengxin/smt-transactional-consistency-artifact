@@ -302,6 +302,16 @@ auto measuring_repeat_values(const Constraints &constraints) -> void {
     BOOST_LOG_TRIVIAL(debug) << "average wr length = " << 1.0 * sum_wr_length / n_wr_cons;
     BOOST_LOG_TRIVIAL(debug) << "average wr length(w/o unit cons) = " << 1.0 * (sum_wr_length - n_unit_wr_cons) / (n_wr_cons - n_unit_wr_cons);
   }
+
+  // count encoding size
+  int64_t some_count = 0, unique_count = 0;
+  some_count += ww_cons.size() + wr_cons.size();
+  unique_count += ww_cons.size();
+  for (const auto &[key, read, writes] : wr_cons) {
+    unique_count += 1LL * writes.size() * (writes.size() - 1) / 2;
+  }
+  BOOST_LOG_TRIVIAL(debug) << "# some constraint = " << some_count;
+  BOOST_LOG_TRIVIAL(debug) << "# unique constraint = " << unique_count;
 }
 
 auto operator<<(std::ostream &os, const WWConstraint &constraint)

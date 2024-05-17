@@ -248,7 +248,7 @@ auto main(int argc, char **argv) -> int {
       pruned = false;
       BOOST_LOG_TRIVIAL(info) << "unknown pruning method \"" 
                               << pruning_method
-                              << "\", expect in {\"normal\", \"fast\", \"none\"}, skip pruning";
+                              << "\", expect in {\"normal\", \"fast\", \"unit\", \"none\"}, skip pruning";
     }
 
     // display_constraints(constraints, "Constraints after Pruning:");

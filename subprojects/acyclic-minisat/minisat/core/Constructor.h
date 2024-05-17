@@ -142,6 +142,17 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
         int suggest_v = suggest_wr(cons, read, writes, key);
         if (suggest_v != -1) unit_lits.emplace_back(mkLit(suggest_v));
       }
+
+      #ifdef ENCODE_WR_UNIQUE
+        for (unsigned i = 0; i < cons.size(); i++) {
+          for (unsigned j = i + 1; j < cons.size(); j++) {
+            int v1 = cons[i], v2 = cons[j];
+            vec<Lit> tmp_lits;
+            tmp_lits.push(~mkLit(v1)), tmp_lits.push(~mkLit(v2));
+            solver.addClause_(tmp_lits);
+          }
+        }
+      #endif
     } else {
       unit_lits.emplace_back(lits[0]);
     }
