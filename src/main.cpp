@@ -244,6 +244,12 @@ auto main(int argc, char **argv) -> int {
       } else if (isolation_level == "si") {
         throw std::runtime_error{"Not Implemented!"};
       }
+    } else if (pruning_method == "basic") { // WW and unit WR s
+      if (isolation_level == "ser") {
+        accept = solver::prune_basic_constraints(dependency_graph, constraints);
+      } else if (isolation_level == "si") {
+        throw std::runtime_error{"Not Implemented!"};
+      }
     } else if (pruning_method != "none") {
       pruned = false;
       BOOST_LOG_TRIVIAL(info) << "unknown pruning method \"" 

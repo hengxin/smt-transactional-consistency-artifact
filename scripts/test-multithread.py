@@ -59,19 +59,19 @@ logging.info(f'history path = {history_path}')
 checker_path = os.path.join(root_path, 'builddir-release', 'checker')
 logging.info(f'checker path = {checker_path}')
 
-# solver = 'acyclic-minisat'
-solver = 'monosat'
-assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3'
+solver = 'acyclic-minisat'
+# solver = 'monosat'
+assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3' or solver == 'monosat-baseline'
 logging.info(f'solver = {solver}')
 
-pruning_method = 'fast'
-assert pruning_method == 'fast' or pruning_method == 'normal' or pruning_method == 'none'
+pruning_method = 'unit'
+assert pruning_method == 'fast' or pruning_method == 'normal' or pruning_method == 'none' or pruning_method == 'unit'
 logging.info(f'pruning method = {pruning_method}')
 
 # on 926 ubuntu, it's okay to set n_threads to 4
 # on local virtual machine, n_threads is recommanded to be set to 3
 # a large n_threads may lead to the not-full-usage of a cpu core, or trigger processes being incorrectly killed due to the exceeded memory usage
-n_threads = 1
+n_threads = 2
 logging.info(f'use {n_threads} thread(s)')
 
 output_path = os.path.join(root_path, 'results', 'test-results2.json')

@@ -155,6 +155,316 @@ auto prune_unit_constraints(DependencyGraph &dependency_graph,
   return true;
 }
 
+auto prune_basic_constraints(DependencyGraph &dependency_graph,
+                            Constraints &constraints) -> bool {
+  auto &[ww_constraints, wr_constraints] = constraints;
+  auto pruned_ww_constraints = unordered_set<WWConstraint *>{};
+  auto not_pruned_ww = filter([&](auto &&c) { return !pruned_ww_constraints.contains(&c); });
+  auto pruned_wr_constraints = unordered_set<WRConstraint *>{};
+  auto not_pruned_wr = filter([&](auto &&c) { return !pruned_wr_constraints.contains(&c); });
+
+  auto &&vertex_map = dependency_graph.rw.vertex_map.left;
+  CHECKER_LOG_COND(trace, logger) {
+    logger << "vertex_map:";
+    for (auto &&[v, desc] : vertex_map) {
+      logger << " (" << v << ", " << desc << ')';
+    }
+  }
+  auto &&i_vertex_map = unordered_map<int, int64_t>{}; // inversed vertex map
+  for (auto &&[v, desc] : vertex_map) i_vertex_map[desc] = v; 
+ 
+  auto rw_edges = unordered_map<int64_t, unordered_map<int64_t, unordered_set<int64_t>>> {}; // (from, to) -> keys
+  auto add_dep_edge = [&](int64_t from, int64_t to, EdgeInfo info) -> void {
+    if (info.type == EdgeType::WW) {
+      if (auto e = dependency_graph.ww.edge(from, to); e) {
+        copy(info.keys, back_inserter(e.value().get().keys));
+      } else {
+        dependency_graph.ww.add_edge(from, to, info);
+      }
+    } else if (info.type == EdgeType::RW) {
+      auto ins_keys = vector<int64_t> {};
+      for (const auto &key : info.keys) {
+        // prevent duplicated rw edges being added into dep graph
+        if (rw_edges[from][to].contains(key)) continue;
+        ins_keys.emplace_back(key);
+      }
+      if (auto e = dependency_graph.rw.edge(from, to); e) {
+        copy(ins_keys, back_inserter(e.value().get().keys));
+      } else {
+        dependency_graph.rw.add_edge(from, to, info);
+      }
+      rw_edges[from][to].insert(ins_keys.begin(), ins_keys.end());
+    } else if (info.type == EdgeType::WR) {
+      if (auto e = dependency_graph.wr.edge(from, to); e) {
+        copy(info.keys, back_inserter(e.value().get().keys));
+      } else {
+        dependency_graph.wr.add_edge(from, to, info);
+      }
+    } else {
+      assert(false);
+    }
+  };
+
+  // 1. prune unit wr constaint
+  BOOST_LOG_TRIVIAL(trace) << "0. prune unit wr constraints";
+  for (auto &&c : wr_constraints) {
+    const auto &[key, read, writes] = c;
+    if (writes.size() == 1) { // unit wr constaint
+      add_dep_edge(*writes.begin(), read, EdgeInfo{
+        .type = EdgeType::WR,
+        .keys = {key},
+      });
+      pruned_wr_constraints.emplace(&c);
+      BOOST_LOG_TRIVIAL(trace) << "pruned unit wr constraint, added cons: " 
+                               << c;
+    }
+  }
+  
+  // 2. prepare edge visitors
+  auto n = dependency_graph.num_vertices();
+  auto wr_to = vector<unordered_map<int64_t, vector<int>>> (n, unordered_map<int64_t, vector<int>>{});
+  for (auto &&[from, to, info] : dependency_graph.wr.edges()) {
+    auto &&keys = info.get().keys;
+    for (const auto key : keys) {
+      wr_to[vertex_map.at(from)][key].emplace_back(vertex_map.at(to));
+    }
+  }
+  auto ww_to = vector<unordered_map<int64_t, vector<int>>> (n, unordered_map<int64_t, vector<int>>{});
+
+  // 3. prepare known induced rw edges
+  using Edge = std::tuple<int64_t, int64_t, EdgeInfo>;
+  // auto known_rw_edges_of = vector<vector<vector<Edge>>>(n, vector<vector<Edge>>(n, vector<Edge>{})); // (from, to) -> rw edges
+  auto known_rw_edges_of = unordered_map<int, unordered_map<int, vector<Edge>>>{}; // (from, to) -> rw edges
+  for (const auto &c : ww_constraints) {
+    const auto &[either_txn_id, or_txn_id, info] = c.either_edges.at(0);
+    const auto &keys = info.keys;
+    auto either_ = vertex_map.at(either_txn_id);
+    auto or_ = vertex_map.at(or_txn_id);
+
+    auto induce_rw_edges = [&](int from, int to, int64_t key) -> void {
+      auto rw_keys_of = unordered_map<int, unordered_map<int, set<int64_t>>>{}; // (from, to) -> keys
+      auto rw_edges = vector<pair<int, int>>{};
+      for (const auto &to2 : wr_to[from][key]) {
+        if (to == to2) continue;
+        if (rw_keys_of[to2][to].empty()) rw_edges.emplace_back(pair<int, int>{to2, to});
+        rw_keys_of[to2][to].insert(key);
+      }
+      for (const auto &[u, v] : rw_edges) {
+        const auto &keys = rw_keys_of[u][v];
+        known_rw_edges_of[from][to].emplace_back(Edge{
+          i_vertex_map.at(u), 
+          i_vertex_map.at(v),
+          EdgeInfo{
+            .type = EdgeType::RW,
+            .keys = vector<int64_t>(keys.begin(), keys.end()),
+          },
+        });
+      }
+    };
+
+    for (const auto &key : keys) {
+      induce_rw_edges(either_, or_, key);
+      induce_rw_edges(or_, either_, key);
+    }
+
+    CHECKER_LOG_COND(trace, logger) {
+      logger << "\n";
+      logger << "known induced rw edges of " << either_txn_id << ", " << or_txn_id << ": ";
+      for (const auto &[from, to, _] : known_rw_edges_of[either_][or_]) {
+        logger << "(" << from << ", " << to << "), ";
+      }
+      logger << "\n";
+      logger << "known induced rw edges of " << or_txn_id << ", " << either_txn_id << ": ";
+      for (const auto &[from, to, _] : known_rw_edges_of[or_][either_]) {
+        logger << "(" << from << ", " << to << "), ";
+      }
+    }
+  }
+
+  wr_to.assign(n, {});
+
+  auto reachability_duration = chrono::milliseconds(0);
+  auto check_duration = chrono::milliseconds(0);
+  auto add_duration = chrono::milliseconds(0);
+  
+  bool changed = true;
+
+  // 4. pruning passes
+  while (changed) {
+    BOOST_LOG_TRIVIAL(trace) << "new pruning pass:";
+    changed = false;
+
+    auto time = chrono::steady_clock::now();
+
+    auto known_graph = adjacency_list<>{dependency_graph.num_vertices()};
+    for (auto &&[from, to, _] : dependency_graph.edges()) {
+      add_edge(vertex_map.at(from), vertex_map.at(to), known_graph);
+    }
+
+    auto reverse_topo_order =
+        [&]() -> optional<vector<adjacency_list<>::vertex_descriptor>> {
+      auto v = vector<adjacency_list<>::vertex_descriptor>(dependency_graph.num_vertices());
+
+      try {
+        topological_sort(known_graph, v.begin(), no_named_parameters());
+      } catch (not_a_dag &e) {
+        return nullopt;
+      }
+
+      return {std::move(v)};
+    }();
+
+    if (!reverse_topo_order) {
+      BOOST_LOG_TRIVIAL(debug) << "conflict found in toposort of pruning";
+      return false;
+    }
+
+    auto reachability = [&]() {
+      auto r = vector<dynamic_bitset<>>{
+          dependency_graph.num_vertices(),
+          dynamic_bitset<>{dependency_graph.num_vertices()}};
+
+      for (auto &&v : reverse_topo_order.value()) {
+        r.at(v).set(v);
+
+        for (auto &&e : as_range(out_edges(v, known_graph))) {
+          auto v2 = target(e, known_graph);
+          // FIXME: is this !r.at(v)[v2] condition sufficient to this dynamic programming? 
+          // if (!r.at(v)[v2]) {
+          //   r.at(v) |= r.at(v2);
+          // }
+          r.at(v) |= r.at(v2);
+        }
+      }
+
+      return r;
+    }();
+
+    auto can_reach = [&reachability, &vertex_map](int64_t from, int64_t to) -> bool {
+      return reachability.at(vertex_map.at(from)).test(vertex_map.at(to));
+    };
+
+    {
+      auto curr_time = chrono::steady_clock::now();
+      reachability_duration += chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+      time = curr_time;
+    }
+
+    auto pruned_ww = unordered_map<int64_t, vector<Edge>>{}; // from -> { (from, to, edge_info) }
+    BOOST_LOG_TRIVIAL(trace) << "1. check ww constraints:";
+    for (auto &&c : ww_constraints | not_pruned_ww) {
+      auto check_ww_edges = [&](WWConstraint::Edge &edge) -> bool {
+        const auto &[from, to, info] = edge;
+        if (reachability.at(vertex_map.at(to)).test(vertex_map.at(from))) {
+          return false; // ww edge forms a cycle
+        }
+        // rw edges part 1. known induced rw edges
+        for (const auto &[from2, to2, _] : known_rw_edges_of[vertex_map.at(from)][vertex_map.at(to)]) {
+          if (reachability.at(vertex_map.at(to2)).test(vertex_map.at(from2))) {
+            return false; // rw edge forms a cycle
+          }
+        }
+        // rw edges part 2. new induced rw edges
+        const auto &keys = info.keys;
+        for (const auto &key : keys) {
+          for (const auto &to2 : wr_to[vertex_map.at(from)][key]) {
+            if (vertex_map.at(to) == unsigned(to2)) continue;
+            if (reachability.at(vertex_map.at(to)).test(to2)) {
+              return false; // rw edge forms a cycle
+            }
+          }
+        }
+        return true;
+      };
+      auto add_ww_edges = [&](WWConstraint::Edge &edge) -> void {
+        const auto &[from, to, info] = edge;
+        add_dep_edge(from, to, info); // ww edge
+        // rw edges part 1. known induced rw edges
+        for (const auto &[from2, to2, info2] : known_rw_edges_of[vertex_map.at(from)][vertex_map.at(to)]) {
+          add_dep_edge(from2, to2, info2);
+        }
+        // rw edges part 2. new induced rw edges
+        const auto &keys = info.keys;
+        for (const auto &key : keys) {
+          for (const auto &to2 : wr_to[vertex_map.at(from)][key]) {
+            if (vertex_map.at(to) == unsigned(to2)) continue;
+            add_dep_edge(
+              i_vertex_map.at(to2), 
+              to,
+              EdgeInfo{
+                .type = EdgeType::RW,
+                .keys = {key},
+              });
+          }
+        }
+        // add edge into ww_to
+        for (const auto &key : keys) {
+          ww_to[vertex_map.at(from)][key].emplace_back(vertex_map.at(to));
+        }
+      };
+
+      time = chrono::steady_clock::now();
+
+      auto add_or = !check_ww_edges(c.either_edges.at(0));
+      auto add_either = !check_ww_edges(c.or_edges.at(0));
+      if (add_or && add_either) {
+        BOOST_LOG_TRIVIAL(debug) << "conflict found in ww pruning";
+        return false;
+      }
+
+      {
+        auto curr_time = chrono::steady_clock::now();
+        check_duration += chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+        time = curr_time;
+      }
+
+      auto added_edges_name = "or";
+      auto pruned = false;
+      if (add_or) {
+        add_ww_edges(c.or_edges.at(0));
+        changed = pruned = true;
+        // if (!can_reach(c.or_txn_id, c.either_txn_id)) {
+        //   pruned_ww[c.or_txn_id].emplace_back(c.or_edges.at(0));
+        // }
+      } else if (add_either) {
+        add_ww_edges(c.either_edges.at(0));
+        changed = pruned = true;
+        added_edges_name = "either";
+        // if (!can_reach(c.either_txn_id, c.or_txn_id)) {
+        //   pruned_ww[c.either_txn_id].emplace_back(c.either_edges.at(0));
+        // }
+      }
+
+      {
+        auto curr_time = chrono::steady_clock::now();
+        add_duration += chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+        time = curr_time;
+      }
+
+      if (pruned) {
+        pruned_ww_constraints.emplace(&c);
+        BOOST_LOG_TRIVIAL(trace) << "pruned ww constraint, added "
+                                 << added_edges_name << " edges: " << c;
+      }
+    }
+
+    BOOST_LOG_TRIVIAL(trace) << "2. check wr constraints:";
+    BOOST_LOG_TRIVIAL(trace) << "skip";
+  }
+
+  BOOST_LOG_TRIVIAL(debug) << "constructing reachability time: " << reachability_duration;
+  BOOST_LOG_TRIVIAL(debug) << "checking time: " << check_duration;
+  BOOST_LOG_TRIVIAL(debug) << "adding edge time: " << add_duration;
+
+  ww_constraints = ww_constraints | not_pruned_ww | to<vector<WWConstraint>>;
+  wr_constraints = wr_constraints | not_pruned_wr | to<vector<WRConstraint>>;
+
+  BOOST_LOG_TRIVIAL(debug) << "#ww constraints after pruning: " << ww_constraints.size();
+  BOOST_LOG_TRIVIAL(debug) << "#wr constraints after pruning: " << wr_constraints.size();
+  return true;
+}
+
+
 auto fast_prune_constraints(DependencyGraph &dependency_graph,
                             Constraints &constraints) -> bool {
   auto &[ww_constraints, wr_constraints] = constraints;
