@@ -49,8 +49,8 @@ logging.info(f'history type = {history_type}')
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 logging.info(f'root path = {root_path}')
 # will run all histories under this path
-history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'various')
-# history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_general_all_writes')
+# history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'various')
+history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_general_all_writes')
 logging.info(f'history path = {history_path}')
 
 # checker_path = os.path.join(root_path, 'builddir', 'checker')
@@ -62,8 +62,8 @@ solver = 'acyclic-minisat'
 assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3' or solver == 'monosat-baseline'
 logging.info(f'solver = {solver}')
 
-pruning_method = 'fast'
-assert pruning_method == 'fast' or pruning_method == 'normal' or pruning_method == 'none'
+pruning_method = 'basic'
+assert pruning_method == 'fast' or pruning_method == 'normal' or pruning_method == 'none' or pruning_method == 'basic'
 logging.info(f'pruning method = {pruning_method}')
 
 # on 926 ubuntu, it's okay to set n_threads to 4

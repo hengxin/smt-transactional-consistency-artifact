@@ -8,7 +8,7 @@ data_name = 'all'
 # 1. load NuSer data
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 result_path = os.path.join(root_path, 'results')
-data_path = os.path.join(result_path, f'PK-{data_name}' + '.json')
+data_path = os.path.join(result_path, f'test-results' + '.json')
 
 with open(data_path) as data:
   data = json.load(data)

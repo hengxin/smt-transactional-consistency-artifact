@@ -323,18 +323,19 @@ auto prune_basic_constraints(DependencyGraph &dependency_graph,
       auto r = vector<dynamic_bitset<>>{
           dependency_graph.num_vertices(),
           dynamic_bitset<>{dependency_graph.num_vertices()}};
-
-      for (auto &&v : reverse_topo_order.value()) {
-        r.at(v).set(v);
-
-        for (auto &&e : as_range(out_edges(v, known_graph))) {
-          auto v2 = target(e, known_graph);
-          // FIXME: is this !r.at(v)[v2] condition sufficient to this dynamic programming? 
-          // if (!r.at(v)[v2]) {
-          //   r.at(v) |= r.at(v2);
-          // }
-          r.at(v) |= r.at(v2);
+      int start;
+      
+      auto dfs = [&](auto &self, int x) -> void {
+        r.at(start).set(x);
+        for (auto &&e : as_range(out_edges(x, known_graph))) {
+          auto y = target(e, known_graph);
+          if (!r.at(start).test(y)) self(self, y);
         }
+      };
+
+      for (auto &v : reverse_topo_order.value()) {
+        start = v;
+        dfs(dfs, v);
       }
 
       return r;
