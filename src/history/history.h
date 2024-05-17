@@ -80,6 +80,8 @@ auto parse_dbcop_history(std::istream &is) -> History;
 auto parse_cobra_history(const std::string &history_dir) -> History;
 auto parse_elle_list_append_history(std::ifstream &is) -> std::pair<History, std::vector<std::tuple<int64_t, int64_t, int64_t>>>;
 
+auto analyze_repeat_values(const History &history) -> void;
+
 auto n_txns_of(History &history) -> int;
 auto n_rw_same_key_txns_of(History &history) -> int;
 auto n_written_key_txns_of(History &history) -> std::unordered_map<int64_t, int>;

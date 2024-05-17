@@ -174,6 +174,8 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
   static constexpr int64_t NULL_TXN_ID = 0xdeadbeefL;  
   static constexpr int64_t GC_WID_TRUE = 0x23332333L;
   static constexpr int64_t GC_WID_FALSE = 0x66666666L;
+  static constexpr int64_t UNIVERSAL_TXN_ID = 0xabddefeeL;
+  static constexpr int64_t UNIVERSAL_WRITE_ID = 0xabddefeeL;
   
   auto history = History{};
   auto init_writes = std::map<int64_t, int64_t>{};
@@ -275,7 +277,8 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
           auto write_id = read_int64_big_endian(in);
           auto key = read_int64_big_endian(in);
           auto value = read_int64_big_endian(in);
-          add_event(current, EventType::WRITE, key, get_cobra_hash({write_id, current->id, value}));
+          // add_event(current, EventType::WRITE, key, get_cobra_hash({write_id, current->id, value}));
+          add_event(current, EventType::WRITE, key, get_cobra_hash({write_id, UNIVERSAL_TXN_ID, value}));
           break;
         }
         case 'R': {
@@ -295,11 +298,13 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
                 // std::cout << "R (" << key << ", " << value << ")" << std::endl;
               }
               // TODO: init_writes.computeIfAbsent(key, k -> new CobraValue(key, INIT_TXN_ID, value))
-            } else if ((write_id != GC_WID_FALSE && write_id != GC_WID_TRUE) || write_txn_id != INIT_TXN_ID) {
-              throw std::runtime_error{"Invalid history: fail in read()!"};
-            }
+            } 
+            // else if ((write_id != GC_WID_FALSE && write_id != GC_WID_TRUE) || write_txn_id != INIT_TXN_ID) {
+            //   throw std::runtime_error{"Invalid history: fail in read()!"};
+            // }
           }
-
+          
+          // std::cerr << write_id << " " << write_txn_id << " " << value << " " << get_cobra_hash({write_id, write_txn_id, value});
           add_event(current, EventType::READ, key, get_cobra_hash({write_id, write_txn_id, value}));
           break;
         }
@@ -536,5 +541,21 @@ auto compute_history_meta_info(const History &history) -> HistoryMetaInfo {
 
   return history_meta_info;
 };
+
+auto analyze_repeat_values(const History &history) -> void {
+  auto writes_on_key_value = std::unordered_map<int64_t, std::unordered_map<int64_t, int>>{}; // key -> (to -> count)
+  bool unique_value = true;
+  for (const auto &[key, value, type, txn_id] : history.events()) {
+    if (type == EventType::READ) continue;
+    // type == EventType::Write
+    if (writes_on_key_value[key][value] != 0) unique_value = false;
+    writes_on_key_value[key][value]++;
+  }
+  if (unique_value) {
+    BOOST_LOG_TRIVIAL(debug) << "No multiple write on same (key, value). This history satisfies UniqueValue.";
+  } else {
+    BOOST_LOG_TRIVIAL(debug) << "Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue";
+  }
+}
 
 }  // namespace checker::history

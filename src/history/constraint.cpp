@@ -293,9 +293,8 @@ auto measuring_repeat_values(const Constraints &constraints) -> void {
   }
 
   if (n_wr_cons == n_unit_wr_cons) {
-    BOOST_LOG_TRIVIAL(debug) << "This history satisfies UniqueValue!";
+    BOOST_LOG_TRIVIAL(debug) << "This history may not satisfy UniqueValue. But there's no WR constraint.";
   } else {
-    BOOST_LOG_TRIVIAL(debug) << "This history does NOT satisfy UniqueValue!";
     BOOST_LOG_TRIVIAL(debug) << "#unit wr constraints = " << n_unit_wr_cons;
     BOOST_LOG_TRIVIAL(debug) << "unit wr ratio = " << 1.0 * n_unit_wr_cons / n_wr_cons;
     BOOST_LOG_TRIVIAL(debug) << "max wr length = " << max_wr_length;

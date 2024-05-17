@@ -178,6 +178,7 @@ auto main(int argc, char **argv) -> int {
   }
 
   if (args["--measuring-repeat-values"] == true) {
+    history::analyze_repeat_values(history);
     history::measuring_repeat_values(constraints);
   }
 
