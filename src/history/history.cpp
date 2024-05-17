@@ -279,7 +279,7 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
           auto value = read_int64_big_endian(in);
           // add_event(current, EventType::WRITE, key, get_cobra_hash({write_id, current->id, value}));
           add_event(current, EventType::WRITE, key, get_cobra_hash({write_id, UNIVERSAL_TXN_ID, value}));
-          std::cerr << 'W' << " " << write_id << " " << UNIVERSAL_TXN_ID << " " << value << " " << get_cobra_hash({write_id, UNIVERSAL_TXN_ID, value}) << "\n";
+          // std::cerr << 'W' << " " << write_id << " " << UNIVERSAL_TXN_ID << " " << value << " " << get_cobra_hash({write_id, UNIVERSAL_TXN_ID, value}) << "\n";
           break;
         }
         case 'R': {
@@ -292,7 +292,7 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
           
           if (write_txn_id == INIT_TXN_ID || write_txn_id == NULL_TXN_ID) {
             if (write_id == INIT_WRITE_ID || write_id == NULL_TXN_ID) {
-              // write_id = key;
+              // write_id = key; // FIXME: Compare with PolySI and check whether these changes will introduce error!
               write_txn_id = INIT_TXN_ID;
               if (!init_writes.contains(key)) {
                 init_writes[key] = get_cobra_hash({write_id, INIT_TXN_ID, value});
@@ -305,7 +305,7 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
             // }
           }
           
-          std::cerr << 'R' << " " << write_id << " " << write_txn_id << " " << value << " " << get_cobra_hash({write_id, write_txn_id, value}) << "\n";
+          // std::cerr << 'R' << " " << write_id << " " << write_txn_id << " " << value << " " << get_cobra_hash({write_id, write_txn_id, value}) << "\n";
           add_event(current, EventType::READ, key, get_cobra_hash({write_id, write_txn_id, value}));
           break;
         }
