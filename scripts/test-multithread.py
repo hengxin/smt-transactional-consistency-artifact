@@ -56,7 +56,9 @@ history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(histor
 logging.info(f'history path = {history_path}')
 
 # checker_path = os.path.join(root_path, 'builddir', 'checker')
-checker_path = os.path.join(root_path, 'builddir-release', 'checker')
+checker_path = os.path.join(root_path, 'builddir-release2', 'checker')
+if checker_path.find('release2'):
+  print('Warning! Running on release copy! May not be updated!')
 logging.info(f'checker path = {checker_path}')
 
 solver = 'acyclic-minisat'

@@ -23,7 +23,7 @@
 // use ICD algorithm default
 #define PK_TOPO_ALGORITHM 1
 
-// #define INIT_PAIR_CONFLICT 1
+#define INIT_PAIR_CONFLICT 1
 
 #define MONITOR_ENABLED 1
 

@@ -146,6 +146,11 @@ CRef AcyclicSolver::propagate() {
     bool cycle = false;
     for (const auto &v : vars_to_add) {
       cycle = !solver_helper->add_edges_of_var(v);
+      
+#ifdef MONITOR_ENABLED
+      Monitor::get_monitor()->add_edge_times++;
+#endif
+
       if (cycle) {
 #ifdef MONITOR_ENABLED
         Monitor::get_monitor()->find_cycle_times++;

@@ -309,8 +309,8 @@ auto measuring_repeat_values(const Constraints &constraints) -> void {
   for (const auto &[key, read, writes] : wr_cons) {
     unique_count += 1LL * writes.size() * (writes.size() - 1) / 2;
   }
-  BOOST_LOG_TRIVIAL(debug) << "# some constraint = " << some_count;
-  BOOST_LOG_TRIVIAL(debug) << "# unique constraint = " << unique_count;
+  BOOST_LOG_TRIVIAL(debug) << "#some constraint: " << some_count;
+  BOOST_LOG_TRIVIAL(debug) << "#unique constraint: " << unique_count;
 }
 
 auto operator<<(std::ostream &os, const WWConstraint &constraint)

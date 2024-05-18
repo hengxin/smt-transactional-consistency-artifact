@@ -261,6 +261,12 @@ auto main(int argc, char **argv) -> int {
     // display_constraints(constraints, "Constraints after Pruning:");
 
     if (pruned) {
+
+      if (args["--measuring-repeat-values"] == true) {
+        BOOST_LOG_TRIVIAL(debug) << "after pruning, remeasuring repeat values...";
+        history::measuring_repeat_values(constraints);
+      }
+
       auto curr_time = chrono::steady_clock::now();
       BOOST_LOG_TRIVIAL(info)
           << "prune time: "

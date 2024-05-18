@@ -37,7 +37,9 @@ void Monitor::show_statistics() {
     std::cerr << "width = " << width << ", count = " << count << std::endl;
   }
   std::cerr << std::endl;
-  if (find_cycle_times != 0) std::cerr << "avg var_edge/total_edge in cycles = " << 1.0 * var_divide_known_edge_ratio_sum / find_cycle_times << std::endl;
+  // if (find_cycle_times != 0) std::cerr << "avg var_edge/total_edge in cycles = " << 1.0 * var_divide_known_edge_ratio_sum / find_cycle_times << std::endl;
+  if (add_edge_times != 0) std::cerr << "find cycle times/add edge times = " << 1.0 * find_cycle_times / add_edge_times << "\n";
+
   // std::cerr << "#construct unit-edge propagation times = " << construct_uep_count << "\n";
   // if (construct_uep_count != 0) {
   //   std::cerr << "avg b size = " << 1.0 * uep_b_size_sum / construct_uep_count << ", "
