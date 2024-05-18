@@ -53,7 +53,7 @@ logging.info(f'history path = {history_path}')
 
 # checker_path = os.path.join(root_path, 'builddir', 'checker')
 checker_path = os.path.join(root_path, 'builddir-release', 'checker')
-if checker_path.find('release2'):
+if checker_path.find('release2') != -1:
   print('Warning! Running on release copy! May not be updated!')
 logging.info(f'checker path = {checker_path}')
 
@@ -72,7 +72,7 @@ logging.info(f'pruning method = {pruning_method}')
 n_threads = 1
 logging.info(f'use {n_threads} thread(s)')
 
-output_path = os.path.join(root_path, 'results', 'test-results2.json')
+output_path = os.path.join(root_path, 'results', 'new-general.json')
 logging.info(f'output path = {output_path}')
 
 # === global variables ===
@@ -162,7 +162,7 @@ def run_task(thread_id, task):
   current_task_id = current_task_progress.add_task("%s" % task, visible=False)
   current_task_steps_id = task_steps_progress.add_task("[bold blue]Thread %d: Running %s" % (thread_id, task))
 
-  if task.split(';')[0].endswith('-10k'):
+  if task.endswith('-10K'):
     history_type = 'cobra'
   else:
     history_type = 'dbcop'
