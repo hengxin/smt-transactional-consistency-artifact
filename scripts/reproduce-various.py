@@ -29,30 +29,30 @@ participants = [
   #   'name': 'no-reduce',
   #   'data_path': 'various+no-reduce'
   # },
-  # {
-  #   'name': 'baseline',
-  #   'data_path': 'various-baseline'
-  # },
+  {
+    'name': 'baseline',
+    'data_path': 'new-opt/various-baseline'
+  },
   # {
   #   'name': 'mono',
   #   'data_path': 'various+ours-mono'
   # },
   {
     'name': 'ours',
-    'data_path': 'various+'
+    'data_path': 'various-ours'
   },
-  {
-    'name': 'ours-HT',
-    'data_path': 'various+HT'
-  },
-  {
-    'name': 'ours-HT-HD',
-    'data_path': 'various+HT-HD'
-  },
-  {
-    'name': 'ours-HT-HD-R',
-    'data_path': 'various+HT-HD-R'
-  },
+  # {
+  #   'name': 'ours-HT',
+  #   'data_path': 'various+HT'
+  # },
+  # {
+  #   'name': 'ours-HT-HD',
+  #   'data_path': 'various+HT-HD'
+  # },
+  # {
+  #   'name': 'ours-HT-HD-R',
+  #   'data_path': 'various+HT-HD-R'
+  # },
 ]
 
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
@@ -63,13 +63,13 @@ experiment_set = [
     'id': 'a',
     'name': 'sessions', # ${name}.json is the output file
     'set': '{}_100_15_5000_0.5_r_0.5_100',
-    'param': [5, 10, 15, 20, 25, 30, 40, 50],
+    'param': [5, 10, 15, 20, 25, 30],
   },
   {
     'id': 'b',
     'name': 'txns',
     'set': '20_{}_15_5000_0.5_r_0.5_100',
-    'param': [10, 20, 30, 40, 50, 100, 150, 200, 250, 300, 400, 500],
+    'param': [10, 20, 30, 40, 50, 100, 150, 200, 250],
   },
   {
     'id': 'c',
@@ -81,14 +81,14 @@ experiment_set = [
     'id': 'd',
     'name': 'readpct', 
     'set': '20_100_15_5000_{}_r_0.5_100',
-    'param': [0.03, 0.05, 0.25, 0.5, 0.75, 0.95],
+    'param': [0.05, 0.25, 0.5, 0.75, 0.95],
   },
-  {
-    'id': 'e',
-    'name': 'zipf_s',
-    'set': '20_100_15_5000_0.5_r_{}_100',
-    'param': [0, 0.5, 1, 1.5, 2, 2.5, 4],
-  },
+  # {
+  #   'id': 'e',
+  #   'name': 'zipf_s',
+  #   'set': '20_100_15_5000_0.5_r_{}_100',
+  #   'param': [0, 0.5, 1, 1.5, 2, 2.5, 4],
+  # },
 ]
 
 def adjust_time(time): # ms -> s

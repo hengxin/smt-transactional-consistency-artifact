@@ -7,7 +7,7 @@
 
 // #define SKIP_BRIDGE 1
 
-#define ENCODE_WR_UNIQUE 1
+// #define ENCODE_WR_UNIQUE 1
 
 // #define OUTER_RW_DERIVATION 1
 
