@@ -16,8 +16,9 @@ namespace MinisatSI {
 
 bool init_pair_conflict(AcyclicSolver &solver) {
   Logger::log("[Init Pair Conflict]");
-  Logger::log("SER cycle may not be a SI cycle, this part is left to be implemented.");
-  return false;
+  // Logger::log("SER cycle may not be a SI cycle, this part is left to be implemented.");
+  // return false;
+
   Polygraph *polygraph = solver.get_polygraph();
   if (polygraph->n_vertices > 200000) {
     Logger::log(fmt::format(" - failed!  polygraph has {} vertices, > limit 100000", polygraph->n_vertices));
@@ -29,9 +30,22 @@ bool init_pair_conflict(AcyclicSolver &solver) {
   }
 
   Graph graph = Graph(polygraph->n_vertices);
-  for (const auto &[from, to, _] : polygraph->known_edges) {
-    graph.add_edge(from, to); // Graph helps handle duplicated edges
+  auto dep_edges = std::vector<std::pair<int, int>>{};
+  auto anti_dep_edges = std::vector<std::vector<int>>(polygraph->n_vertices, std::vector<int>{});
+
+  for (const auto &[from, to, type] : polygraph->known_edges) {
+    if (type != 3) { // dep edge, not RW
+      graph.add_edge(from, to); // Graph helps handle duplicated edges
+      dep_edges.emplace_back(from, to);
+    } else { // anti dep edge, RW
+      anti_dep_edges[from].emplace_back(to);
+    }
     // std::cout << "x" << from << " " << to << std::endl;
+  }
+  for (const auto &[from, dep_to] : dep_edges) {
+    for (const auto &anti_dep_to : anti_dep_edges[dep_to]) {
+      graph.add_edge(from, anti_dep_to);
+    }
   }
 
   auto conflict = [&polygraph, &graph](int v1, int v2) -> bool {
