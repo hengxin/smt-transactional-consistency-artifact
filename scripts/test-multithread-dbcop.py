@@ -56,7 +56,7 @@ logging.info(f'history path = {history_path}')
 
 # checker_path = os.path.join(root_path, 'builddir', 'checker')
 # checker_path = os.path.join(root_path, 'builddir-release', 'checker')
-checker_path = '/home/rikka/smt-baselines/dbcop-verifier/target/release/dbcop'
+checker_path = '/home/rikka/dbcop-verifier/target/release/dbcop'
 logging.info(f'checker path = {checker_path}')
 
 solver = 'dbcop'
