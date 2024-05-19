@@ -41,23 +41,24 @@ logging.basicConfig(
   filemode = 'w'  
 )
 
-history_type = 'dbcop' 
+history_type = 'cobra' 
+unique_value = True
 assert history_type == 'cobra' or history_type == 'dbcop'
 logging.info(f'history type = {history_type}')
 
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 logging.info(f'root path = {root_path}')
 # will run all histories under this path
-# history_path = history_path = os.path.join(root_path, 'history', 'ser',  '{}-logs'.format(history_type), 'one-shot-chengRW') 
+history_path = history_path = os.path.join(root_path, 'history', 'ser',  '{}-logs'.format(history_type), 'one-shot-chengRW') 
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'no-uv', 'polysi-fig7-like')
-history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'general-zipf')
+# history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'general-zipf')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'scalability4')
 logging.info(f'history path = {history_path}')
 
 # checker_path = os.path.join(root_path, 'builddir', 'checker')
-checker_path = os.path.join(root_path, 'builddir-release2', 'checker')
-if checker_path.find('release2'):
+checker_path = os.path.join(root_path, 'builddir-release', 'checker')
+if checker_path.find('release2') != -1:
   print('Warning! Running on release copy! May not be updated!')
 logging.info(f'checker path = {checker_path}')
 
@@ -66,7 +67,7 @@ solver = 'acyclic-minisat'
 assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3' or solver == 'monosat-baseline'
 logging.info(f'solver = {solver}')
 
-pruning_method = 'basic'
+pruning_method = 'fast'
 assert pruning_method == 'fast' or pruning_method == 'normal' or pruning_method == 'none' or pruning_method == 'unit' or pruning_method == 'basic'
 logging.info(f'pruning method = {pruning_method}')
 
@@ -172,7 +173,11 @@ def run_task(thread_id, task):
   else: # dbcop
     bincode_path = os.path.join(history_path, history_dir, 'hist-00000', 'history.bincode')
   
-  cmd = [checker_path, bincode_path, '--solver', solver, '--history-type', history_type]
+  input_history_type = history_type
+  if input_history_type == 'cobra' and unique_value:
+    input_history_type += '-uv'
+
+  cmd = [checker_path, bincode_path, '--solver', solver, '--history-type', input_history_type]
   if pruning_method != 'none':
     cmd.append('--pruning')
     cmd.append(pruning_method)

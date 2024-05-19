@@ -50,7 +50,7 @@ root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 logging.info(f'root path = {root_path}')
 # will run all histories under this path
 # history_path = history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'one-shot-chengRW') 
-history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
+history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'dumped-chengRW')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'polysi-fig7-like')
 logging.info(f'history path = {history_path}')
 
@@ -76,7 +76,7 @@ logging.info(f'use {n_threads} thread(s)')
 output_path = os.path.join(root_path, 'results', 'test-results.json')
 logging.info(f'output path = {output_path}')
 
-time_out = 7 * 60 # 7 min
+time_out = 500 # 7 min
 logging.info(f'time out = {time_out}')
 
 # === global variables ===
@@ -189,7 +189,7 @@ def run_task(thread_id, task):
   if history_type == 'cobra':
     bincode_path = str(os.path.join(history_path, history_dir)) + '/'
   else: # dbcop
-    bincode_path = str(os.path.join(history_path, history_dir, 'hist-00000')) + '/'
+    bincode_path = str(os.path.join(history_path, history_dir)) + '/'
   
   out_dir = '/tmp/'
   cmd = [checker_path, 'verify',

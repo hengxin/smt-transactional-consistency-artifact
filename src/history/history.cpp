@@ -160,7 +160,7 @@ auto parse_dbcop_history(std::istream &is) -> History {
   return history;
 }
 
-auto parse_cobra_history(const std::string &history_dir) -> History {
+auto parse_cobra_history(const std::string &history_dir, bool unique_value = false) -> History {
   fs::path history_dir_path{history_dir};
   if (!fs::exists(history_dir_path)) {
     std::ostringstream os;
@@ -277,8 +277,11 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
           auto write_id = read_int64_big_endian(in);
           auto key = read_int64_big_endian(in);
           auto value = read_int64_big_endian(in);
-          // add_event(current, EventType::WRITE, key, get_cobra_hash({write_id, current->id, value}));
-          add_event(current, EventType::WRITE, key, get_cobra_hash({write_id, UNIVERSAL_TXN_ID, value}));
+          if (unique_value) {
+            add_event(current, EventType::WRITE, key, get_cobra_hash({write_id, current->id, value}));
+          } else {
+            add_event(current, EventType::WRITE, key, get_cobra_hash({write_id, UNIVERSAL_TXN_ID, value}));
+          }
           // std::cerr << 'W' << " " << write_id << " " << UNIVERSAL_TXN_ID << " " << value << " " << get_cobra_hash({write_id, UNIVERSAL_TXN_ID, value}) << "\n";
           break;
         }
@@ -292,7 +295,7 @@ auto parse_cobra_history(const std::string &history_dir) -> History {
           
           if (write_txn_id == INIT_TXN_ID || write_txn_id == NULL_TXN_ID) {
             if (write_id == INIT_WRITE_ID || write_id == NULL_TXN_ID) {
-              // write_id = key; // FIXME: Compare with PolySI and check whether these changes will introduce error!
+              if (unique_value) write_id = key; // why = key? copied from PolySI
               write_txn_id = INIT_TXN_ID;
               if (!init_writes.contains(key)) {
                 init_writes[key] = get_cobra_hash({write_id, INIT_TXN_ID, value});

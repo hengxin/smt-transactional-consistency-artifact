@@ -77,7 +77,7 @@ auto compute_history_meta_info(const History &history) -> HistoryMetaInfo;
  * IS_WRITE, SUCCESS := bool
  */
 auto parse_dbcop_history(std::istream &is) -> History;
-auto parse_cobra_history(const std::string &history_dir) -> History;
+auto parse_cobra_history(const std::string &history_dir, bool unique_value) -> History;
 auto parse_elle_list_append_history(std::ifstream &is) -> std::pair<History, std::vector<std::tuple<int64_t, int64_t, int64_t>>>;
 
 auto analyze_repeat_values(const History &history) -> void;

@@ -103,7 +103,7 @@ auto main(int argc, char **argv) -> int {
   }
 
   auto history_type = args.get("--history-type");
-  const auto all_history_types = std::set<std::string>{"cobra", "dbcop", "elle-list-append"};
+  const auto all_history_types = std::set<std::string>{"cobra", "cobra-uv", "dbcop", "elle-list-append"};
   if (all_history_types.contains(history_type)) {
     BOOST_LOG_TRIVIAL(debug) << "history type: " << history_type;
   } else {
@@ -127,10 +127,10 @@ auto main(int argc, char **argv) -> int {
     }
 
     history = history::parse_dbcop_history(history_file);
-  } else if (history_type == "cobra") {
+  } else if (history_type == "cobra" || history_type == "cobra-uv") {
     auto history_dir = args.get("history");
     try {
-      history = history::parse_cobra_history(history_dir);
+      history = history::parse_cobra_history(history_dir, /* unique_value = */ history_type == "cobra-uv");
     } catch (const std::runtime_error &e) {
       std::cerr << e.what() << std::endl;
       return 1;
