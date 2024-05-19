@@ -41,23 +41,23 @@ logging.basicConfig(
   filemode = 'w'  
 )
 
-history_type = 'cobra' 
-unique_value = True
+history_type = 'dbcop' 
+unique_value = False
 assert history_type == 'cobra' or history_type == 'dbcop'
 logging.info(f'history type = {history_type}')
 
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 logging.info(f'root path = {root_path}')
 # will run all histories under this path
-history_path = history_path = os.path.join(root_path, 'history', 'ser',  '{}-logs'.format(history_type), 'one-shot-chengRW') 
+# history_path = history_path = os.path.join(root_path, 'history', 'ser',  '{}-logs'.format(history_type), 'one-shot-chengRW') 
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'no-uv', 'polysi-fig7-like')
-# history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'general-zipf')
+history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'memory')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'scalability4')
 logging.info(f'history path = {history_path}')
 
 # checker_path = os.path.join(root_path, 'builddir', 'checker')
-checker_path = os.path.join(root_path, 'builddir-release', 'checker')
+checker_path = os.path.join(root_path, 'builddir-release2', 'checker')
 if checker_path.find('release2') != -1:
   print('Warning! Running on release copy! May not be updated!')
 logging.info(f'checker path = {checker_path}')

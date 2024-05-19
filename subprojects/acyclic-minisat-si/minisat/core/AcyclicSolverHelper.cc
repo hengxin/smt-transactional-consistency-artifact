@@ -21,7 +21,7 @@ namespace MinisatSI {
 
 AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   polygraph = _polygraph;
-  icd_graph.init(polygraph->n_vertices, polygraph->n_vars);
+  icd_graph.init(polygraph->n_vertices, polygraph->n_vars, polygraph);
   conflict_clauses.clear();
   ww_to.assign(polygraph->n_vertices, {});
   wr_to.assign(polygraph->n_vertices, {});
@@ -148,10 +148,11 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   // initialize vars_heap, sorting by n_edges_of_var
   int n_vars = polygraph->n_vars;
   for (int i = 0; i < n_vars; i++) vars_heap.insert({known_induced_edges_of[i].size(), i});
+
+  assert(icd_graph.preprocess());
 }
 
 void AcyclicSolverHelper::add_var(int var) {
-  // TODO: test add_var()
   // add_var adds the var into vars_heap
   int n_edges = known_induced_edges_of[var].size();
   vars_heap.insert({n_edges, var});
@@ -159,7 +160,6 @@ void AcyclicSolverHelper::add_var(int var) {
 } 
 
 void AcyclicSolverHelper::remove_var(int var) {
-  // TODO: test remove_var()
   // remove_var removes the var from vars_heap
   int n_edges = known_induced_edges_of[var].size();
   if (vars_heap.contains({n_edges, var})) {
@@ -400,7 +400,7 @@ bool AcyclicSolverHelper::add_induced_dep_edge(int var, int from, int to, int de
     cycle = !icd_graph.add_edge(from, rw_to, {dep_reason, ww_reason, wr_reason});
     if (rw_to == from) assert(cycle); // selfloops directly drives to conflict
     if (cycle) goto inner_dep_conflict; // bad implementation!
-    added_induced_edges.push({from, to, {dep_reason, ww_reason, wr_reason}});
+    added_induced_edges.push({from, rw_to, {dep_reason, ww_reason, wr_reason}});
   }
   dep_edges_of[to].insert({from, dep_reason});
   return true;
@@ -476,7 +476,7 @@ void AcyclicSolverHelper::add_known_induced_anti_dep_edge(int from, int to) {
     icd_graph.add_known_edge(dep_from, to);
     assert(dep_from != to); // selfloop directly drives to conflict
   }
-  anti_dep_edges_of[from].insert({to, /* ww_reason = */ -1, /* wr_reaons = */ -1});
+  anti_dep_edges_of[from].insert({to, /* ww_reason = */ -1, /* wr_reason = */ -1});
 }
 
 void AcyclicSolverHelper::remove_induced_dep_edge(int var, int from, int to, int dep_reason) {
@@ -531,6 +531,8 @@ void AcyclicSolverHelper::construct_wr_cons_propagated_lits(int var) {
 }
 
 Polygraph *AcyclicSolverHelper::get_polygraph() { return polygraph; }
+
+const int AcyclicSolverHelper::get_level(int x) const { return icd_graph.get_level(x); }
 
 namespace Logger {
 

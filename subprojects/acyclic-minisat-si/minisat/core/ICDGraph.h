@@ -9,6 +9,7 @@
 
 #include "minisat/mtl/Vec.h"
 #include "minisat/core/SolverTypes.h"
+#include "minisat/core/Polygraph.h"
 
 namespace MinisatSI {
 
@@ -45,8 +46,11 @@ class ICDGraph {
   std::vector<int> level;
   std::vector<Lit> conflict_clause;
   std::vector<std::pair<Lit, std::vector<Lit>>> propagated_lits;
+  std::vector<bool> vis;
 
   std::vector<bool> assigned;
+
+  Polygraph *polygraph;
 
   // --- deprecated ---
   int check_cnt = 0;
@@ -65,9 +69,15 @@ class ICDGraph {
                                  std::vector<int> &backward_pred,
                                  int from, int to, std::tuple<int, int, int> reason);
 
+  void construct_dfs_cycle(int from, int to, std::vector<int> &pre, std::tuple<int, int, int> &reason);
+  void dfs_forward(int x, int upper_bound, std::vector<int> &forward_visit, std::vector<int> &pre, bool &cycle);
+  void dfs_backward(int x, int lower_bound, std::vector<int> &backward_visit);
+  void reorder(std::vector<int> &forward_visit, std::vector<int> &backward_visit);
+
+
 public:
   ICDGraph();
-  void init(int _n_vertices, int n_vars);
+  void init(int _n_vertices, int n_vars, Polygraph *_polygraph);
   void add_inactive_edge(int from, int to, std::tuple<int, int, int> reason);
   bool add_known_edge(int from, int to); // reason default set to (-1, -1)
   bool add_edge(int from, int to, std::tuple<int, int, int> reason); // add (from, to, label)
@@ -77,6 +87,8 @@ public:
   void set_var_assigned(int var, bool is_unassigned); 
   bool get_var_assigned(int var);
   // * note: this is a bad implementation, for ICDGraph's original responsibility prevent itself from seeing these info.
+  bool preprocess(); // call after known edges are initialized, return false if detect cycles(conflict)
+  const int get_level(int x) const;
 };
 
 } // namespace MinisatSI

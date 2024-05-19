@@ -19,6 +19,8 @@ class AcyclicSolver : public Solver {
   std::unordered_map<int, bool> added_var;
   std::unordered_map<int, std::unordered_set<int>> conflict_vars_of;
 
+  std::unordered_map<int, bool> cancelled;
+
   AcyclicSolverHelper *solver_helper;
 
 protected:

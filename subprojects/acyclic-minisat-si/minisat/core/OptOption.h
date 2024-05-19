@@ -13,6 +13,10 @@
 
 // #define LOGGER_ENABLED 1
 
+#define HEURISTIC_TOPO_ORDER 1
+
+#define PK_TOPO_ALGORITHM 1
+
 // WR constraint propagation
 #define ENABLE_WRCP 1 
 

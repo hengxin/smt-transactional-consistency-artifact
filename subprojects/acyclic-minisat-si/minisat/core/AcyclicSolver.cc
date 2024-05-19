@@ -213,8 +213,10 @@ void AcyclicSolver::cancelUntil(int level) {
     for (int c = trail.size() - 1; c >= trail_lim[level]; c--) {
       Var x = var(trail[c]);
       assigns[x] = l_Undef;
-      if (phase_saving > 1 || ((phase_saving == 1) && c > trail_lim.last()))
+      if (phase_saving > 1 || ((phase_saving == 1) && c > trail_lim.last())) {
         polarity[x] = sign(trail[c]);
+        cancelled[x] = true;
+      }
       insertVarOrder(x);
 
       // --- addon begin ---
@@ -456,6 +458,7 @@ Lit AcyclicSolver::pickBranchLit() {
         }
     }
 
+#ifndef HEURISTIC_TOPO_ORDER
     // Choose polarity based on different polarity modes (global or per-variable):
     if (next == var_Undef)
         return lit_Undef;
@@ -465,6 +468,32 @@ Lit AcyclicSolver::pickBranchLit() {
         return mkLit(next, drand(random_seed) < 0.5);
     else
         return mkLit(next, polarity[next]);
+#else
+    if (next == var_Undef) {
+      return lit_Undef;
+    } else {
+      if (cancelled.contains(next)) return mkLit(next, polarity[next]); // Var is defined as int
+
+      auto edge = [&](int v) -> std::pair<int, int> {
+        auto polygraph = solver_helper->get_polygraph();
+        if (polygraph->is_ww_var(v)) {
+          auto &[from, to, _] = polygraph->ww_info[v];
+          return {from, to};
+        } else if (polygraph->is_wr_var(v)) {
+          auto &&[from, to, _] = polygraph->wr_info[v];
+          return {from, to};
+        } 
+        assert(false);
+      };
+
+      auto [from, to] = edge(next);
+      if (solver_helper->get_level(from) < solver_helper->get_level(to)) {
+        return mkLit(next);
+      } else {
+        return ~mkLit(next);
+      }
+    }
+#endif
 }
 
 bool AcyclicSolver::solve() {
@@ -556,7 +585,5 @@ AcyclicSolver::~AcyclicSolver() { delete solver_helper; }
 AcyclicSolverHelper *AcyclicSolver::get_solver_helper() { return solver_helper; }
 
 Polygraph *AcyclicSolver::get_polygraph() { return solver_helper->get_polygraph(); }
-
-
 
 } // namespace MinisatSI
