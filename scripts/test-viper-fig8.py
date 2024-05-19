@@ -70,10 +70,10 @@ def run_single(history_dir):
     cmd = ['python3', checker_path, 
            '--config_file', config_path, 
            '--algo', '6', 
-           '--sub_dir', os.path.join(history_path, history_dir, 'json'),
+           '--sub_dir', os.path.join('./fig8', history_dir, 'json'),
            '--perf_file', './test_pertf.txt',
            '--exp_name', history_dir]
-    print(cmd)
+    # print(cmd)
     st_time = time.time()
     subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     ed_time = time.time()
