@@ -13,7 +13,7 @@ def var_name(p):
 history_type = 'cobra'
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 history_path = os.path.join(root_path, 'history', 'si', 'viper', 'logs', 'fig8')
-checker = 'viper'
+checker = 'polysi'
 if checker == 'polysi':
   checker_path = '/home/rikka/PolySI/build/libs/PolySI-1.0.0-SNAPSHOT.jar' # this is the absolute path of the built PolySI
 elif checker == 'nusi':
@@ -23,6 +23,8 @@ elif checker == 'nusi':
 elif checker == 'viper':
   checker_path = '/home/rikka/Viper/src/main_allcases.py'
   config_path = '/home/rikka/Viper/src/config.yaml'
+
+print(f'checker = {checker}')
 
 # params
 history_names = {
