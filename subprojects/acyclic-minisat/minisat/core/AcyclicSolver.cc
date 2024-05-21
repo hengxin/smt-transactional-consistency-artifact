@@ -201,6 +201,7 @@ CRef AcyclicSolver::propagate() {
           }
         }
         propagated_lits.clear();
+        // std::vector<std::pair<Lit, std::vector<Lit>>>().swap(propagated_lits);
       }
     }
   }

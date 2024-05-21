@@ -52,7 +52,7 @@ logging.info(f'root path = {root_path}')
 # history_path = history_path = os.path.join(root_path, 'history', 'ser',  '{}-logs'.format(history_type), 'one-shot-chengRW') 
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'no-uv', 'polysi-fig7-like')
-history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'memory')
+history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'memory2')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'scalability4')
 logging.info(f'history path = {history_path}')
 
@@ -60,6 +60,7 @@ logging.info(f'history path = {history_path}')
 checker_path = os.path.join(root_path, 'builddir-release2', 'checker')
 if checker_path.find('release2') != -1:
   print('Warning! Running on release copy! May not be updated!')
+  print('w/ theory propagation')
 logging.info(f'checker path = {checker_path}')
 
 solver = 'acyclic-minisat'
@@ -74,7 +75,7 @@ logging.info(f'pruning method = {pruning_method}')
 # on 926 ubuntu, it's okay to set n_threads to 4
 # on local virtual machine, n_threads is recommanded to be set to 3
 # a large n_threads may lead to the not-full-usage of a cpu core, or trigger processes being incorrectly killed due to the exceeded memory usage
-n_threads = 1
+n_threads = 2
 logging.info(f'use {n_threads} thread(s)')
 
 output_path = os.path.join(root_path, 'results', 'test-results2.json')
