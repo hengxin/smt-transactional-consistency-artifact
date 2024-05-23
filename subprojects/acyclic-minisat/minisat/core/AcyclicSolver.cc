@@ -186,22 +186,35 @@ CRef AcyclicSolver::propagate() {
 
         auto &propagated_lits = solver_helper->propagated_lits;
         for (const auto &[lit, reason_lits] : propagated_lits) {
-          if (value(lit) == l_Undef) {
+          if (value(var(lit)) == l_Undef) {
             re_propagate = true;
             vec<Lit> learnt_clause;
             learnt_clause.push(lit); // lit is always false
             for (const auto &l : reason_lits) {
               if (l != lit) learnt_clause.push(l);
             }
-            CRef cr = ca.alloc(learnt_clause, true);
+
+            auto get_or_allocate = [&](int v1, int v2) -> CRef {
+              if (v1 > v2) std::swap(v1, v2);
+              if (allocated_unique_clause.contains(v1) && allocated_unique_clause[v1].contains(v2)) {
+                return allocated_unique_clause[v1][v2];
+              }
+              vec<Lit> lits;
+              lits.push(~mkLit(v1)), lits.push(~mkLit(v2));
+              CRef cr = ca.alloc(lits, false);
+              return allocated_unique_clause[v1][v2] = cr;
+            };
+
+            CRef cr = ca.alloc(learnt_clause, false);
+            // CRef cr = get_or_allocate(var(learnt_clause[0]), var(learnt_clause[1]));
             uncheckedEnqueue(lit, cr);
 #ifdef MONITOR_ENABLED
             Monitor::get_monitor()->propagated_lit_times++;
 #endif
           }
         }
-        propagated_lits.clear();
-        // std::vector<std::pair<Lit, std::vector<Lit>>>().swap(propagated_lits);
+        // propagated_lits.clear();
+        std::vector<std::pair<Lit, std::vector<Lit>>>().swap(propagated_lits);
       }
     }
   }

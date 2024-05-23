@@ -22,6 +22,8 @@ class AcyclicSolver : public Solver {
 
   AcyclicSolverHelper *solver_helper;
 
+  std::unordered_map<int, std::unordered_map<int, CRef>> allocated_unique_clause; // v1 -> (v2 -> reason), assume v1 <= v2
+
 protected:
   void add_atom(int var);
   void newDecisionLevel(); // override

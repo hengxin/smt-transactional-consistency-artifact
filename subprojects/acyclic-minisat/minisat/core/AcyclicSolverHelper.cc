@@ -289,6 +289,7 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
 
   if (!cycle) {
     Logger::log(fmt::format(" - {} is successfully added", var));
+    // disable icd_graph's get_propagated_lits temporarily
     icd_graph.get_propagated_lits(propagated_lits);
     construct_wr_cons_propagated_lits(var);
     return true;
@@ -525,10 +526,33 @@ void AcyclicSolverHelper::construct_wr_cons_propagated_lits(int var) {
     Logger::log(fmt::format("- unit wr cons {}, end WRCP", var));
     return;
   }
+
+  // auto get_or_allocate = [&](int v1, int v2) -> CRef {
+  //   if (v1 > v2) std::swap(v1, v2);
+  //   if (allocated_unique_clause.contains(v1) && allocated_unique_clause[v1].contains(v2)) {
+  //     return allocated_unique_clause[v1][v2];
+  //   }
+  //   vec<Lit> lits;
+  //   lits.push(~mkLit(v1)), lits.push(~mkLit(v2));
+  //   CRef cr = ca->alloc(lits, false);
+  //   return allocated_unique_clause[v1][v2] = cr;
+  // };
+
+  auto mapped = [&](int v1, int v2) -> bool {
+    if (v1 > v2) std::swap(v1, v2);
+    if (allocated_unique_clause.contains(v1) && allocated_unique_clause[v1].contains(v2) && allocated_unique_clause[v1][v2]) {
+      return true;
+    }
+    allocated_unique_clause[v1][v2] = true;
+    return false;
+  };
+
   for (const auto &var2 : *wr_cons_ref) {
     if (icd_graph.get_var_assigned(var2)) continue;
+    // if (mapped(var, var2)) continue;
     Logger::log(fmt::format(" - prop (~{}) with reason (~{} | ~{})", var2, var, var2));
     propagated_lits.emplace_back(std::pair<Lit, std::vector<Lit>>{~mkLit(var2), {~mkLit(var), ~mkLit(var2)}});
+    // propagated_lits.emplace_back(std::pair<Lit, CRef>{~mkLit(var2), get_or_allocate(var, var2)});
   }
   Logger::log(fmt::format("- end of WRCP construction", var));
 #endif
