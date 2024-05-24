@@ -44,50 +44,6 @@ CRef AcyclicSolver::propagate() {
         vars_to_add.push_back(v);
       }
     }
-//     if (value(var(p)) == l_True) {
-//       int v = var(p);
-//       if (!added_var[v]) {
-
-// #ifdef MONITOR_ENABLED
-//         Monitor::get_monitor()->add_edge_times++;
-// #endif
-//         bool cycle = !solver_helper->add_edges_of_var(v);
-//         if (cycle) {
-
-// #ifdef MONITOR_ENABLED
-//           Monitor::get_monitor()->find_cycle_times++;
-// #endif
-//           auto &conflict_clause = solver_helper->conflict_clauses.back();
-//           vec<Lit> clause;
-//           for (Lit l : conflict_clause) clause.push(~l);
-
-// #ifdef MONITOR_ENABLED
-//           Monitor::get_monitor()->cycle_edge_count_sum += clause.size();
-// #endif
-
-//           // std::cerr << "Adding: " << v << "\n";
-//           // for (Lit l : conflict_clause) std::cerr << var(l) << "\n";
-//           // std::cerr << "\n";
-
-//           confl = ca.alloc(clause, false); 
-//           solver_helper->conflict_clauses.pop_back();
-//         } else {
-//           added_var[v] = true;
-//           add_atom(v);
-
-//           auto &propagated_lits = solver_helper->propagated_lits;
-//           for (Lit l : propagated_lits) {
-//             if (value(l) == l_Undef) {
-//               propagated_lits_trail.push(l);
-//               // uncheckedEnqueue(l);
-//             }
-//           } 
-//           propagated_lits.clear();
-//         }
-//       } 
-//     }
-
-    // ---addon end---
 
     for (i = j = (Watcher *)ws, end = i + ws.size(); i != end;) {
       // Try to avoid inspecting the clause:
@@ -195,7 +151,7 @@ CRef AcyclicSolver::propagate() {
             }
 
             auto get_or_allocate = [&](int v1, int v2) -> CRef {
-              if (v1 > v2) std::swap(v1, v2);
+              // if (v1 > v2) std::swap(v1, v2);
               if (allocated_unique_clause.contains(v1) && allocated_unique_clause[v1].contains(v2)) {
                 return allocated_unique_clause[v1][v2];
               }
