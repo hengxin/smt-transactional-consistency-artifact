@@ -53,7 +53,7 @@ logging.info(f'root path = {root_path}')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'no-uv', 'polysi-fig7-like')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'memory', '55')
-history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'key')
+history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'memory')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'scalability4')
 logging.info(f'history path = {history_path}')
 
@@ -79,7 +79,7 @@ logging.info(f'pruning method = {pruning_method}')
 n_threads = 2
 logging.info(f'use {n_threads} thread(s)')
 
-output_path = os.path.join(root_path, 'results', 'key-wo-o1-unbounded-complete.json')
+output_path = os.path.join(root_path, 'results', 'memory-wo-o1-unbounded-complete2.json')
 logging.info(f'output path = {output_path}')
 
 # === global variables ===
