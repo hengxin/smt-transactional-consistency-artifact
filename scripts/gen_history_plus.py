@@ -21,7 +21,7 @@ histories_to_be_added = [
   # '10_50_8_50_0.5_r_0.5_233',
   # '10_30_8_50_0.5_r_0.5_233',
   # '10_20_20_30_0.5_r_0.5_233',
-  '10_55_8_50_0.5_r_0.5_233',
+  # '10_55_8_50_0.5_r_0.5_233',
   # '10_40_8_35_0.5_r_0.5_233',
   # '10_40_8_40_0.5_r_0.5_233',
   # '10_40_8_45_0.5_r_0.5_233',
@@ -32,6 +32,14 @@ histories_to_be_added = [
   # '2_250_8_50_0.5_r_0.5_140',
   # '2_500_8_100_0.5_r_0.5_140',
   # '10_90_8_100_0.5_r_0.5_130',
+
+  # O1
+  '5_100_8_50_0.5_r_0.5_122',
+  '5_102_8_50_0.5_r_0.5_122',
+  '5_104_8_50_0.5_r_0.5_122',
+  '5_106_8_50_0.5_r_0.5_122',
+  '5_108_8_50_0.5_r_0.5_122',
+  '5_110_8_50_0.5_r_0.5_122',
 
   # General
   # '25_400_8_5000_0.3_r_0.5_100',
@@ -109,7 +117,7 @@ dbcop = '/home/rikka/dbcop-plus/target/release/dbcop'
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 # specific_path = 'dbcop-logs/no-uv/scalability4'
 # specific_path = 'dbcop-logs/key'
-specific_path = 'dbcop-logs/mem-many'
+specific_path = 'dbcop-logs/o1'
 # specific_path = 'dbcop-logs/tmp2'
 # specific_path = 'dbcop-logs/various'
 history_dir = os.path.join(root_path, 'history', 'ser', specific_path)
