@@ -42,12 +42,15 @@ histories_to_be_added = [
   # '5_110_8_50_0.5_r_0.5_122',
 
   # '10_30_8_50_0.5_r_0.5_1222',
-  # '10_30_12_50_0.5_r_0.5_1222',
+  '10_30_20_50_0.5_r_0.5_1233',
   # '10_20_12_50_0.5_r_0.5_1222',
-  '10_15_5_50_0.5_r_0.5_1222',
-  '10_15_10_50_0.5_r_0.5_1222',
-  '10_15_15_50_0.5_r_0.5_1222',
-  '10_15_20_50_0.5_r_0.5_1222',
+  # '10_30_5_50_0.5_r_0.5_1222',
+  # '10_30_8_50_0.5_r_0.5_1222',
+  # '10_30_15_50_0.5_r_0.5_1222',
+  # '10_30_10_50_0.5_r_0.5_1222',
+  # '10_30_12_50_0.5_r_0.5_1222',
+  # '10_30_16_50_0.5_r_0.5_1222',
+  # '25_100_50_1000_0.5_r_0.5_1233',
 
 
   # General
@@ -127,8 +130,8 @@ root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 # specific_path = 'dbcop-logs/no-uv/scalability4'
 # specific_path = 'dbcop-logs/key'
 # specific_path = 'dbcop-logs/o1'
-# specific_path = 'dbcop-logs/tmp3'
-specific_path = 'dbcop-logs/op'
+specific_path = 'dbcop-logs/tmp3'
+# specific_path = 'dbcop-logs/op2'
 # specific_path = 'dbcop-logs/various'
 history_dir = os.path.join(root_path, 'history', 'ser', specific_path)
 

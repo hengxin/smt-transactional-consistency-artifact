@@ -50,10 +50,11 @@ root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 logging.info(f'root path = {root_path}')
 # will run all histories under this path
 # history_path = history_path = os.path.join(root_path, 'history', 'ser',  '{}-logs'.format(history_type), 'one-shot-chengRW') 
-# history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
+# history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'uv')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'no-uv', 'polysi-fig7-like')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'memory', '55')
-history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'memory')
+# history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'memory')
+history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'op2')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'scalability4')
 logging.info(f'history path = {history_path}')
 
@@ -79,7 +80,8 @@ logging.info(f'pruning method = {pruning_method}')
 n_threads = 2
 logging.info(f'use {n_threads} thread(s)')
 
-output_path = os.path.join(root_path, 'results', 'mem-wo-o1-unbounded.json')
+# output_path = os.path.join(root_path, 'results', 'test-result.json')
+output_path = os.path.join(root_path, 'results', 'op2-wo-o1-unbounded.json')
 logging.info(f'output path = {output_path}')
 
 # === global variables ===
