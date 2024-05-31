@@ -1,0 +1,31 @@
+[2024-05-31 20:16:58.115183] [0x00007f0b8a240e00] [debug]   use acyclic-minisat as backend solver
+[2024-05-31 20:16:58.115215] [0x00007f0b8a240e00] [debug]   target isolation level: ser
+[2024-05-31 20:16:58.115221] [0x00007f0b8a240e00] [debug]   history type: cobra
+[2024-05-31 20:16:58.139713] [0x00007f0b8a240e00] [info]    #sessions: 9
+[2024-05-31 20:16:58.139746] [0x00007f0b8a240e00] [info]    #transactions: 10290
+[2024-05-31 20:16:58.139844] [0x00007f0b8a240e00] [info]    #events: 77086
+[2024-05-31 20:16:58.256762] [0x00007f0b8a240e00] [debug]   #ww constraints: 30959
+[2024-05-31 20:16:58.256801] [0x00007f0b8a240e00] [debug]   #wr constraints: 39306
+[2024-05-31 20:16:58.256805] [0x00007f0b8a240e00] [info]    #constraints: 70265
+[2024-05-31 20:16:58.299267] [0x00007f0b8a240e00] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2024-05-31 20:16:58.308535] [0x00007f0b8a240e00] [debug]   #unit wr constraints = 34765
+[2024-05-31 20:16:58.308575] [0x00007f0b8a240e00] [debug]   unit wr ratio = 0.884471
+[2024-05-31 20:16:58.308580] [0x00007f0b8a240e00] [debug]   max wr length = 39
+[2024-05-31 20:16:58.308583] [0x00007f0b8a240e00] [debug]   average wr length = 2.45359
+[2024-05-31 20:16:58.308587] [0x00007f0b8a240e00] [debug]   average wr length(w/o unit cons) = 13.582
+[2024-05-31 20:16:58.308771] [0x00007f0b8a240e00] [debug]   #some constraint: 70265
+[2024-05-31 20:16:58.308782] [0x00007f0b8a240e00] [debug]   #unique constraint: 747274
+[2024-05-31 20:16:58.324839] [0x00007f0b8a240e00] [info]    construct time: 209ms
+[2024-05-31 20:16:58.324863] [0x00007f0b8a240e00] [debug]   pruning method: unit
+[2024-05-31 20:16:58.403927] [0x00007f0b8a240e00] [debug]   #ww constraints after pruning: 30959
+[2024-05-31 20:16:58.403961] [0x00007f0b8a240e00] [debug]   #wr constraints after pruning: 4541
+[2024-05-31 20:16:58.408369] [0x00007f0b8a240e00] [debug]   after pruning, remeasuring repeat values...
+[2024-05-31 20:16:58.408418] [0x00007f0b8a240e00] [debug]   #unit wr constraints = 0
+[2024-05-31 20:16:58.408425] [0x00007f0b8a240e00] [debug]   unit wr ratio = 0
+[2024-05-31 20:16:58.408428] [0x00007f0b8a240e00] [debug]   max wr length = 39
+[2024-05-31 20:16:58.408432] [0x00007f0b8a240e00] [debug]   average wr length = 13.582
+[2024-05-31 20:16:58.408436] [0x00007f0b8a240e00] [debug]   average wr length(w/o unit cons) = 13.582
+[2024-05-31 20:16:58.408444] [0x00007f0b8a240e00] [debug]   #some constraint: 35500
+[2024-05-31 20:16:58.408447] [0x00007f0b8a240e00] [debug]   #unique constraint: 747274
+[2024-05-31 20:16:58.408452] [0x00007f0b8a240e00] [info]    prune time: 83ms
+[2024-05-31 20:16:58.429645] [0x00007f0b8a240e00] [info]    solver initializing time: 21ms
