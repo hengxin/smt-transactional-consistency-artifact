@@ -45,6 +45,8 @@ public:
   // getter
   AcyclicSolverHelper *get_solver_helper();
   Polygraph *get_polygraph();
+
+  std::vector<int> final_conflict;
 };
 } // namespace Minisat
 

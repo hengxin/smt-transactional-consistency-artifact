@@ -244,11 +244,19 @@ lbool AcyclicSolver::search(int nof_conflicts) {
     if (confl != CRef_Undef) {
       // CONFLICT
       conflicts++; conflictC++;
-      if (decisionLevel() == 0) {
-        // for (int i = qhead_backup; i < trail.size(); i++) {
-        //   std::cerr << var(trail[i]) << " " << std::boolalpha << (value(var(trail[i])) == l_True) << "\n";
-        // }
-        return l_False;
+      if (decisionLevel() == 0) { 
+
+#ifdef VISUALIZE_UNSAT_CONFLICT
+        final_conflict.clear();
+        Clause& conflict_clause = ca[confl]; 
+        for (int i = 0; i < conflict_clause.size(); i++) {
+          int v = var(conflict_clause[i]);
+          if (sign(conflict_clause[i])) v = -v;
+          final_conflict.emplace_back(v);
+        }
+#endif
+
+        return l_False; 
       } 
 
       learnt_clause.clear();
@@ -522,8 +530,26 @@ bool AcyclicSolver::simplify()
 {
     assert(decisionLevel() == 0);
 
-    if (!ok || propagate() != CRef_Undef)
+    // if (!ok || propagate() != CRef_Undef)
+    //     return ok = false;
+    if (!ok) return false;
+    {
+      CRef confl = propagate();
+      if (confl != CRef_Undef) {
+
+#ifdef VISUALIZE_UNSAT_CONFLICT
+        final_conflict.clear();
+        Clause& conflict_clause = ca[confl]; 
+        for (int i = 0; i < conflict_clause.size(); i++) {
+          int v = var(conflict_clause[i]);
+          if (sign(conflict_clause[i])) v = -v;
+          final_conflict.emplace_back(v);
+        }
         return ok = false;
+      }
+#endif
+
+    }
 
     if (nAssigns() == simpDB_assigns || (simpDB_props > 0))
         return true;

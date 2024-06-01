@@ -7,8 +7,11 @@ from rich.progress import track
 
 # === config ===
 
-n_hist = '1'
+n_hist = '12'
 histories_to_be_added = [
+  # '10_50_10_100_0.5_r_0.5_100',
+  '10_20_10_100_0.5_r_0.5_100',
+
   # Memory
   # '10_25_8_50_0.5_r_0.5_120',
   # '10_50_8_100_0.5_r_0.5_120',
@@ -51,7 +54,7 @@ histories_to_be_added = [
   # '10_30_12_50_0.5_r_0.5_1222',
   # '10_30_16_50_0.5_r_0.5_1222',
   # '25_100_50_1000_0.5_r_0.5_1233',
-  '20_500_8_2000_0.95_r_0.5_100',
+  # '20_500_8_2000_0.95_r_0.5_100',
 
 
   # General
@@ -131,10 +134,11 @@ root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 # specific_path = 'dbcop-logs/no-uv/scalability4'
 # specific_path = 'dbcop-logs/key'
 # specific_path = 'dbcop-logs/o1'
-specific_path = 'dbcop-logs/tmp3'
+specific_path = 'postgres'
 # specific_path = 'dbcop-logs/op2'
 # specific_path = 'dbcop-logs/various'
-history_dir = os.path.join(root_path, 'history', 'ser', specific_path)
+# history_dir = os.path.join(root_path, 'history', 'ser', specific_path)
+history_dir = os.path.join(root_path, 'history', 'si', specific_path)
 
 # === main thread ===
 gen_dir = '/tmp/gen'
@@ -189,8 +193,9 @@ for history in histories_to_be_added:
   
   os.mkdir(specific_path)
   for i in range(int(n_hist)):
-    assert i < 10
-    shutil.move(f'/tmp/hist/hist-0000{i}', os.path.join(specific_path, f'hist-0000{i}'))
+    assert i < 10000
+    name = f'hist-{i:05d}'
+    shutil.move(f'/tmp/hist/{name}', os.path.join(specific_path, name))
   
   
 

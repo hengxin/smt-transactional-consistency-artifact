@@ -61,6 +61,15 @@ bool am_solve_with_suggestion(int n_vertices, const KnownGraph &known_graph, con
   if (!S.simplify()) {
     Logger::log("[Conflict detected in simplify()!]");
     Logger::log(fmt::format("[Accept = {}]", false));
+
+#ifdef VISUALIZE_UNSAT_CONFLICT
+    assert(!S.final_conflict.empty());
+    // for (const int lit : S.final_conflict) {
+    //   std::cout << lit << ", ";
+    // }
+    // std::cout << std::endl;
+#endif
+
     return false; // UNSAT, decided by unit propagation
   } 
   show_model("Model after simplify()");
@@ -83,6 +92,15 @@ bool am_solve_with_suggestion(int n_vertices, const KnownGraph &known_graph, con
       }
     }
   }
+
+#ifdef VISUALIZE_UNSAT_CONFLICT
+  assert(!S.final_conflict.empty());
+  // for (const int lit : S.final_conflict) {
+  //   std::cout << lit << ", ";
+  // }
+  // std::cout << std::endl;
+#endif
+
   return accept;
 }
 
@@ -109,9 +127,10 @@ bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &
     ++test_round;
   } 
 
-  std::cout << "Solve Round = " << test_round << std::endl;
-  Logger::log(fmt::format("[Solve Round = {}]", test_round));
+  // std::cout << "Solve Round = " << test_round << std::endl;
+  // Logger::log(fmt::format("[Solve Round = {}]", test_round));
   Logger::log(fmt::format("[Eventual Accept = {}]", accept));
+
   return accept;
 }
 

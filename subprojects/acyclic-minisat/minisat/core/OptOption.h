@@ -3,6 +3,8 @@
 
 // optimization options switch here
 
+#define VISUALIZE_UNSAT_CONFLICT 1
+
 // #define CHECK_ACYCLICITY 1
 
 // #define SKIP_BRIDGE 1
@@ -16,14 +18,14 @@
 
 // #define REDUCE_KNOWN_GRAPH 1     
 
-// #define HEURISTIC_TOPO_ORDER 1
+#define HEURISTIC_TOPO_ORDER 1
 
 // #define HEURISTIC_DIST_INIT_TOPO 1
 
 // use ICD algorithm default
 #define PK_TOPO_ALGORITHM 1
 
-// #define INIT_PAIR_CONFLICT 1
+#define INIT_PAIR_CONFLICT 1
 
 #define MONITOR_ENABLED 1
 
