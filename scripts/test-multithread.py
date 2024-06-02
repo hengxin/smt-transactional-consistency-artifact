@@ -54,7 +54,8 @@ logging.info(f'root path = {root_path}')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'no-uv', 'polysi-fig7-like')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'memory', '55')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'memory')
-history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'op2')
+# history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'op2')
+history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'repeat-ratio', '1.5')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'scalability4')
 logging.info(f'history path = {history_path}')
 
@@ -77,11 +78,11 @@ logging.info(f'pruning method = {pruning_method}')
 # on 926 ubuntu, it's okay to set n_threads to 4
 # on local virtual machine, n_threads is recommanded to be set to 3
 # a large n_threads may lead to the not-full-usage of a cpu core, or trigger processes being incorrectly killed due to the exceeded memory usage
-n_threads = 2
+n_threads = 1
 logging.info(f'use {n_threads} thread(s)')
 
 # output_path = os.path.join(root_path, 'results', 'test-result.json')
-output_path = os.path.join(root_path, 'results', 'op2-wo-o1-unbounded.json')
+output_path = os.path.join(root_path, 'results', 'repeat-ratio-1.5.json')
 logging.info(f'output path = {output_path}')
 
 # === global variables ===
