@@ -7,10 +7,60 @@ from rich.progress import track
 
 # === config ===
 
-n_hist = '12'
+n_hist = '1'
 histories_to_be_added = [
   # '10_50_10_100_0.5_r_0.5_100',
-  '10_20_10_100_0.5_r_0.5_100',
+  # '10_20_10_100_0.5_r_0.5_100',
+
+  # Repeat Ratio
+  # '20_100_8_5000_0.5_r_0.5_100',
+  # '20_200_8_5000_0.5_r_0.5_100',
+  # '20_300_8_5000_0.5_r_0.5_100',
+  # '20_400_8_5000_0.5_r_0.5_100',
+  # '20_500_8_5000_0.5_r_0.5_100',
+  # '20_100_8_5000_0.5_uv_1_1',
+  # '20_200_8_5000_0.5_uv_1_1',
+  # '20_300_8_5000_0.5_uv_1_1',
+  # '20_400_8_5000_0.5_uv_1_1',
+  # '20_500_8_5000_0.5_uv_1_1',
+  # '20_100_8_5000_0.5_r_0.5_100',
+  # '20_200_8_5000_0.5_r_0.5_100',
+  # '20_300_8_5000_0.5_r_0.5_100',
+  # '20_400_8_5000_0.5_r_0.5_100',
+  # '20_500_8_5000_0.5_r_0.5_100',
+  # '20_100_8_5000_0.5_r_0.7_100',
+  # '20_200_8_5000_0.5_r_0.7_100',
+  # '20_300_8_5000_0.5_r_0.7_100',
+  # '20_400_8_5000_0.5_r_0.7_100',
+  # '20_500_8_5000_0.5_r_0.7_100',
+  # '20_100_8_5000_0.5_r_0.9_100',
+  # '20_200_8_5000_0.5_r_0.9_100',
+  # '20_300_8_5000_0.5_r_0.9_100',
+  # '20_400_8_5000_0.5_r_0.9_100',
+  # '20_500_8_5000_0.5_r_0.9_100',
+  # '20_100_8_5000_0.5_r_1.1_100',
+  # '20_200_8_5000_0.5_r_1.1_100',
+  # '20_300_8_5000_0.5_r_1.1_100',
+  # '20_400_8_5000_0.5_r_1.1_100',
+  # '20_500_8_5000_0.5_r_1.1_100',
+  # '20_100_8_5000_0.5_r_1.3_100',
+  # '20_200_8_5000_0.5_r_1.3_100',
+  # '20_300_8_5000_0.5_r_1.3_100',
+  # '20_400_8_5000_0.5_r_1.3_100',
+  # '20_500_8_5000_0.5_r_1.3_100',
+  '20_100_8_5000_0.5_r_1.5_100',
+  '20_200_8_5000_0.5_r_1.5_100',
+  '20_300_8_5000_0.5_r_1.5_100',
+  '20_400_8_5000_0.5_r_1.5_100',
+  '20_500_8_5000_0.5_r_1.5_100',
+  # '20_500_8_5000_0.5_r_1.5_100',
+  # '20_500_8_5000_0.5_r_0.5_100',
+  # '20_500_8_5000_0.5_r_0.7_100',
+  # '20_500_8_5000_0.5_r_0.9_100',
+  # '20_500_8_5000_0.5_r_1.1_100',
+  # '20_500_8_5000_0.5_r_1.3_100',
+  # '20_500_8_5000_0.5_r_0.3_100',
+  
 
   # Memory
   # '10_25_8_50_0.5_r_0.5_120',
@@ -134,11 +184,13 @@ root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 # specific_path = 'dbcop-logs/no-uv/scalability4'
 # specific_path = 'dbcop-logs/key'
 # specific_path = 'dbcop-logs/o1'
-specific_path = 'postgres'
+# specific_path = 'postgres'
 # specific_path = 'dbcop-logs/op2'
 # specific_path = 'dbcop-logs/various'
-# history_dir = os.path.join(root_path, 'history', 'ser', specific_path)
-history_dir = os.path.join(root_path, 'history', 'si', specific_path)
+# specific_path = 'dbcop-logs/tmp3'
+specific_path = 'dbcop-logs/repeat-ratio/1.5'
+history_dir = os.path.join(root_path, 'history', 'ser', specific_path)
+# history_dir = os.path.join(root_path, 'history', 'si', specific_path)
 
 # === main thread ===
 gen_dir = '/tmp/gen'
@@ -173,7 +225,7 @@ for history in histories_to_be_added:
                   '-e', n_evts,
                   '-v', n_keys,
                   '--readp', read_p,
-                  '--key_distrib', 'uniform',
+                  '--key_distrib', 'zipf',
                   '--repeat_value',
                   '-s', zipf_s,
                   '-N', zipf_N,
@@ -185,6 +237,7 @@ for history in histories_to_be_added:
                   '-e', n_evts,
                   '-v', n_keys,
                   '--readp', read_p,
+                  '--key_distrib', 'zipf',
                   '--nhist', n_hist]
   subprocess.run(cmd) 
   # will gen hist-00000.bincode under /tmp/gen

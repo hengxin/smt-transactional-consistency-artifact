@@ -250,7 +250,7 @@ lbool AcyclicSolver::search(int nof_conflicts) {
         final_conflict.clear();
         Clause& conflict_clause = ca[confl]; 
         for (int i = 0; i < conflict_clause.size(); i++) {
-          int v = var(conflict_clause[i]);
+          int v = var(conflict_clause[i]) + 1;
           if (sign(conflict_clause[i])) v = -v;
           final_conflict.emplace_back(v);
         }
@@ -541,13 +541,13 @@ bool AcyclicSolver::simplify()
         final_conflict.clear();
         Clause& conflict_clause = ca[confl]; 
         for (int i = 0; i < conflict_clause.size(); i++) {
-          int v = var(conflict_clause[i]);
+          int v = var(conflict_clause[i]) + 1;
           if (sign(conflict_clause[i])) v = -v;
           final_conflict.emplace_back(v);
         }
         return ok = false;
-      }
 #endif
+      }
 
     }
 

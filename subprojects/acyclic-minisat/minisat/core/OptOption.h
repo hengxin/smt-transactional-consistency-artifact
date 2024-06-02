@@ -3,13 +3,13 @@
 
 // optimization options switch here
 
-#define VISUALIZE_UNSAT_CONFLICT 1
+// #define VISUALIZE_UNSAT_CONFLICT 1
 
 // #define CHECK_ACYCLICITY 1
 
 // #define SKIP_BRIDGE 1
 
-#define ENCODE_WR_UNIQUE 1
+// #define ENCODE_WR_UNIQUE 1
 
 // #define OUTER_RW_DERIVATION 1
 
@@ -32,7 +32,7 @@
 // #define LOGGER_ENABLED 1
 
 // WR constraint propagation
-// #define ENABLE_WRCP 1 
+#define ENABLE_WRCP 1 
 
 // #define ENABLE_UEP 1
 // !NOT Implemented
