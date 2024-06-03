@@ -11,9 +11,11 @@
 
 #define HARD_CODING_LO_WW 1
 
+#define HARD_CODING_WR_VALUE 1
+
 // #define MONITOR_ENABLED 1
 
-// #define LOGGER_ENABLED 1
+#define LOGGER_ENABLED 1
 
 // WR constraint propagation
 #define ENABLE_WRCP 1 

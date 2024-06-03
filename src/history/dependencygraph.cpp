@@ -32,7 +32,8 @@ auto known_graph_of(const History &history, const HistoryMetaInfo &history_meta)
     end_node,
     write_node,
     read_node,
-    event_value
+    event_value,
+    read_length
   ] = history_meta;
   auto graph = DependencyGraph{};
 

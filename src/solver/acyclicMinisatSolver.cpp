@@ -78,9 +78,9 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
   }
   
   // 3. copy history meta info
-  n_sessions = history_meta_info.n_sessions;
-  n_total_transactions = history_meta_info.n_total_transactions;
-  n_total_events = history_meta_info.n_total_events;
+  n_sessions = history_meta_info.n_sessions; // now 0
+  n_total_transactions = history_meta_info.n_total_transactions; // now 0
+  n_total_events = history_meta_info.n_total_events; // now 0
   
   // auto map_composite = [](
   //   const std::unordered_map<int64_t, int> &node_id, 
@@ -96,6 +96,14 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
   // write_steps = map_composite(node_id, history_meta_info.write_steps);
   // read_steps = map_composite(node_id, history_meta_info.read_steps);
   write_steps = read_steps = {}; // disable heuristic pruning
+
+  read_length = {};
+  for (const auto &[txn_id, key_map] : history_meta_info.read_length) {
+    auto node_id = remap(txn_id);
+    for (const auto &[key, length] : key_map) {
+      read_length[node_id][key] = (int)length;
+    }
+  }
 }
 
 /*
@@ -233,7 +241,7 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
 auto AcyclicMinisatSolver::solve() -> bool {
   bool ret = true;
   if (target_isolation_level == "ser") {
-    ret = Minisat::am_solve(n_vertices, am_known_graph, am_constraints, n_sessions, n_total_transactions, n_total_events, write_steps, read_steps);
+    ret = Minisat::am_solve(n_vertices, am_known_graph, am_constraints, n_sessions, n_total_transactions, n_total_events, write_steps, read_steps, read_length);
   } else if (target_isolation_level == "si") {
     // TODO: heuristic pruning in SI
     ret = MinisatSI::am_solve(n_vertices, am_known_graph, am_constraints);

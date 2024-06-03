@@ -37,6 +37,7 @@ using checker::history::WWConstraint;
 using checker::history::WRConstraint;
 using checker::history::Constraints;
 using checker::history::DependencyGraph;
+using checker::history::InstrumentedHistory;
 using checker::history::EdgeType;
 using checker::history::EdgeInfo;
 using checker::utils::as_range;
@@ -57,7 +58,23 @@ namespace chrono = std::chrono;
 namespace checker::solver {
 
 auto fast_prune_constraints(DependencyGraph &dependency_graph,
-                            Constraints &constraints) -> bool {
+                            Constraints &constraints,
+                            const InstrumentedHistory &ins_history) -> bool {
+  
+  auto read_length = unordered_map<int64_t, unordered_map<int64_t, unsigned>>{}; // txn_id -> (key -> length)
+  for (const auto &[txn_id, key, rvs] : ins_history.observer_txns) {
+    assert(!read_length.contains(txn_id) || !read_length.at(txn_id).contains(key));
+    read_length[txn_id][key] = rvs.size();
+  }
+  for (const auto &[txn_id, ops] : ins_history.participant_txns) {
+    for (const auto &[key, op] : ops) {
+      if (op.read_values) {
+        assert(!read_length.contains(txn_id) || !read_length.at(txn_id).contains(key));
+        read_length[txn_id][key] = op.read_values->size();
+      }
+    }
+  }
+
   auto &[ww_constraints, wr_constraints] = constraints;
   auto pruned_ww_constraints = unordered_set<WWConstraint *>{};
   auto not_pruned_ww = filter([&](auto &&c) { return !pruned_ww_constraints.contains(&c); });
@@ -74,7 +91,7 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
   auto &&i_vertex_map = unordered_map<int, int64_t>{}; // inversed vertex map
   for (auto &&[v, desc] : vertex_map) i_vertex_map[desc] = v; 
 
-  // 0. get LO info
+  // 0.1 get LO info
   auto observers = unordered_set<int64_t>{};
   auto next_lo = unordered_map<int64_t, int64_t>{};
   auto prev_lo = unordered_map<int64_t, int64_t>{};
@@ -115,6 +132,9 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
       }
     }
   }
+
+  // 0.2 init WR-Value info
+  auto wr_from = unordered_map<int64_t, unordered_map<unsigned, int64_t>>{}; // key -> (length -> (read from)txn_id)
   
   auto rw_edges = unordered_map<int64_t, unordered_map<int64_t, unordered_set<int64_t>>> {}; // (from, to) -> keys
   auto add_dep_edge = [&](int64_t from, int64_t to, EdgeInfo info) -> void {
@@ -173,6 +193,14 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
       });
       if (observers.contains(read)) {
         add_lo_wr_edge(*writes.begin(), read);
+      }
+      {
+        auto length = read_length.at(read).at(key);
+        if (wr_from.contains(key) && wr_from[key].contains(length) && wr_from[key][length] != *writes.begin()) {
+          BOOST_LOG_TRIVIAL(debug) << "conflict found of WR Value in pruning unit wr constraints";
+          return false;
+        } 
+        wr_from[key][length] = *writes.begin();
       }
       pruned_wr_constraints.emplace(&c);
       BOOST_LOG_TRIVIAL(trace) << "pruned unit wr constraint, added cons: " 
@@ -452,6 +480,25 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
       time = chrono::steady_clock::now();
 
       auto &[key, read_txn_id, write_txn_ids] = c;
+
+      // check WR Value first
+      {
+        auto length = read_length.at(read_txn_id).at(key);
+        if (wr_from.contains(key) && wr_from[key].contains(length)) {
+          auto from_txn_id = wr_from[key][length];
+          if (!write_txn_ids.contains(from_txn_id)) {
+            BOOST_LOG_TRIVIAL(debug) << "conflict found in WR Value";
+            return false;
+          }
+          add_wr_edges(from_txn_id, read_txn_id, key);
+          pruned_wr_constraints.emplace(&c);
+          BOOST_LOG_TRIVIAL(trace) << "pruned wr constraint, added cons: " 
+                                  << c;
+          continue;
+        }
+      }
+
+      // then the normal pruning process
       auto erased_wids = vector<int64_t>{};
       for (auto write_txn_id : write_txn_ids) {
         if (!check_wr_edges(write_txn_id, read_txn_id, key)) {
@@ -487,6 +534,13 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
         time = chrono::steady_clock::now();
 
         add_wr_edges(*write_txn_ids.begin(), read_txn_id, key);
+
+        {
+          // update wr_from
+          auto length = read_length.at(read_txn_id).at(key);
+          assert(!wr_from.contains(key) || !wr_from.at(key).contains(length));
+          wr_from[key][length] = *write_txn_ids.begin();
+        }
 
         {
           auto curr_time = chrono::steady_clock::now();

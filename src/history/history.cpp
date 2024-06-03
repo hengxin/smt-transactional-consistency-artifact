@@ -758,4 +758,24 @@ auto compute_history_meta_info(const History &history) -> HistoryMetaInfo {
   return history_meta_info;
 };
 
+auto compute_history_meta_info(const InstrumentedHistory &ins_history) -> HistoryMetaInfo {
+  // only consider read_length now
+  auto history_meta_info = HistoryMetaInfo{};
+  auto &read_length = history_meta_info.read_length; // txn_id -> (key -> length)
+  for (const auto &[txn_id, key, rvs] : ins_history.observer_txns) {
+    assert(!read_length.contains(txn_id) || !read_length.at(txn_id).contains(key));
+    read_length[txn_id][key] = rvs.size();
+  }
+  for (const auto &[txn_id, ops] : ins_history.participant_txns) {
+    for (const auto &[key, op] : ops) {
+      if (op.read_values) {
+        assert(!read_length.contains(txn_id) || !read_length.at(txn_id).contains(key));
+        read_length[txn_id][key] = op.read_values->size();
+      }
+    }
+  }
+  return history_meta_info;
+}
+
+
 }  // namespace checker::history

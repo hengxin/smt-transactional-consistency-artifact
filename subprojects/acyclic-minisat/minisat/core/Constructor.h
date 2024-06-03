@@ -20,7 +20,8 @@ namespace Minisat {
 Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constraints &constraints, AcyclicSolver &solver, std::vector<Lit> &unit_lits, 
                      int suggest_distance,
                      const std::unordered_map<int, std::unordered_map<int64_t, int>> &write_steps, 
-                     const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps) {
+                     const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps,
+                     const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_length) {
   Polygraph *polygraph = new Polygraph(n_vertices); // unused n_vars
 
   Logger::log("[Known Graph]");
@@ -94,8 +95,8 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
     } 
   }
 
-  Logger::log(fmt::format("suggest ww count = {}", suggest_ww_cnt));
-  std::cout << "suggest ww cnt = " << suggest_ww_cnt << std::endl;
+  // Logger::log(fmt::format("suggest ww count = {}", suggest_ww_cnt));
+  // std::cout << "suggest ww cnt = " << suggest_ww_cnt << std::endl;
 
   Logger::log("[2. WR Constraints]");
 
@@ -104,7 +105,15 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
     return -1;
   };
 
+  auto same_key_length_wr_constraints = std::unordered_map<int64_t, std::unordered_map<int, std::vector<WRConstraint>>>{}; // key -> (length -> {wr cons})
   for (const auto &[read, writes, key] : wr_cons) {
+    #ifdef HARD_CODING_WR_VALUE
+      {
+        auto length = read_length.at(read).at(key);
+        same_key_length_wr_constraints[key][length].emplace_back(read, writes, key);
+      }
+    #endif
+
     vec<Lit> lits;
     auto cons = std::vector<int>{};
     for (const auto &write : writes) {
@@ -213,6 +222,35 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
             lits.push(~mkLit(wr_v1)), lits.push(~mkLit(wr_v2)), lits.push(mkLit(ww_v));
             solver.addClause_(lits);
             Logger::log(Logger::lits2str(lits));
+          }
+        }
+      }
+    }
+  }
+#endif
+
+#ifdef HARD_CODING_WR_VALUE
+  Logger::log("[4. WR Value Constraints]");
+  for (const auto &[key, length_map] : same_key_length_wr_constraints) {
+    for (const auto &[length, wr_constraints] : length_map) {
+      auto num = wr_constraints.size();
+      if (num == 1) continue;
+      for (unsigned i = 0; i < num; i++) {
+        const auto &[r1, writes1, key1] = wr_constraints[i];
+        for (unsigned j = i + 1; j < num; j++) {
+          const auto &[r2, writes2, key2] = wr_constraints[j];
+          assert(key1 == key2);
+          for (const auto w1 : writes1) {
+            for (const auto w2 : writes2) {
+              // really expansive...
+              if (w1 == w2) continue;
+              vec<Lit> lits;
+              int v1 = polygraph->wr_var_of.at(w1).at(r1).at(key1);
+              int v2 = polygraph->wr_var_of.at(w2).at(r2).at(key2);
+              lits.push(~mkLit(v1)); lits.push(~mkLit(v2));
+              solver.addClause_(lits);
+              Logger::log(Logger::lits2str(lits));
+            }
           }
         }
       }

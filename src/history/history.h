@@ -102,9 +102,11 @@ struct HistoryMetaInfo {
   unordered_map<int64_t, int64_t> write_node; // event_id -> node_id for write event
   unordered_map<int64_t, unordered_map<int64_t, int64_t>> read_node; // event_id -> (index -> node_id) for read event
   unordered_map<int64_t, int64_t> event_value; // node_id -> value(write_value or a single read_value)
+  unordered_map<int64_t, unordered_map<int64_t, unsigned>> read_length; // txn_id -> (key -> read value length)
 };
 
 auto compute_history_meta_info(const History &history) -> HistoryMetaInfo;
+auto compute_history_meta_info(const InstrumentedHistory &ins_history) -> HistoryMetaInfo;
 
 /**
  * Read history from an input stream. The history is in dbcop format.

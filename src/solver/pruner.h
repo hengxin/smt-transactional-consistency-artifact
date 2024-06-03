@@ -11,7 +11,8 @@ auto prune_constraints(history::DependencyGraph &dependency_graph,
                        history::Constraints &constraints) -> bool;
 
 auto fast_prune_constraints(history::DependencyGraph &dependency_graph,
-                       history::Constraints &constraints) -> bool;
+                       history::Constraints &constraints,
+                       const history::InstrumentedHistory &ins_history) -> bool;
 
 auto prune_si_constraints(history::DependencyGraph &dependency_graph,
                        history::Constraints &constraints) -> bool;

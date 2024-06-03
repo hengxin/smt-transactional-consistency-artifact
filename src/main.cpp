@@ -175,9 +175,7 @@ auto main(int argc, char **argv) -> int {
     logger << "instrumented history: " << ins_history;
   }
 
-  // TODO: history meta info
-  auto history_meta_info = history::compute_history_meta_info(history);
-  
+  // TODO: history meta info  
   // compute known graph (WR edges) and constraints from history
   auto dependency_graph = history::known_graph_of(ins_history);
 
@@ -195,6 +193,8 @@ auto main(int argc, char **argv) -> int {
     std::cout << "accept: " << std::boolalpha << accept << std::endl;
     return 0;
   }
+
+  auto history_meta_info = history::compute_history_meta_info(ins_history);
 
   {
     auto curr_time = chrono::steady_clock::now();
@@ -232,7 +232,7 @@ auto main(int argc, char **argv) -> int {
     } else if (pruning_method == "fast") {
       // must use fast pruning
       if (isolation_level == "ser") {
-        accept = solver::fast_prune_constraints(dependency_graph, constraints);
+        accept = solver::fast_prune_constraints(dependency_graph, constraints, ins_history);
       } else if (isolation_level == "si") {
         accept = solver::fast_prune_si_constraints(dependency_graph, constraints); // hard encode, bad implementation!
       }

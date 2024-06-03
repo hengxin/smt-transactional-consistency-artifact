@@ -16,8 +16,9 @@ bool am_solve_with_suggestion(int n_vertices, const KnownGraph &known_graph, con
                               int suggest_distance,
                               // history meta info
                               const std::unordered_map<int, std::unordered_map<int64_t, int>> &write_steps,
-                              const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps) {
-  Logger::log(fmt::format("[Acyclic Minisat QxQ starts a new solving pass with suggest_distance = {}]", suggest_distance));
+                              const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps, 
+                              const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_length) {
+  Logger::log(fmt::format("[Acyclic Minisat starts a new solving pass with suggest_distance = {}]", suggest_distance));
   AcyclicSolver S;
   auto show_model = [&S](std::string model_name = "Model") -> void {
     Logger::log(fmt::format("[{}]", model_name));
@@ -33,7 +34,7 @@ bool am_solve_with_suggestion(int n_vertices, const KnownGraph &known_graph, con
 
   auto unit_lits = std::vector<Lit>{};
   // This is a BAD Implementation, for we have to resolve the cycle dependency conflict of adding unit clauses into theory solver and initialization of SAT solver
-  Polygraph *polygraph = construct(n_vertices, known_graph, constraints, S, unit_lits, suggest_distance, write_steps, read_steps);
+  Polygraph *polygraph = construct(n_vertices, known_graph, constraints, S, unit_lits, suggest_distance, write_steps, read_steps, read_length);
   AcyclicSolverHelper *solver_helper = nullptr;
   try {
     solver_helper = new AcyclicSolverHelper(polygraph);
@@ -86,7 +87,8 @@ bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &
               // history meta info
               const int n_sessions, const int n_total_transactions, const int n_total_events,
               const std::unordered_map<int, std::unordered_map<int64_t, int>> &write_steps,
-              const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps) {
+              const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps,
+              const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_length) {
   Logger::log("[Acyclic Minisat QxQ]");
 
   bool accept = false;
@@ -99,8 +101,8 @@ bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &
   //   if (accept) break;
   // }
   if (!accept) {
-    std::cout << "suggest dist = -1\n";
-    accept = am_solve_with_suggestion(n_vertices, known_graph, constraints, /* dist = */ -1, write_steps, read_steps);
+    // std::cout << "suggest dist = -1\n";
+    accept = am_solve_with_suggestion(n_vertices, known_graph, constraints, /* dist = */ -1, write_steps, read_steps, read_length);
     // ++test_round;
   } 
 
