@@ -9,18 +9,19 @@ from rich.progress import track
 
 n_hist = '3'
 histories_to_be_added = [
-  '20_100_10_2000_0.5_r_0.5_100',
-  '20_200_10_2000_0.5_r_0.5_100',
-  '20_300_10_2000_0.5_r_0.5_100',
-  '20_400_10_2000_0.5_r_0.5_100',
-  '20_500_10_2000_0.5_r_0.5_100',
+  '20_250_10_8000_0.5_r_0.5_100',
+  '20_500_10_8000_0.5_r_0.5_100',
+  '20_750_10_8000_0.5_r_0.5_100',
+  '20_800_10_8000_0.5_r_0.5_100',
+  '20_900_10_8000_0.5_r_0.5_100',
+  '20_1000_10_8000_0.5_r_0.5_100',
 ]
 
 dbcop = '/home/rikka/dbcop-plus/target/release/dbcop'
 
 # under history/${specific-logs}/${history_name}/hist-00000/history.bincode
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
-specific_path = 'general-list-append/same-listappend-rw'
+specific_path = 'general-list-append/same-listappend-rw-big'
 history_dir = os.path.join(root_path, 'history', 'ser', specific_path)
 # history_dir = os.path.join(root_path, 'history', 'si', specific_path)
 
@@ -73,10 +74,16 @@ for history in histories_to_be_added:
                   '--nhist', n_hist]
   subprocess.run(cmd) 
   # will gen hist-00000.bincode under /tmp/gen
+  os.mkdir(specific_path)
+  for i in range(int(n_hist)):
+    assert i < 10000
+    name = f'hist-{i:05d}.bincode'
+    shutil.copy(f'/tmp/gen/{name}', os.path.join(specific_path, name))
+
   subprocess.run([dbcop, 'run', '-d', '/tmp/gen/', '--db', 'postgres-ser', '-o', '/tmp/hist', '127.0.0.1:5432'])
   # will gen hist-00000/history.bincode under /tmp/hist
   
-  os.mkdir(specific_path)
+  # os.mkdir(specific_path)
   for i in range(int(n_hist)):
     assert i < 10000
     name = f'hist-{i:05d}'
