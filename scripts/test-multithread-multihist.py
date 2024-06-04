@@ -6,6 +6,7 @@ import subprocess
 import humanize
 import psutil
 import time
+import resource
 
 # progress bar
 from rich.progress import (
@@ -35,6 +36,13 @@ from rich.table import Table
 
 # === config ===
 
+def set_memory_limit(memory_in_kb):
+  soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+  resource.setrlimit(resource.RLIMIT_AS, (memory_in_kb, hard))
+
+# 设置虚拟内存限制为 1GB
+# set_memory_limit(10 * 1024 * 1024) # 10 GB
+
 logging.basicConfig(
   level = logging.DEBUG,  
   format = '[%(asctime)s] [%(levelname)s]  %(message)s',  
@@ -49,8 +57,8 @@ logging.info(f'history type = {history_type}')
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 logging.info(f'root path = {root_path}')
 # will run all histories under this path
-history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'various')
-history_path = os.path.join(root_path, 'history', 'ser', 'same-listappend-rw')
+# history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'various')
+history_path = os.path.join(root_path, 'history', 'ser', 'same-listappend-rw-big')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_general_partition_writes')
 logging.info(f'history path = {history_path}')
 
