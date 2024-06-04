@@ -9,7 +9,6 @@
 
 #include "minisat/mtl/Vec.h"
 #include "minisat/core/SolverTypes.h"
-#include "minisat/core/Polygraph.h"
 
 namespace Minisat {
 
@@ -29,7 +28,7 @@ class ICDGraph {
   */ 
   
   int n, max_m, m; // n_vertices, n_edges
-  std::vector<std::unordered_set<int>> in, out; // in[from], out[from] = { to }
+  std::vector<std::unordered_set<int>> in, out; // in[from], out[from] = {(to, label)}
   std::unordered_map<int, std::unordered_map<int, std::unordered_multiset<std::pair<int, int>, decltype(pair_hash_endpoint2)>>> reasons_of; // (from, to) -> {(ww_reason, wr_reason)}
   // "multi" is used to handle conflict drived by known edges, for example, 
   // known graph contains edge WR: 1 -> 2, keys = {1, 2}
@@ -40,11 +39,8 @@ class ICDGraph {
   std::vector<int> level;
   std::vector<Lit> conflict_clause;
   std::vector<std::pair<Lit, std::vector<Lit>>> propagated_lits;
-  std::vector<bool> vis;
 
   std::vector<bool> assigned;
-
-  Polygraph *polygraph; // to know reachability of known graph, bad implementation!
 
   // --- deprecated ---
   int check_cnt = 0;
@@ -63,14 +59,9 @@ class ICDGraph {
                                  std::vector<int> &backward_pred,
                                  int from, int to, std::pair<int, int> reason);
 
-  void construct_dfs_cycle(int from, int to, std::vector<int> &pre, std::pair<int, int> &reason);
-  void dfs_forward(int x, int upper_bound, std::vector<int> &forward_visit, std::vector<int> &pre, bool &cycle);
-  void dfs_backward(int x, int lower_bound, std::vector<int> &backward_visit);
-  void reorder(std::vector<int> &forward_visit, std::vector<int> &backward_visit);
-
 public:
   ICDGraph();
-  void init(int _n_vertices, int n_vars, Polygraph *_polygraph);
+  void init(int _n_vertices, int n_vars);
   void add_inactive_edge(int from, int to, std::pair<int, int> reason);
   bool add_known_edge(int from, int to); // reason default set to (-1, -1)
   bool add_edge(int from, int to, std::pair<int, int> reason); // add (from, to, label)
@@ -79,8 +70,6 @@ public:
   void get_propagated_lits(std::vector<std::pair<Lit, std::vector<Lit>>> &cur_propagated_lit); // get_propagated_lits will copy propagated_lits and clear it 
   void set_var_assigned(int var, bool is_unassigned); 
   bool get_var_assigned(int var);
-  bool preprocess(); // call after known edges are initialized, return false if detect cycles(conflict)
-  const int get_level(int x) const;
   // * note: this is a bad implementation, for ICDGraph's original responsibility prevent itself from seeing these info.
 };
 

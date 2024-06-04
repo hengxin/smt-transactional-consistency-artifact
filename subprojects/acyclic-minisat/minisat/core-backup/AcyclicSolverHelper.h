@@ -43,8 +43,6 @@ class AcyclicSolverHelper {
 public:
   std::vector<std::vector<Lit>> conflict_clauses;
   std::vector<std::pair<Lit, std::vector<Lit>>> propagated_lits; // <lit, reason>
-  // std::vector<std::pair<Lit, CRef>> propagated_lits; // <lit, reason>
-  std::unordered_map<int, std::unordered_map<int, bool>> allocated_unique_clause; // v1 -> (v2 -> CRef), assume (v1 <= v2)
 
   AcyclicSolverHelper(Polygraph *_polygraph);
   void add_var(int var);
@@ -56,7 +54,7 @@ public:
 
   // getter
   Polygraph *get_polygraph();
-  const int get_level(int x) const;
+
 }; // class AcyclicSolverHelper
 
 namespace Logger {

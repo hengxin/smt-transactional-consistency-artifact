@@ -8,7 +8,6 @@
 #include <tuple>
 #include <stack>
 #include <cassert>
-#include <random>
 #include <fmt/format.h>
 
 #include "minisat/core/Polygraph.h"
@@ -17,15 +16,12 @@
 #include "minisat/mtl/Vec.h"
 #include "minisat/core/OptOption.h"
 #include "minisat/core/Logger.h"
-#include "minisat/core/ReduceKnownGraph.h"
 
 namespace Minisat {
 
-#ifndef OUTER_RW_DERIVATION // i.e. derive RW edges in Theory Solver, default
-
 AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   polygraph = _polygraph;
-  icd_graph.init(polygraph->n_vertices, polygraph->n_vars, polygraph);
+  icd_graph.init(polygraph->n_vertices, polygraph->n_vars);
   conflict_clauses.clear();
   ww_to.assign(polygraph->n_vertices, {});
   wr_to.assign(polygraph->n_vertices, {});
@@ -33,9 +29,7 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   known_induced_edges_of.assign(polygraph->n_vars, {});
   
   for (const auto &[from, to, type] : polygraph->known_edges) {
-    #ifndef REDUCE_KNOWN_GRAPH
-      icd_graph.add_known_edge(from, to /*, reason = {-1, -1} */); 
-    #endif
+    icd_graph.add_known_edge(from, to /*, reason = {-1, -1} */); 
     if (type == 1) { // WW
       assert(polygraph->has_ww_keys(from, to));
       const auto &keys = polygraph->ww_keys[from][to];
@@ -56,19 +50,6 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
       ww_keys[from][to].insert(keys.begin(), keys.end());
     }
   }
-
-#ifdef REDUCE_KNOWN_GRAPH
-  auto known_edges = std::vector<std::pair<int, int>>{}; // ignore edge types and keys
-  for (const auto &[from, to, _] : polygraph->known_edges) {
-    known_edges.emplace_back(from, to);
-  }
-  std::cout << "before reducing known graph, n_edges = " << known_edges.size() << std::endl;
-  reduce_known_graph(polygraph->n_vertices, known_edges);
-  std::cout << "after reducing known graph, n_edges = " << known_edges.size() << std::endl;
-  for (const auto &[from, to] : known_edges) {
-    icd_graph.add_known_edge(from, to);
-  }
-#endif
   
   {
     // initialize induced known edges
@@ -154,37 +135,10 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   // initialize vars_heap, sorting by n_edges_of_var
   int n_vars = polygraph->n_vars;
   for (int i = 0; i < n_vars; i++) vars_heap.insert({known_induced_edges_of[i].size(), i});
-
-#ifdef ENDENSER_KNOWN_GRAPH
-  if (polygraph->n_vertices > 100000) {
-    std::cerr << "Skip Endenser Known Graph due to n_vertices > MAX_N_VERTICES(this is a magic number, currently 100000)\n"; 
-  } else {
-    auto exist = std::unordered_map<int, std::unordered_map<int, bool>>{}; // from -> (to -> exist)
-    for (const auto &[from, to, _] : polygraph->known_edges) {
-      exist[from][to] = true;
-    }
-    auto rng = std::mt19937{};
-    rng.seed(std::random_device{}());
-    std::uniform_real_distribution<double> dice(0.0, 1.0);
-    for (int from = 0; from < polygraph->n_vertices; from++) {
-      for (int to = from + 1; to < polygraph->n_vertices; to++) {
-        if (!polygraph->reachable_in_known_graph(from, to)) continue;
-        if (exist[from][to]) continue;
-        if (dice(rng) < ENDENSER_RATIO) {
-          icd_graph.add_known_edge(from, to);
-          exist[from][to] = true;
-        }
-      }
-    }
-  }
-#endif
-
-  if (!icd_graph.preprocess()) {
-    throw std::runtime_error{"Conflict found in Known Graph!"};
-  }
 }
 
 void AcyclicSolverHelper::add_var(int var) {
+  // TODO: test add_var()
   // add_var adds the var into vars_heap
   int n_edges = known_induced_edges_of[var].size();
   vars_heap.insert({n_edges, var});
@@ -192,6 +146,7 @@ void AcyclicSolverHelper::add_var(int var) {
 } 
 
 void AcyclicSolverHelper::remove_var(int var) {
+  // TODO: test remove_var()
   // remove_var removes the var from vars_heap
   int n_edges = known_induced_edges_of[var].size();
   if (vars_heap.contains({n_edges, var})) {
@@ -289,7 +244,6 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
 
   if (!cycle) {
     Logger::log(fmt::format(" - {} is successfully added", var));
-    // disable icd_graph's get_propagated_lits temporarily
     icd_graph.get_propagated_lits(propagated_lits);
     construct_wr_cons_propagated_lits(var);
     return true;
@@ -394,116 +348,6 @@ void AcyclicSolverHelper::remove_edges_of_var(int var) {
   assert(added_edges_of[var].empty());
 }
 
-#else // encoding RW derivation rules explicitly
-
-AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
-  polygraph = _polygraph;
-  icd_graph.init(polygraph->n_vertices, polygraph->n_vars, polygraph);
-  conflict_clauses.clear();
-  ww_to.assign(polygraph->n_vertices, {});
-  wr_to.assign(polygraph->n_vertices, {});
-  added_edges_of.assign(polygraph->n_vars, {});
-  known_induced_edges_of.assign(polygraph->n_vars, {});
-  
-  for (const auto &[from, to, type] : polygraph->known_edges) {
-    icd_graph.add_known_edge(from, to /*, reason = {-1, -1} */); 
-    if (type == 1) { // WW
-      assert(polygraph->has_ww_keys(from, to));
-      const auto &keys = polygraph->ww_keys[from][to];
-      ww_keys[from][to].insert(keys.begin(), keys.end());
-      for (const auto &key : keys) {
-        ww_to[from][key].insert(to);
-      } 
-    } else if (type == 2) { // WR
-      assert(polygraph->has_wr_keys(from, to));
-      for (const auto &key : polygraph->wr_keys[from][to]) {
-        wr_to[from][key].insert(to);
-      }
-    }
-  }
-  for (int v = 0; v < polygraph->n_vars; v++) { // move ww keys (in constraints) into a unified position
-    if (polygraph->is_ww_var(v)) {
-      const auto &[from, to, keys] = polygraph->ww_info[v];
-      ww_keys[from][to].insert(keys.begin(), keys.end());
-    }
-  }
-
-  // * note: assume known graph has reached a fixed point, 
-  // * i.e. no more RW edge can be induced here
-  // TODO: check acyclicity of known graph and report possible conflict
-
-  // ! deprecated
-  // initialize vars_heap, sorting by n_edges_of_var
-  int n_vars = polygraph->n_vars;
-  for (int i = 0; i < n_vars; i++) vars_heap.insert({0, i});
-
-  if (!icd_graph.preprocess()) {
-    throw std::runtime_error{"Conflict found in Known Graph!"};
-  }
-}
-
-void AcyclicSolverHelper::add_var(int var) {
-  // add_var adds the var into vars_heap
-  int n_edges = 0;
-  vars_heap.insert({n_edges, var});
-  icd_graph.set_var_assigned(var, false);
-} 
-
-void AcyclicSolverHelper::remove_var(int var) {
-  // remove_var removes the var from vars_heap
-  int n_edges = 0;
-  if (vars_heap.contains({n_edges, var})) {
-    vars_heap.erase({n_edges, var});
-    icd_graph.set_var_assigned(var, true);
-  }
-}
-
-bool AcyclicSolverHelper::add_edges_of_var(int var) { 
-  // return true if edge is successfully added into the graph, i.e. no cycle is detected 
-  int from, to;
-  if (polygraph->is_ww_var(var)) {
-    const auto &[from_, to_, _] = polygraph->ww_info[var];
-    from = from_, to = to_;
-  } else if (polygraph->is_wr_var(var)) {
-    const auto &[from_, to_, _] = polygraph->wr_info[var];
-    from = from_, to = to_;
-  } else if (polygraph->is_rw_var(var)) {
-    const auto &[from_, to_] = polygraph->rw_info[var];
-    from = from_, to = to_;
-  }
-  bool cycle = !icd_graph.add_edge(from, to, {var, -1});
-  if (!cycle) return true;
-  
-  // conflict
-  // generate conflict clause
-  std::vector<Lit> cur_conflict_clause;
-  icd_graph.get_minimal_cycle(cur_conflict_clause);
-
-  // for (Lit l : cur_conflict_clause) std::cerr << l.x << " ";
-  // std::cerr << std::endl;
-
-  conflict_clauses.emplace_back(cur_conflict_clause);
-  return false;
-} 
-
-void AcyclicSolverHelper::remove_edges_of_var(int var) {
-  int from, to;
-  if (polygraph->is_ww_var(var)) {
-    const auto &[from_, to_, _] = polygraph->ww_info[var];
-    from = from_, to = to_;
-  } else if (polygraph->is_wr_var(var)) {
-    const auto &[from_, to_, _] = polygraph->wr_info[var];
-    from = from_, to = to_;
-  } else if (polygraph->is_rw_var(var)) {
-    const auto &[from_, to_] = polygraph->rw_info[var];
-    from = from_, to = to_;
-  }
-  icd_graph.remove_edge(from, to, {var, -1});
-}
-
-#endif
-
-
 Var AcyclicSolverHelper::get_var_represents_max_edges() {
   if (vars_heap.empty()) return var_Undef;
   auto it = --vars_heap.end();
@@ -526,41 +370,16 @@ void AcyclicSolverHelper::construct_wr_cons_propagated_lits(int var) {
     Logger::log(fmt::format("- unit wr cons {}, end WRCP", var));
     return;
   }
-
-  // auto get_or_allocate = [&](int v1, int v2) -> CRef {
-  //   if (v1 > v2) std::swap(v1, v2);
-  //   if (allocated_unique_clause.contains(v1) && allocated_unique_clause[v1].contains(v2)) {
-  //     return allocated_unique_clause[v1][v2];
-  //   }
-  //   vec<Lit> lits;
-  //   lits.push(~mkLit(v1)), lits.push(~mkLit(v2));
-  //   CRef cr = ca->alloc(lits, false);
-  //   return allocated_unique_clause[v1][v2] = cr;
-  // };
-
-  auto mapped = [&](int v1, int v2) -> bool {
-    if (v1 > v2) std::swap(v1, v2);
-    if (allocated_unique_clause.contains(v1) && allocated_unique_clause[v1].contains(v2) && allocated_unique_clause[v1][v2]) {
-      return true;
-    }
-    allocated_unique_clause[v1][v2] = true;
-    return false;
-  };
-
   for (const auto &var2 : *wr_cons_ref) {
     if (icd_graph.get_var_assigned(var2)) continue;
-    // if (mapped(var, var2)) continue;
     Logger::log(fmt::format(" - prop (~{}) with reason (~{} | ~{})", var2, var, var2));
     propagated_lits.emplace_back(std::pair<Lit, std::vector<Lit>>{~mkLit(var2), {~mkLit(var), ~mkLit(var2)}});
-    // propagated_lits.emplace_back(std::pair<Lit, CRef>{~mkLit(var2), get_or_allocate(var, var2)});
   }
   Logger::log(fmt::format("- end of WRCP construction", var));
 #endif
 }
 
 Polygraph *AcyclicSolverHelper::get_polygraph() { return polygraph; }
-
-const int AcyclicSolverHelper::get_level(int x) const { return icd_graph.get_level(x); }
 
 namespace Logger {
 

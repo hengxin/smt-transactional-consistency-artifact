@@ -44,6 +44,50 @@ CRef AcyclicSolver::propagate() {
         vars_to_add.push_back(v);
       }
     }
+//     if (value(var(p)) == l_True) {
+//       int v = var(p);
+//       if (!added_var[v]) {
+
+// #ifdef MONITOR_ENABLED
+//         Monitor::get_monitor()->add_edge_times++;
+// #endif
+//         bool cycle = !solver_helper->add_edges_of_var(v);
+//         if (cycle) {
+
+// #ifdef MONITOR_ENABLED
+//           Monitor::get_monitor()->find_cycle_times++;
+// #endif
+//           auto &conflict_clause = solver_helper->conflict_clauses.back();
+//           vec<Lit> clause;
+//           for (Lit l : conflict_clause) clause.push(~l);
+
+// #ifdef MONITOR_ENABLED
+//           Monitor::get_monitor()->cycle_edge_count_sum += clause.size();
+// #endif
+
+//           // std::cerr << "Adding: " << v << "\n";
+//           // for (Lit l : conflict_clause) std::cerr << var(l) << "\n";
+//           // std::cerr << "\n";
+
+//           confl = ca.alloc(clause, false); 
+//           solver_helper->conflict_clauses.pop_back();
+//         } else {
+//           added_var[v] = true;
+//           add_atom(v);
+
+//           auto &propagated_lits = solver_helper->propagated_lits;
+//           for (Lit l : propagated_lits) {
+//             if (value(l) == l_Undef) {
+//               propagated_lits_trail.push(l);
+//               // uncheckedEnqueue(l);
+//             }
+//           } 
+//           propagated_lits.clear();
+//         }
+//       } 
+//     }
+
+    // ---addon end---
 
     for (i = j = (Watcher *)ws, end = i + ws.size(); i != end;) {
       // Try to avoid inspecting the clause:
@@ -102,11 +146,6 @@ CRef AcyclicSolver::propagate() {
     bool cycle = false;
     for (const auto &v : vars_to_add) {
       cycle = !solver_helper->add_edges_of_var(v);
-      
-#ifdef MONITOR_ENABLED
-      Monitor::get_monitor()->add_edge_times++;
-#endif
-
       if (cycle) {
 #ifdef MONITOR_ENABLED
         Monitor::get_monitor()->find_cycle_times++;
@@ -121,12 +160,6 @@ CRef AcyclicSolver::propagate() {
 
 #ifdef MONITOR_ENABLED
         Monitor::get_monitor()->cycle_edge_count_sum += clause.size();
-        int width = 0;
-        for (Lit l : conflict_clause) {
-          // TODO: see what RW edges bring
-          ++width;
-        }
-        Monitor::get_monitor()->cycle_width_count[width]++;
 #endif
 
         // std::cerr << "Adding: " << v << "\n";
@@ -142,35 +175,21 @@ CRef AcyclicSolver::propagate() {
 
         auto &propagated_lits = solver_helper->propagated_lits;
         for (const auto &[lit, reason_lits] : propagated_lits) {
-          if (value(var(lit)) == l_Undef) {
+          if (value(lit) == l_Undef) {
             re_propagate = true;
             vec<Lit> learnt_clause;
             learnt_clause.push(lit); // lit is always false
             for (const auto &l : reason_lits) {
               if (l != lit) learnt_clause.push(l);
             }
-
-            auto get_or_allocate = [&](int v1, int v2) -> CRef {
-              // if (v1 > v2) std::swap(v1, v2);
-              if (allocated_unique_clause.contains(v1) && allocated_unique_clause[v1].contains(v2)) {
-                return allocated_unique_clause[v1][v2];
-              }
-              vec<Lit> lits;
-              lits.push(~mkLit(v1)), lits.push(~mkLit(v2));
-              CRef cr = ca.alloc(lits, false);
-              return allocated_unique_clause[v1][v2] = cr;
-            };
-
-            CRef cr = ca.alloc(learnt_clause, false);
-            // CRef cr = get_or_allocate(var(learnt_clause[0]), var(learnt_clause[1]));
+            CRef cr = ca.alloc(learnt_clause, true);
             uncheckedEnqueue(lit, cr);
 #ifdef MONITOR_ENABLED
             Monitor::get_monitor()->propagated_lit_times++;
 #endif
           }
         }
-        // propagated_lits.clear();
-        std::vector<std::pair<Lit, std::vector<Lit>>>().swap(propagated_lits);
+        propagated_lits.clear();
       }
     }
   }
@@ -194,12 +213,8 @@ void AcyclicSolver::cancelUntil(int level) {
     for (int c = trail.size() - 1; c >= trail_lim[level]; c--) {
       Var x = var(trail[c]);
       assigns[x] = l_Undef;
-      if (phase_saving > 1 || ((phase_saving == 1) && c > trail_lim.last())) {
+      if (phase_saving > 1 || ((phase_saving == 1) && c > trail_lim.last()))
         polarity[x] = sign(trail[c]);
-        #ifdef HEURISTIC_TOPO_ORDER
-          cancelled[x] = true;
-        #endif
-      }
       insertVarOrder(x);
 
       // --- addon begin ---
@@ -244,19 +259,11 @@ lbool AcyclicSolver::search(int nof_conflicts) {
     if (confl != CRef_Undef) {
       // CONFLICT
       conflicts++; conflictC++;
-      if (decisionLevel() == 0) { 
-
-#ifdef VISUALIZE_UNSAT_CONFLICT
-        final_conflict.clear();
-        Clause& conflict_clause = ca[confl]; 
-        for (int i = 0; i < conflict_clause.size(); i++) {
-          int v = var(conflict_clause[i]) + 1;
-          if (sign(conflict_clause[i])) v = -v;
-          final_conflict.emplace_back(v);
-        }
-#endif
-
-        return l_False; 
+      if (decisionLevel() == 0) {
+        // for (int i = qhead_backup; i < trail.size(); i++) {
+        //   std::cerr << var(trail[i]) << " " << std::boolalpha << (value(var(trail[i])) == l_True) << "\n";
+        // }
+        return l_False;
       } 
 
       learnt_clause.clear();
@@ -449,7 +456,6 @@ Lit AcyclicSolver::pickBranchLit() {
         }
     }
 
-#ifndef HEURISTIC_TOPO_ORDER
     // Choose polarity based on different polarity modes (global or per-variable):
     if (next == var_Undef)
         return lit_Undef;
@@ -459,32 +465,6 @@ Lit AcyclicSolver::pickBranchLit() {
         return mkLit(next, drand(random_seed) < 0.5);
     else
         return mkLit(next, polarity[next]);
-#else
-    if (next == var_Undef) {
-      return lit_Undef;
-    } else {
-      if (cancelled.contains(next)) return mkLit(next, polarity[next]); // Var is defined as int
-
-      auto edge = [&](int v) -> std::pair<int, int> {
-        auto polygraph = solver_helper->get_polygraph();
-        if (polygraph->is_ww_var(v)) {
-          auto &[from, to, _] = polygraph->ww_info[v];
-          return {from, to};
-        } else if (polygraph->is_wr_var(v)) {
-          auto &&[from, to, _] = polygraph->wr_info[v];
-          return {from, to};
-        }
-        assert(false);
-      };
-
-      auto [from, to] = edge(next);
-      if (solver_helper->get_level(from) < solver_helper->get_level(to)) {
-        return mkLit(next);
-      } else {
-        return ~mkLit(next);
-      }
-    }
-#endif
 }
 
 bool AcyclicSolver::solve() {
@@ -527,26 +507,8 @@ bool AcyclicSolver::simplify()
 {
     assert(decisionLevel() == 0);
 
-    // if (!ok || propagate() != CRef_Undef)
-    //     return ok = false;
-    if (!ok) return false;
-    {
-      CRef confl = propagate();
-      if (confl != CRef_Undef) {
-
-#ifdef VISUALIZE_UNSAT_CONFLICT
-        final_conflict.clear();
-        Clause& conflict_clause = ca[confl]; 
-        for (int i = 0; i < conflict_clause.size(); i++) {
-          int v = var(conflict_clause[i]) + 1;
-          if (sign(conflict_clause[i])) v = -v;
-          final_conflict.emplace_back(v);
-        }
+    if (!ok || propagate() != CRef_Undef)
         return ok = false;
-#endif
-      }
-
-    }
 
     if (nAssigns() == simpDB_assigns || (simpDB_props > 0))
         return true;

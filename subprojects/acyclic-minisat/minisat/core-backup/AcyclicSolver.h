@@ -18,11 +18,8 @@ class AcyclicSolver : public Solver {
   vec<int> propagated_lits_trail_lim;
   std::unordered_map<int, bool> added_var;
   std::unordered_map<int, std::unordered_set<int>> conflict_vars_of;
-  std::unordered_map<int, bool> cancelled;
 
   AcyclicSolverHelper *solver_helper;
-
-  std::unordered_map<int, std::unordered_map<int, CRef>> allocated_unique_clause; // v1 -> (v2 -> reason), assume v1 <= v2
 
 protected:
   void add_atom(int var);
@@ -45,8 +42,6 @@ public:
   // getter
   AcyclicSolverHelper *get_solver_helper();
   Polygraph *get_polygraph();
-
-  std::vector<int> final_conflict;
 };
 } // namespace Minisat
 
