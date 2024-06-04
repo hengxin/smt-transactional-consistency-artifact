@@ -15,7 +15,7 @@
 
 // #define MONITOR_ENABLED 1
 
-#define LOGGER_ENABLED 1
+// #define LOGGER_ENABLED 1
 
 // WR constraint propagation
 #define ENABLE_WRCP 1 
