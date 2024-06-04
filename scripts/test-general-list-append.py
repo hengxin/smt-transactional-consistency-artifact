@@ -15,7 +15,7 @@ root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'general')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'single-write-uv')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'single-write-uv2')
-history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'same-listappend-rw-big')
+history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'same-listappend-rw2')
 transform_script_path = os.path.join(root_path, 'scripts', 'edn2txt', 'edn2txt.py')
 checker = 'nuser'
 print(f'checker = {checker}')
@@ -39,14 +39,32 @@ else:
 #   'session': ['sess5', 'sess10', 'sess15', 'sess20', 'sess25'],
 #   'txn': ['txns-per-session50', 'txns-per-session100', 'txns-per-session200', 'txns-per-session300', 'txns-per-session400', 'txns-per-session500'],
 # }
+
+# same listappend and rw
+# params = {
+#   'txn': ['20_100_10_2000_0.5_r_0.5_100', 
+#           '20_200_10_2000_0.5_r_0.5_100',
+#           '20_300_10_2000_0.5_r_0.5_100',
+#           '20_400_10_2000_0.5_r_0.5_100', 
+#           '20_500_10_2000_0.5_r_0.5_100'] 
+# }
 # same listappend and rw(big)
+# params = {
+#   'txn': ['20_250_10_8000_0.5_r_0.5_100', 
+#           '20_500_10_8000_0.5_r_0.5_100',
+#           '20_750_10_8000_0.5_r_0.5_100',
+#           '20_800_10_8000_0.5_r_0.5_100', 
+#           '20_900_10_8000_0.5_r_0.5_100', 
+#           '20_1000_10_8000_0.5_r_0.5_100'],
+# }
+# same listappend and rw2
 params = {
-  'txn': ['20_250_10_8000_0.5_r_0.5_100', 
-          '20_500_10_8000_0.5_r_0.5_100',
-          '20_750_10_8000_0.5_r_0.5_100',
-          '20_800_10_8000_0.5_r_0.5_100', 
-          '20_900_10_8000_0.5_r_0.5_100', 
-          '20_1000_10_8000_0.5_r_0.5_100'],
+  'txn': ['20_250_10_2000_0.5_r_0.5_100', 
+          '20_500_10_2000_0.5_r_0.5_100',
+          '20_750_10_2000_0.5_r_0.5_100',
+          '20_800_10_2000_0.5_r_0.5_100', 
+          '20_900_10_2000_0.5_r_0.5_100', 
+          '20_1000_10_2000_0.5_r_0.5_100'],
 }
 
 def run_single(history_dir, bincode):

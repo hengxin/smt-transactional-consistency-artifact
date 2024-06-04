@@ -9,19 +9,19 @@ from rich.progress import track
 
 n_hist = '3'
 histories_to_be_added = [
-  '20_250_10_8000_0.5_r_0.5_100',
-  '20_500_10_8000_0.5_r_0.5_100',
-  '20_750_10_8000_0.5_r_0.5_100',
-  '20_800_10_8000_0.5_r_0.5_100',
-  '20_900_10_8000_0.5_r_0.5_100',
-  '20_1000_10_8000_0.5_r_0.5_100',
+  '20_250_10_2000_0.5_r_0.5_100',
+  '20_500_10_2000_0.5_r_0.5_100',
+  '20_750_10_2000_0.5_r_0.5_100',
+  '20_800_10_2000_0.5_r_0.5_100',
+  '20_900_10_2000_0.5_r_0.5_100',
+  '20_1000_10_2000_0.5_r_0.5_100',
 ]
 
 dbcop = '/home/rikka/dbcop-plus/target/release/dbcop'
 
 # under history/${specific-logs}/${history_name}/hist-00000/history.bincode
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
-specific_path = 'general-list-append/same-listappend-rw-big'
+specific_path = 'general-list-append/same-listappend-rw2'
 history_dir = os.path.join(root_path, 'history', 'ser', specific_path)
 # history_dir = os.path.join(root_path, 'history', 'si', specific_path)
 
