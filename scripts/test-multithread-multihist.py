@@ -58,7 +58,7 @@ root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 logging.info(f'root path = {root_path}')
 # will run all histories under this path
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'various')
-history_path = os.path.join(root_path, 'history', 'ser', 'same-listappend-rw-big')
+history_path = os.path.join(root_path, 'history', 'ser', 'same-listappend-rw')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_general_partition_writes')
 logging.info(f'history path = {history_path}')
 
