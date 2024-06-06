@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 
 #include <fmt/format.h>
 
@@ -34,7 +35,16 @@ bool am_solve_with_suggestion(int n_vertices, const KnownGraph &known_graph, con
 
   auto unit_lits = std::vector<Lit>{};
   // This is a BAD Implementation, for we have to resolve the cycle dependency conflict of adding unit clauses into theory solver and initialization of SAT solver
+  
+  
+  auto start = std::chrono::high_resolution_clock::now();
   Polygraph *polygraph = construct(n_vertices, known_graph, constraints, S, unit_lits, suggest_distance, write_steps, read_steps, read_length);
+  auto end = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+  std::cout << "Construct Time: " << duration << "(ms)" << std::endl;
+  std::cout << "#Vertices: " << n_vertices << std::endl;
+  std::cout << "#Vars: " << polygraph->n_vars << std::endl;
+
   AcyclicSolverHelper *solver_helper = nullptr;
   try {
     solver_helper = new AcyclicSolverHelper(polygraph);
