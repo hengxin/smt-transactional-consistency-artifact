@@ -50,102 +50,8 @@ static constexpr auto hash_edge_endpoint = [](const auto &t) {
 };
 
 namespace checker::history {
-// auto constraints_of(const History &history, const DependencyGraph::SubGraph &wr)
-//     -> vector<Constraint> {
-//   auto write_txns_per_key = unordered_map<int64_t, unordered_set<int64_t>>{};
-//   for (const auto &event : history.events() | filter_write_event) {
-//     write_txns_per_key[event.key].emplace(event.transaction_id);
-//   }
 
-//   auto edges_per_txn_pair = unordered_map<
-//       pair<int64_t, int64_t>,
-//       unordered_map<std::tuple<int64_t, int64_t, EdgeType>, vector<int64_t>, decltype(hash_edge_endpoint)>,
-//       decltype(hash_txns_pair)>{};
-
-//   for (const auto &[key, txns] : write_txns_per_key) {
-//     for (auto it = txns.begin(); it != txns.end(); it++) {
-//       for (const auto &txn2 : subrange(std::next(it), txns.end())) {
-//         auto add_key = [&](int64_t txn1, int64_t txn2) {
-//           edges_per_txn_pair[{txn1, txn2}][{txn1, txn2, EdgeType::WW}]
-//               .emplace_back(key);
-//         };
-
-//         add_key(*it, txn2);
-//         add_key(txn2, *it);
-//       }
-//     }
-//   }
-
-//   for (const auto &a : history.transactions()) {
-//     for (auto b_id : wr.successors(a.id)) {
-//       const auto &keys = wr.edge(a.id, b_id).value().get().keys;
-//       for (const auto &key : keys) {
-//         for (auto c_id : write_txns_per_key.at(key)) {
-//           if (a.id == c_id || b_id == c_id) {
-//             continue;
-//           }
-
-//           edges_per_txn_pair[{a.id, c_id}][{b_id, c_id, EdgeType::RW}]
-//               .emplace_back(key);
-//         }
-//       }
-//     }
-//   }
-
-//   auto constraints = vector<Constraint>{};
-//   auto added_pairs =
-//       unordered_set<pair<int64_t, int64_t>, decltype(hash_txns_pair)>{};
-//   for (const auto &[p, v] : edges_per_txn_pair) {
-//     auto [txn1, txn2] = p;
-
-//     if (added_pairs.contains({txn2, txn1})) {
-//       continue;
-//     }
-//     added_pairs.emplace(txn1, txn2);
-
-//     auto to_edge = [&](auto txn1, auto txn2) {
-//       return transform([=](auto &&p) {
-//         auto &&[t, keys] = p;
-//         auto &&[from, to, type] = t;
-//         return Constraint::Edge{
-//             from,
-//             to,
-//             EdgeInfo{
-//                 .type = type,
-//                 .keys = std::move(keys),
-//             },
-//         };
-//       });
-//     };
-//     auto is_ww_edge = [](auto &&e) {
-//       return std::get<2>(e).type == EdgeType::WW;
-//     };
-
-//     auto either_edges = edges_per_txn_pair.at({txn1, txn2})  //
-//                         | to_edge(txn1, txn2)                //
-//                         | to<vector<Constraint::Edge>>;
-//     auto or_edges = edges_per_txn_pair[{txn2, txn1}]  //
-//                     | to_edge(txn2, txn1)             //
-//                     | to<vector<Constraint::Edge>>;
-//     std::swap(either_edges.front(),
-//               *std::ranges::find_if(either_edges, is_ww_edge));
-//     std::swap(or_edges.front(), *std::ranges::find_if(or_edges, is_ww_edge));
-
-//     constraints.emplace_back(Constraint{
-//         .either_txn_id = txn1,
-//         .or_txn_id = txn2,
-//         .either_edges = either_edges,
-//         .or_edges = or_edges,
-//     });
-//   }
-
-//   BOOST_LOG_TRIVIAL(info) << "#constraints: " << constraints.size();
-
-//   return constraints;
-// }
-
-auto constraints_of(const History &history)
-    -> std::pair<std::vector<WWConstraint>, std::vector<WRConstraint>> {
+auto constraints_of(const History &history) -> std::vector<WRConstraint> {
   // 0. construct useful events(the first READ and the last WRITE per key) for each txn
   auto useful_writes = std::vector<Event>{}, useful_reads = std::vector<Event>{};
   {
@@ -159,7 +65,7 @@ auto constraints_of(const History &history)
               useful_reads.emplace_back(event);
             } else {
               if (cur_value[key] != value) 
-                throw std::runtime_error{"exception found in 1 txn."}; // violate ser
+                throw std::runtime_error{"exception found in 1 txn."}; // violate INT
             }
           } else { // EventType::WRITE
             cur_value[key] = value;
@@ -176,74 +82,8 @@ auto constraints_of(const History &history)
       }
     }
   }
-  
-  // 1. add ww constraints
-  auto ww_constraints = std::vector<WWConstraint>{};
-  {
-    auto write_txns_per_key = unordered_map<int64_t, unordered_set<int64_t>>{};
-    for (const auto &event : useful_writes) {
-      write_txns_per_key[event.key].emplace(event.transaction_id);
-    }
 
-    auto edges_per_txn_pair = unordered_map<
-      pair<int64_t, int64_t>,
-      unordered_map<std::tuple<int64_t, int64_t, EdgeType>, vector<int64_t>, decltype(hash_edge_endpoint)>,
-      decltype(hash_txns_pair)>{};
-    for (const auto &[key, txns] : write_txns_per_key) {
-      for (auto it = txns.begin(); it != txns.end(); it++) {
-        for (const auto &txn2 : subrange(std::next(it), txns.end())) {
-          auto add_key = [&](int64_t txn1, int64_t txn2) {
-            edges_per_txn_pair[{txn1, txn2}][{txn1, txn2, EdgeType::WW}]
-                .emplace_back(key);
-          };
-
-          add_key(*it, txn2);
-          add_key(txn2, *it);
-        }
-      }
-    }
-
-    auto added_pairs = unordered_set<pair<int64_t, int64_t>, decltype(hash_txns_pair)>{};
-    for (const auto &[p, v] : edges_per_txn_pair) {
-      auto [txn1, txn2] = p;
-
-      if (added_pairs.contains({txn2, txn1})) {
-        continue;
-      }
-      added_pairs.emplace(txn1, txn2);
-
-      auto to_edge = [&](auto txn1, auto txn2) {
-        return transform([=](auto &&p) {
-          auto &&[t, keys] = p;
-          auto &&[from, to, type] = t;
-          return WWConstraint::Edge{
-              from,
-              to,
-              EdgeInfo{
-                  .type = type,
-                  .keys = std::move(keys),
-              },
-          };
-        });
-      };
-
-      // here, if UV constraint is relaxed, only WW edges exist
-      auto either_edges = edges_per_txn_pair.at({txn1, txn2})  //
-                          | to_edge(txn1, txn2)                //
-                          | to<vector<WWConstraint::Edge>>;
-      auto or_edges = edges_per_txn_pair[{txn2, txn1}]  //
-                      | to_edge(txn2, txn1)             //
-                      | to<vector<WWConstraint::Edge>>;
-      ww_constraints.emplace_back(WWConstraint{
-          .either_txn_id = txn1,
-          .or_txn_id = txn2,
-          .either_edges = either_edges,
-          .or_edges = or_edges,
-      });
-    }
-  }
-
-  // 2. add wr constraints
+  // 1. add wr constraints
   auto wr_constraints = std::vector<WRConstraint>{};
   {
     // for each read event, find all write events that write the same value for each key 
@@ -273,14 +113,12 @@ auto constraints_of(const History &history)
     }
   }
 
-  BOOST_LOG_TRIVIAL(debug) << "#ww constraints: " << ww_constraints.size();
-  BOOST_LOG_TRIVIAL(debug) << "#wr constraints: " << wr_constraints.size();
-  BOOST_LOG_TRIVIAL(info) << "#constraints: " << ww_constraints.size() + wr_constraints.size();
-  return std::make_pair(ww_constraints, wr_constraints);
+  BOOST_LOG_TRIVIAL(debug) << "#constraints: " << wr_constraints.size();
+  return wr_constraints;
 }
 
 auto measuring_repeat_values(const Constraints &constraints) -> void {
-  const auto &[ww_cons, wr_cons] = constraints;
+  const auto &wr_cons = constraints;
   auto n_wr_cons = 0u;
   auto n_unit_wr_cons = 0u;
   auto max_wr_length = 0u;
@@ -304,38 +142,12 @@ auto measuring_repeat_values(const Constraints &constraints) -> void {
 
   // count encoding size
   int64_t some_count = 0, unique_count = 0;
-  some_count += ww_cons.size() + wr_cons.size();
-  unique_count += ww_cons.size();
+  some_count += wr_cons.size();
   for (const auto &[key, read, writes] : wr_cons) {
     unique_count += 1LL * writes.size() * (writes.size() - 1) / 2;
   }
   BOOST_LOG_TRIVIAL(debug) << "#some constraint: " << some_count;
   BOOST_LOG_TRIVIAL(debug) << "#unique constraint: " << unique_count;
-}
-
-auto operator<<(std::ostream &os, const WWConstraint &constraint)
-    -> std::ostream & {
-  auto out = std::osyncstream{os};
-  auto print_cond = [&](const char *tag, int64_t first_id, int64_t second_id,
-                        const vector<WWConstraint::Edge> &edges) {
-    out << tag << ' ' << first_id << "->" << second_id << ": ";
-
-    for (auto i = 0_uz; i < edges.size(); i++) {
-      const auto &[from, to, info] = edges.at(i);
-      out << from << "->" << to << ' ' << info;
-      if (i != edges.size() - 1) {
-        out << ", ";
-      }
-    }
-  };
-
-  print_cond("either", constraint.either_txn_id, constraint.or_txn_id,
-             constraint.either_edges);
-  out << "; ";
-  print_cond("or", constraint.or_txn_id, constraint.either_txn_id,
-             constraint.or_edges);
-  out << '\n';
-  return os;
 }
 
 auto operator<<(std::ostream &os, const WRConstraint &constraint) 

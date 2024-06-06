@@ -26,10 +26,8 @@ MonosatSolver::MonosatSolver(const history::DependencyGraph &known_graph,
                              const history::HistoryMetaInfo &history_meta_info,
                              const std::string &isolation_level,
                              const bool _enable_unique_encoding = false) {
-  if (isolation_level == "si") {
-    std::cerr << "Not implemented yet!" << std::endl;
-    throw std::runtime_error{"MonosatSolver is not supporting SI checking now"};
-  }
+  std::cerr << "Not implement yet!" << std::endl;
+  throw std::runtime_error{"MonosatSolver is not supporting TCC checking now"};
 
   enable_unique_encoding = _enable_unique_encoding;
 

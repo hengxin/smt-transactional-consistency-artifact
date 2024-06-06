@@ -19,22 +19,17 @@ struct AcyclicMinisatSolver : AbstractSolver {
                                                                   // see specific type info in "acyclic_minisat_types.h"
   using AMKnownGraph = std::vector<AMEdge>;
 
-  using AMWWConstraint = std::tuple<int, int, std::vector<int64_t>>; // <either, or, keys>
   using AMWRConstraint = std::tuple<int, std::vector<int>, int64_t>; // <read, write(s), key> 
-  using AMConstraints = std::pair<std::vector<AMWWConstraint>, std::vector<AMWRConstraint>>;
+  using AMConstraints = std::vector<AMWRConstraint>;
 
   std::string target_isolation_level;
-
-  fs::path agnf_path;
 
   int n_vertices;
   AMKnownGraph am_known_graph;
   AMConstraints am_constraints;
-  
-  int n_sessions, n_total_transactions, n_total_events;
-  std::unordered_map<int, std::unordered_map<int64_t, int>> write_steps, read_steps;
-  std::unordered_map<int, int> txn_distance;
 
+  std::unordered_map<int, std::unordered_set<int64_t>> write_keys_of; // txn_id -> { key }
+  
   AcyclicMinisatSolver(const history::DependencyGraph &known_graph,
                        const history::Constraints &constraints,
                        const history::HistoryMetaInfo &history_meta_info,

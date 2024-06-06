@@ -13,18 +13,6 @@
 
 namespace checker::history {
 
-struct WWConstraint {
-  using Edge = std::tuple<int64_t, int64_t, EdgeInfo>;
-
-  int64_t either_txn_id;
-  int64_t or_txn_id;
-  std::vector<Edge> either_edges; // include (either_txn_id -> or_txn_id)
-  std::vector<Edge> or_edges; // include (or_txn_id -> either_txn_id)
-
-  friend auto operator<<(std::ostream &os, const WWConstraint &constraint)
-      -> std::ostream &;
-};
-
 struct WRConstraint {
   using Edge = std::tuple<int64_t, int64_t, EdgeInfo>;
 
@@ -36,13 +24,9 @@ struct WRConstraint {
       -> std::ostream &;
 };
 
-using WWConstraints = std::vector<WWConstraint>;
-using WRConstraints = std::vector<WRConstraint>;
-using Constraints = std::pair<WWConstraints, WRConstraints>;
+using Constraints = std::vector<WRConstraint>;
 
-
-auto constraints_of(const History &history)
-    -> Constraints;
+auto constraints_of(const History &history) -> Constraints;
 
 auto measuring_repeat_values(const Constraints &constraints) -> void;
 

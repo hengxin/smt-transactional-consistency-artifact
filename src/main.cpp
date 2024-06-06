@@ -41,7 +41,7 @@ auto main(int argc, char **argv) -> int {
       .default_value(std::string{"dbcop"});
   args.add_argument("--isolation-level")
       .help("Target isolation level")
-      .default_value(std::string{"ser"});
+      .default_value(std::string{"tcc"});
   args.add_argument("--measuring-repeat-values")
       .help("Measure the degree of repeated values")
       .default_value(false)
@@ -76,7 +76,7 @@ auto main(int argc, char **argv) -> int {
   }
 
   auto solver_type = args.get("--solver");
-  const auto all_solvers = std::set<std::string>{"z3", "monosat", "acyclic-minisat", "monosat-baseline"};
+  const auto all_solvers = std::set<std::string>{"acyclic-minisat"};
   if (all_solvers.contains(solver_type)) {
     BOOST_LOG_TRIVIAL(debug)
         << "use "
@@ -90,7 +90,7 @@ auto main(int argc, char **argv) -> int {
   }
 
   auto isolation_level = args.get("--isolation-level");
-  const auto all_isolation_levels = std::set<std::string>{"ser", "si"};
+  const auto all_isolation_levels = std::set<std::string>{"tcc"};
   if (all_isolation_levels.contains(isolation_level)) {
     BOOST_LOG_TRIVIAL(debug)
       << "target isolation level: "
@@ -98,12 +98,12 @@ auto main(int argc, char **argv) -> int {
   } else {
     std::ostringstream os;
     os << "Unknown isolation level '" << isolation_level << "'";
-    os << "Supported isolation levels: 'ser'(serializabe) or 'si'(snapshot isolation)";
+    os << "Supported isolation levels: 'tcc'(transactional causal consistency)";
     throw std::invalid_argument{os.str()};
   }
 
   auto history_type = args.get("--history-type");
-  const auto all_history_types = std::set<std::string>{"cobra", "cobra-uv", "dbcop", "elle-list-append"};
+  const auto all_history_types = std::set<std::string>{"cobra", "cobra-uv", "dbcop"};
   if (all_history_types.contains(history_type)) {
     BOOST_LOG_TRIVIAL(debug) << "history type: " << history_type;
   } else {
@@ -135,16 +135,6 @@ auto main(int argc, char **argv) -> int {
       std::cerr << e.what() << std::endl;
       return 1;
     }
-  } else if (history_type == "elle-list-append") {
-    auto history_file = std::ifstream{args.get("history")};
-    if (!history_file.is_open()) {
-      std::ostringstream os;
-      os << "Cannot open file '" << args.get("history") << "'";
-      throw std::runtime_error{os.str()};
-    }
-
-    auto && [history_, known_ww_] = history::parse_elle_list_append_history(history_file);
-    history = history_, known_ww = known_ww_;
   } else {
     assert(0);
   }
@@ -157,7 +147,7 @@ auto main(int argc, char **argv) -> int {
            << dependency_graph;
   }
 
-  auto constraints = std::pair<std::vector<history::WWConstraint>, std::vector<history::WRConstraint>>{};
+  auto constraints = std::vector<history::WRConstraint>{};
   try {
     constraints = history::constraints_of(history); 
   } catch (std::runtime_error &e) {
@@ -165,16 +155,6 @@ auto main(int argc, char **argv) -> int {
     auto accept = false;
     std::cout << "accept: " << std::boolalpha << accept << std::endl;
     return 0;
-  }
-
-  if (history_type == "elle-list-append") {
-    // assert(!known_ww.empty());
-    bool accept = history::instrument_known_ww(history, dependency_graph, known_ww);
-    if (!accept) {
-      BOOST_LOG_TRIVIAL(debug) << "conflict found in instrument_known_ww()";
-      std::cout << "accept: " << std::boolalpha << accept << std::endl;
-      return 0;
-    }
   }
 
   if (args["--measuring-repeat-values"] == true) {
@@ -208,10 +188,7 @@ auto main(int argc, char **argv) -> int {
     //        << dependency_graph;
 
     logger << "constraints\n";
-    logger << "ww: \n";
-    const auto &[ww_constraints, wr_constraints] = constraints;
-    for (const auto &c : ww_constraints) { logger << c; }
-    logger << "wr: \n";
+    const auto &wr_constraints = constraints;
     for (const auto &c : wr_constraints) { logger << c; }
   }
 
@@ -220,48 +197,20 @@ auto main(int argc, char **argv) -> int {
   if (args.get("--pruning") != "none") {
     auto pruning_method = args.get("--pruning");
     BOOST_LOG_TRIVIAL(debug) << "pruning method: " << pruning_method;
-
-    if (solver_type == "monosat-baseline") {
-      pruning_method = "none";
-      BOOST_LOG_TRIVIAL(debug) << "pruning is banned! due to solver = monosat-baseline";
-    }
     
     auto pruned = true;
-    if (pruning_method == "normal") {
-      if (isolation_level == "ser") {
-        accept = solver::prune_constraints(dependency_graph, constraints);
-      } else if (isolation_level == "si") {
-        accept = solver::prune_si_constraints(dependency_graph, constraints); // hard encode, bad implementation!
-      }
-    } else if (pruning_method == "fast") {
-      if (isolation_level == "ser") {
-        accept = solver::fast_prune_constraints(dependency_graph, constraints);
-      } else if (isolation_level == "si") {
-        accept = solver::fast_prune_si_constraints(dependency_graph, constraints); // hard encode, bad implementation!
-      }
-    } else if (pruning_method == "unit") {
-      if (isolation_level == "ser") {
-        accept = solver::prune_unit_constraints(dependency_graph, constraints);
-      } else if (isolation_level == "si") {
-        throw std::runtime_error{"Not Implemented!"};
-      }
-    } else if (pruning_method == "basic") { // WW and unit WR s
-      if (isolation_level == "ser") {
-        accept = solver::prune_basic_constraints(dependency_graph, constraints);
-      } else if (isolation_level == "si") {
-        throw std::runtime_error{"Not Implemented!"};
-      }
+    if (pruning_method == "fast") {
+      accept = solver::prune_constraints(dependency_graph, constraints);
     } else if (pruning_method != "none") {
       pruned = false;
       BOOST_LOG_TRIVIAL(info) << "unknown pruning method \"" 
                               << pruning_method
-                              << "\", expect in {\"normal\", \"fast\", \"unit\", \"none\"}, skip pruning";
+                              << "\", expect in {\"fast\", \"none\"}, skip pruning";
     }
 
     // display_constraints(constraints, "Constraints after Pruning:");
 
     if (pruned) {
-
       if (args["--measuring-repeat-values"] == true) {
         BOOST_LOG_TRIVIAL(debug) << "after pruning, remeasuring repeat values...";
         history::measuring_repeat_values(constraints);

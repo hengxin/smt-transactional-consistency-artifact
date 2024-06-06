@@ -28,7 +28,7 @@ auto known_graph_of(const History &history) -> DependencyGraph {
   for (const auto &txn : history.transactions()) {
     transactions.emplace(txn.id, &txn);
 
-    for (auto subgraph : {&graph.rw, &graph.so, &graph.wr, &graph.ww}) {
+    for (auto subgraph : {&graph.so, &graph.wr, &graph.co}) {
       subgraph->add_vertex(txn.id);
     }
   }
@@ -45,85 +45,6 @@ auto known_graph_of(const History &history) -> DependencyGraph {
     }
   }
   return graph; // if UniqueValue constraint is relaxed, known graph only constains SO edges.
-
-  // add WR edges
-  // auto hash_pair = [](const pair<int64_t, int64_t> &p) {
-  //   return std::hash<int64_t>{}(p.first) ^ std::hash<int64_t>{}(p.second);
-  // };
-  // auto writes = std::unordered_map<pair<int64_t, int64_t>, const Transaction *,
-  //                                  decltype(hash_pair)>{};
-  // auto filter_by_type = [](EventType t) {
-  //   return filter([=](const auto &ev) { return ev.type == t; });
-  // };
-
-  // for (const auto &ev : history.events() | filter_by_type(EventType::WRITE)) {
-  //   writes.try_emplace({ev.key, ev.value}, transactions[ev.transaction_id]);
-  // }
-
-  // for (const auto &ev : history.events() | filter_by_type(EventType::READ)) {
-  //   auto write_txn = writes[{ev.key, ev.value}];
-  //   auto txn = transactions.at(ev.transaction_id);
-
-  //   if (write_txn == txn) {
-  //     continue;
-  //   }
-
-  //   if (auto edge = graph.wr.edge(write_txn->id, txn->id); edge) {
-  //     edge.value().get().keys.emplace_back(ev.key);
-  //   } else {
-  //     graph.wr.add_edge(
-  //         write_txn->id, txn->id,
-  //         EdgeInfo{.type = EdgeType::WR, .keys = std::vector{ev.key}});
-  //   }
-  // }
-
-  // return graph;
-}
-
-auto instrument_known_ww(const History &history, DependencyGraph &known_graph, const std::vector<std::tuple<int64_t, int64_t, int64_t>> &known_ww) -> bool {
-  auto add_dep_ww_edge = [&](int64_t from, int64_t to, EdgeInfo info) -> void {
-    if (info.type == EdgeType::WW) {
-      if (auto e = known_graph.ww.edge(from, to); e) {
-        std::ranges::copy(info.keys, back_inserter(e.value().get().keys));
-      } else {
-        known_graph.ww.add_edge(from, to, info);
-      }
-    } else {
-      assert(false);
-    }
-  };
-  auto txn_of_key_value = unordered_map<int64_t, unordered_map<int64_t, int64_t>>{}; // key -> (value -> txn_id)
-  for (const auto &[key, value, type, txn_id] : history.events()) {
-    if (type == EventType::READ) continue;
-    if (txn_of_key_value[key][value] != 0) return false; // reject non-uniquevalue histories
-    txn_of_key_value[key][value] = txn_id;
-  }
-
-  auto write_order_per_txn = unordered_map<int64_t, unordered_map<int64_t, unordered_map<int64_t, int64_t>>> {};
-  for (const auto &txn : history.transactions()) {
-    int64_t cnt = 0;
-    for (const auto &[key, value, type, txn_id] : txn.events) {
-      ++cnt;
-      write_order_per_txn[txn_id][key][value] = cnt;
-    }
-  }
-
-  int known_ww_cnt = 0;
-  for (const auto &[key, value1, value2] : known_ww) {
-    if (value1 == value2) return false; // impossible read
-    auto txn1 = txn_of_key_value[key][value1];
-    auto txn2 = txn_of_key_value[key][value2];
-    if (txn1 == txn2) {
-      auto write_order1 = write_order_per_txn[txn1][key][value1];
-      auto write_order2 = write_order_per_txn[txn1][key][value2];
-      if (write_order2 < write_order1) return false; // violate INT axiom
-      continue;
-    }
-    add_dep_ww_edge(txn1, txn2, (EdgeInfo) { .type = EdgeType::WW, .keys = {key} });
-    ++known_ww_cnt;
-  }
-  BOOST_LOG_TRIVIAL(debug) << "#known_ww: " << known_ww_cnt;
-  return true;
 }
 
 auto operator<<(std::ostream &os, const EdgeInfo &edge_info) -> std::ostream & {
@@ -166,14 +87,12 @@ auto operator<<(std::ostream &os, const EdgeInfo &edge_info) -> std::ostream & {
 auto operator<<(std::ostream &os, const DependencyGraph &graph)
     -> std::ostream & {
   auto out = std::osyncstream{os};
-  out << "RW:\n"
-      << graph.rw << '\n'
-      << "WW:\n"
-      << graph.ww << '\n'
-      << "SO:\n"
+  out << "SO:\n"
       << graph.so << '\n'
       << "WR:\n"
-      << graph.wr << '\n';
+      << graph.wr << '\n'
+      << "CO:\n"
+      << graph.co << '\n';
 
   return os;
 }

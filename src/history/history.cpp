@@ -430,120 +430,18 @@ auto n_written_key_txns_of(History &history) -> std::unordered_map<int64_t, int>
   return n_written_txns_of_key;
 }
 
-auto parse_elle_list_append_history(std::ifstream &is) 
-  -> std::pair<History, std::vector<std::tuple<int64_t, int64_t, int64_t>>> {
-  // [sess] [txn_id] [type = 'R' or 'A'] [key] [value]
-  // if type == 'R', value = n a1 a2 ... an
-  // if type == 'A', value = v
-
-  constexpr int64_t init_session_id = 0;
-  constexpr int64_t init_txn_id = 0;
-  constexpr int64_t INIT_VALUE = 0x7ff7f7f7f7f7f7f7;
-
-  int n_lines = 0;
-  is >> n_lines;
-
-  auto txns = std::unordered_map<int64_t, Transaction>{};
-  auto sessions = std::unordered_map<int64_t, std::vector<int64_t>>{}; // sess_id -> { txn_ids in SO order }
-  auto known_ww = std::vector<std::tuple<int64_t, int64_t, int64_t>>{}; // <key, v1, v2>
-  auto init_write_keys = std::set<int64_t> {};
-  while (n_lines--) {
-    int64_t session_id, txn_id, key, value;
-    std::string type;
-    is >> session_id >> txn_id >> type >> key;
-    if (type == "R") { // read
-      int n_list = 0;
-      is >> n_list;
-      auto list = std::vector<int64_t>(n_list);
-      for (int i = 0; i < n_list; i++) is >> list[i];
-      if (n_list == 0) {
-        value = INIT_VALUE;
-        init_write_keys.insert(key);
-      } else {
-        value = list[n_list - 1];
-        for (int i = 0; i + 1 < n_list; i++) {
-          known_ww.emplace_back(std::tuple<int64_t, int64_t, int64_t>{key, list[i], list[i + 1]});
-        }
-      }
-    } else if (type == "A") { // append
-      is >> value;
-    }
-    if (!txns.contains(txn_id)) {
-      txns[txn_id] = Transaction{ .id = txn_id, .events = {}, .session_id = session_id, };
-      sessions[session_id].emplace_back(txn_id);
-    } 
-    txns[txn_id].events.emplace_back((Event) {
-      .key = key, 
-      .value = value, 
-      .type = (type == "R" ? EventType::READ : EventType::WRITE),
-      .transaction_id = txn_id,
-    });
-  } 
-
-  auto history = History{};
-  history.sessions.emplace_back(Session{
-    .id = init_session_id,
-    .transactions = std::vector{Transaction{
-        .id = init_txn_id,
-        .events = init_write_keys  //
-                  | transform([](auto key) {
-                      return Event{
-                          .key = key,
-                          .value = INIT_VALUE,
-                          .type = EventType::WRITE,
-                          .transaction_id = init_txn_id,
-                      };
-                    })  //
-                  | utils::to<std::vector<Event>>,
-        .session_id = init_session_id,
-    }},
-  });
-  for (const auto &[sess_id, txn_ids] : sessions) {
-    auto session = Session{ .id = sess_id, .transactions = {} };
-    for (const auto &txn_id : txn_ids) session.transactions.emplace_back(txns.at(txn_id));
-    history.sessions.emplace_back(session);
-  }
-
-  return {history, known_ww};
-}
-
 auto compute_history_meta_info(const History &history) -> HistoryMetaInfo {
-  auto history_meta_info = HistoryMetaInfo{
-    .n_sessions = 0, 
-    .n_total_transactions = 0, 
-    .n_total_events = 0,
-    .write_steps = {},
-    .read_steps = {}};
-  history_meta_info.n_sessions = history.sessions.size();
-  for (const auto &txn : history.transactions()) {
-    ++history_meta_info.n_total_transactions;
-    history_meta_info.n_total_events += txn.events.size();
-  }
+  auto write_keys_of = std::unordered_map<int64_t, std::unordered_set<int64_t>>{};
 
-  for (const auto &session : history.sessions) {
-    int steps = 0; // for each session, calculate a steps
-    for (const auto &txn : session.transactions) {
-      ++steps;
-      history_meta_info.txn_distance[txn.id] = steps;
-      auto cur_value = std::unordered_map<int64_t, int64_t>{}; // key -> value (for current txn)
-      for (const auto &event : txn.events) {
-        const auto &[key, value, type, txn_id] = event;
-        if (type == EventType::READ) {
-          if (!cur_value.contains(key)) {
-            history_meta_info.read_steps[txn_id][key] = steps; // once update read steps
-          } else {
-            if (cur_value[key] != value) 
-              throw std::runtime_error{"exception found in 1 txn."}; // violate ser
-          }
-        } else { // EventType::WRITE
-          cur_value[key] = value;
-          history_meta_info.write_steps[txn_id][key] = steps; // iteratively update write steps
-        }
+  for (const auto &txn : history.transactions()) {
+    for (const auto &[key, value, type, txn_id] : txn.events) {
+      if (type == EventType::WRITE) {
+        write_keys_of[txn_id].insert(key);
       }
     }
   }
 
-  return history_meta_info;
+  return HistoryMetaInfo{write_keys_of};
 };
 
 auto analyze_repeat_values(const History &history) -> void {
