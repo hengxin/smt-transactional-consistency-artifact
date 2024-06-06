@@ -366,7 +366,8 @@ bool ICDGraph::preprocess() {
     }
 
     struct Node { int id, dist, enq_order; };
-    const int gap = std::max(1, polygraph->n_total_txns / polygraph->n_sess / 3);
+    const int gap = std::max(1, polygraph->n_total_txns / polygraph->n_sess / 20);
+    // const int gap = 20;
     struct NodeCmp {
       int gap;
       bool operator() (const Node &x, const Node &y) const {
