@@ -17,9 +17,8 @@ auto type2str(int type) -> std::string {
   std::string ret = "";
   switch (type) {
     case 0: ret = "SO"; break;
-    case 1: ret = "WW"; break;
-    case 2: ret = "WR"; break;
-    case 3: ret = "RW"; break;
+    case 1: ret = "WR"; break;
+    case 2: ret = "CO"; break;
     default: assert(false);
   } 
   return ret;

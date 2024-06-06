@@ -18,9 +18,8 @@
 namespace Minisat {
 
 class Polygraph {
-  using WWVarInfo = std::tuple<int, int, std::set<int64_t>>; // <from, to, keys>
+  // TODO: polygraph
   using WRVarInfo = std::tuple<int, int, int64_t>; // <from, to, key>
-  using RWVarInfo = std::pair<int, int>; // <from, to>
 
   static const int MAX_N_VERTICES = 200000;
   std::vector<std::bitset<MAX_N_VERTICES>> reachability; 
@@ -28,25 +27,19 @@ class Polygraph {
 public:
   int n_vertices; // indexed in [0, n_vertices - 1]
   int n_vars; // indexed in [0, n_vars - 1]
+
+  std::unordered_map<int, std::unordered_set<int64_t>> write_keys_of;
   
   std::vector<std::tuple<int, int, int>> known_edges;
   
-  std::unordered_map<int, WWVarInfo> ww_info;
   std::unordered_map<int, WRVarInfo> wr_info; // for solver vars
 
-  std::unordered_map<int, std::unordered_map<int, std::set<int64_t>>> ww_keys; 
   std::unordered_map<int, std::unordered_map<int, std::set<int64_t>>> wr_keys; // for known graph
 
-  std::unordered_map<int, std::unordered_map<int, int>> ww_var_of; // (from, to) -> ww var
   std::unordered_map<int, std::unordered_map<int, std::unordered_map<int64_t, int>>> wr_var_of; // (from, to, key) -> wr var
 
   std::vector<std::vector<int>> wr_cons;
   std::unordered_map<int, int> wr_cons_index_of; // var -> wr_cons index
-
-  std::unordered_map<int, RWVarInfo> rw_info; // will only be enabled when OUTER_RW_DERIVATION is defined
-
-  std::unordered_map<int, int> txn_distance;
-  int n_total_txns, n_sess;
 
   Polygraph(int _n_vertices = 0) { n_vertices = _n_vertices, n_vars = 0; }
 
