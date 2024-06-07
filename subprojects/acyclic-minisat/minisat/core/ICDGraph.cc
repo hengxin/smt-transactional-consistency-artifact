@@ -20,9 +20,13 @@
 
 namespace Minisat {
 
+// TODO: adjust new defined Reason
+
 ICDGraph::ICDGraph() {}
 
 #ifndef PK_TOPO_ALGORITHM // default ICD
+
+// ! warning: ICD is now deprecated, for we modified the definition of Reason
 
 void ICDGraph::init(int _n_vertices = 0, int n_vars = 0, Polygraph *_polygraph = nullptr) {
   // note: currently n_vars is useless
@@ -408,7 +412,7 @@ bool ICDGraph::add_known_edge(int from, int to) { // reason default set to (-1, 
   return true; // always returns true
 }
 
-bool ICDGraph::add_edge(int from, int to, std::pair<int, int> reason) { 
+bool ICDGraph::add_edge(int from, int to, const Reason &reason) { 
   // if a cycle is detected, the edge will not be added into the graph
   Logger::log(fmt::format("   - ICDGraph: adding {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
   if (reasons_of.contains(from) && reasons_of[from].contains(to) && !reasons_of[from][to].empty()) {
@@ -438,7 +442,7 @@ bool ICDGraph::add_edge(int from, int to, std::pair<int, int> reason) {
   return false;
 }
 
-void ICDGraph::remove_edge(int from, int to, std::pair<int, int> reason) {
+void ICDGraph::remove_edge(int from, int to, const Reason &reason) {
   Logger::log(fmt::format("   - ICDGraph: removing {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
   assert(reasons_of.contains(from));
   assert(reasons_of[from].contains(to));
@@ -459,7 +463,7 @@ void ICDGraph::remove_edge(int from, int to, std::pair<int, int> reason) {
   }
 }
 
-bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
+bool ICDGraph::detect_cycle(int from, int to, const Reason &reason) {
   // if any cycle is detected, construct conflict_clause and return true, else (may skip)construct propagated_lits and return false
   if (!conflict_clause.empty()) {
     std::cerr << "Oops! conflict_clause is not empty when entering detect_cycle()" << std::endl;
@@ -600,13 +604,13 @@ void ICDGraph::construct_propagated_lits(std::unordered_set<int> &forward_visite
                                          std::unordered_set<int> &backward_visited,
                                          std::vector<int> &forward_pred,
                                          std::vector<int> &backward_pred,
-                                         int from, int to, std::pair<int, int> reason) {
+                                         int from, int to, const Reason &reason) {
   // TODO later: construct propagated lits
   // now pass
 }
 
 
-bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int from, int to, std::pair<int, int> reason) {
+bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int from, int to, const Reason &reason) {
   // for PK toposort algorithm, This function will never be called
   assert(0);
   return true;  
@@ -614,7 +618,7 @@ bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int fro
 
 bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred, 
                                        std::vector<int> &forward_pred, 
-                                       int from, int to, std::pair<int, int> reason, int middle) {
+                                       int from, int to, const Reason &reason, int middle) {
   // for PK toposort algorithm, This function will never be called
   assert(0);
   return true;
@@ -634,7 +638,7 @@ void ICDGraph::get_propagated_lits(std::vector<std::pair<Lit, std::vector<Lit>>>
   propagated_lits.clear();
 }
 
-void ICDGraph::add_inactive_edge(int from, int to, std::pair<int, int> reason) { 
+void ICDGraph::add_inactive_edge(int from, int to, const Reason &reason) { 
   // TODO later: now deprecated
 }
 

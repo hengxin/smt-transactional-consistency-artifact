@@ -12,7 +12,7 @@
 
 namespace Minisat {
 
-bool am_solve_with_suggestion(int n_vertices, const KnownGraph &known_graph, const Constraints &constraints,
+bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &constraints,
                               const std::unordered_map<int, std::unordered_set<int64_t>> &write_keys_of) {
   Logger::log("[Acyclic Minisat QxQ]");
   AcyclicSolver S;

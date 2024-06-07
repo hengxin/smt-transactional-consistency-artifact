@@ -10,6 +10,7 @@
 #include "minisat/mtl/Vec.h"
 #include "minisat/core/SolverTypes.h"
 #include "minisat/core/Polygraph.h"
+#include "minisat/core/Reason.h"
 
 namespace Minisat {
 
@@ -27,10 +28,11 @@ class ICDGraph {
     2. detect cycles
     3. find the minimal cycle
   */ 
+  // TODO: ICDGraph
   
   int n, max_m, m; // n_vertices, n_edges
   std::vector<std::unordered_set<int>> in, out; // in[from], out[from] = { to }
-  std::unordered_map<int, std::unordered_map<int, std::unordered_multiset<std::pair<int, int>, decltype(pair_hash_endpoint2)>>> reasons_of; // (from, to) -> {(ww_reason, wr_reason)}
+  std::unordered_map<int, std::unordered_map<int, std::unordered_multiset<Reason>>> reasons_of; // (from, to) -> {(ww_reason, wr_reason)}
   // "multi" is used to handle conflict drived by known edges, for example, 
   // known graph contains edge WR: 1 -> 2, keys = {1, 2}
   // In some pass, variable v: (WW: 1 -> 3, keys = {1, 2}) is decided to be added,
@@ -52,18 +54,18 @@ class ICDGraph {
   // ------------------
 
   bool check_acyclicity();
-  bool detect_cycle(int from, int to, std::pair<int, int> reason);
-  bool construct_backward_cycle(std::vector<int> &backward_pred, int from, int to, std::pair<int, int> reason);
+  bool detect_cycle(int from, int to, const Reason &reason);
+  bool construct_backward_cycle(std::vector<int> &backward_pred, int from, int to, const Reason &reason);
   bool construct_forward_cycle(std::vector<int> &backward_pred, 
                                std::vector<int> &forward_pred, 
-                               int from, int to, std::pair<int, int> reason, int middle);
+                               int from, int to, const Reason &reason, int middle);
   void construct_propagated_lits(std::unordered_set<int> &forward_visited, 
                                  std::unordered_set<int> &backward_visited,
                                  std::vector<int> &forward_pred,
                                  std::vector<int> &backward_pred,
-                                 int from, int to, std::pair<int, int> reason);
+                                 int from, int to, const Reason &reason);
 
-  void construct_dfs_cycle(int from, int to, std::vector<int> &pre, std::pair<int, int> &reason);
+  void construct_dfs_cycle(int from, int to, std::vector<int> &pre, const Reason &reason);
   void dfs_forward(int x, int upper_bound, std::vector<int> &forward_visit, std::vector<int> &pre, bool &cycle);
   void dfs_backward(int x, int lower_bound, std::vector<int> &backward_visit);
   void reorder(std::vector<int> &forward_visit, std::vector<int> &backward_visit);
@@ -71,10 +73,10 @@ class ICDGraph {
 public:
   ICDGraph();
   void init(int _n_vertices, int n_vars, Polygraph *_polygraph);
-  void add_inactive_edge(int from, int to, std::pair<int, int> reason);
+  void add_inactive_edge(int from, int to, const Reason &reason);
   bool add_known_edge(int from, int to); // reason default set to (-1, -1)
-  bool add_edge(int from, int to, std::pair<int, int> reason); // add (from, to, label)
-  void remove_edge(int from, int to, std::pair<int, int> reason); // remove (from, to, label), assume (from, to, label) in the graph
+  bool add_edge(int from, int to, const Reason &reason); // add (from, to, label)
+  void remove_edge(int from, int to, const Reason &reason); // remove (from, to, label), assume (from, to, label) in the graph
   void get_minimal_cycle(std::vector<Lit> &cur_conflict_clauses); // get_minimal_cycle will copy conflict_clause and clear it
   void get_propagated_lits(std::vector<std::pair<Lit, std::vector<Lit>>> &cur_propagated_lit); // get_propagated_lits will copy propagated_lits and clear it 
   void set_var_assigned(int var, bool is_unassigned); 

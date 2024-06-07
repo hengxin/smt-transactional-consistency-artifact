@@ -37,8 +37,4 @@
 // #define SELECT_MAX_EDGES 1
 // #define SELECT_MIN_EDGES 1
 
-#define ADDED_EDGES_CACHE 1
-
-#define INDUCE_KNOWN_EDGES 1
-
 #endif

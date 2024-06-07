@@ -72,15 +72,9 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
 
   Logger::log("[Var to Theory Interpretion]");
   for (int v = 0; v < var_count; v++) {
-    if (polygraph->is_ww_var(v)) {
-      const auto &[from, to, keys] = polygraph->ww_info[v];
-      Logger::log(fmt::format("{}: WW, {} -> {}, keys = {}", v, from, to, Logger::set2str(keys)));
-    } else if (polygraph->is_wr_var(v)) {
+     if (polygraph->is_wr_var(v)) {
       const auto &[from, to, key] = polygraph->wr_info[v];
       Logger::log(fmt::format("{}: WR({}), {} -> {}", v, key, from, to));
-    } else if (polygraph->is_rw_var(v)) {
-      const auto &[from, to] = polygraph->rw_info[v];
-      Logger::log(fmt::format("{}: RW, {} -> {}", v, from, to));
     } else {
       assert(false);
     }

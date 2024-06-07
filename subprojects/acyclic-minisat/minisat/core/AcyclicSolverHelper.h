@@ -13,6 +13,7 @@
 #include "minisat/core/ICDGraph.h"
 #include "minisat/core/SolverTypes.h"
 #include "minisat/mtl/Vec.h"
+#include "minisat/core/Reason.h"
 
 // manage polygraph and ICDGraph
 
@@ -24,27 +25,30 @@ constexpr static auto pair_hash_endpoint = [](const auto &t) {
   return h(int64_t(t1)) ^ h(t2); 
 };
 
+constexpr static auto pair_hash_endpoint3 = [](const auto &t) {
+  auto &[t1, t2] = t;
+  std::hash<int> h;
+  return h(t1) ^ h(t2); 
+};
+
 class AcyclicSolverHelper {
   Polygraph *polygraph;
   ICDGraph icd_graph;
   std::set<std::pair<int, int>> vars_heap;
-  std::unordered_map<int, std::unordered_map<int, std::set<int64_t>>> ww_keys; // (from, to) -> { keys }
-  // std::vector<std::unordered_set<int>> ww_to;
-  // std::vector<std::unordered_set<std::pair<int, int64_t>, decltype(pair_hash_endpoint)>> wr_to; // <to, key>
-  std::vector<std::unordered_map<int64_t, std::unordered_set<int>>> ww_to, wr_to; // from -> (key -> to)
 
-  std::vector<std::stack<std::tuple<int, int, std::pair<int, int>>>> added_edges_of; // <from, to, reason>
+  std::vector<std::unordered_set<std::pair<int, int>, decltype(pair_hash_endpoint3)>> dep_from; // to -> { (from, var) }, for WR and SO edges
+  std::vector<std::unordered_set<int64_t>> wr_from_keys; // to -> { key }, only for WR edges
+  std::vector<std::unordered_map<int64_t, int>> wr_from_of_key; // to -> (key -> from), only for WR edges
 
-  // will only be used if INDUCE_KNOWN_EDGE is defined 
-  std::vector<std::vector<std::tuple<int, int, std::pair<int, int>>>> known_induced_edges_of; // <from, to, reason>
+  std::vector<std::stack<std::tuple<int, int, Reason>>> added_edges_of; // <from, to, reason>
 
   void construct_wr_cons_propagated_lits(int var);
+
+  void build_co(int var, std::vector<std::tuple<int, int, Reason>> &to_be_added_edges);
 
 public:
   std::vector<std::vector<Lit>> conflict_clauses;
   std::vector<std::pair<Lit, std::vector<Lit>>> propagated_lits; // <lit, reason>
-  // std::vector<std::pair<Lit, CRef>> propagated_lits; // <lit, reason>
-  std::unordered_map<int, std::unordered_map<int, bool>> allocated_unique_clause; // v1 -> (v2 -> CRef), assume (v1 <= v2)
 
   AcyclicSolverHelper(Polygraph *_polygraph);
   void add_var(int var);

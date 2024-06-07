@@ -78,7 +78,7 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
 auto AcyclicMinisatSolver::solve() -> bool {
   bool ret = true;
   assert(target_isolation_level == "tcc");
-  ret = Minisat::am_solve(n_vertices, am_known_graph, am_constraints, n_sessions, n_total_transactions, n_total_events, write_steps, read_steps, txn_distance);
+  ret = Minisat::am_solve(n_vertices, am_known_graph, am_constraints, write_keys_of);
   return ret;
 }
 

@@ -45,10 +45,7 @@ public:
 
   void add_known_edge(int from, int to, int type, const std::vector<int64_t> &keys) { 
     known_edges.push_back({from, to, type});
-    if (type == 1) { // WW
-      ww_keys[from][to].insert(keys.begin(), keys.end());
-      ww_var_of[from][to] = -1; // set known edge implier -1
-    } else if (type == 2) { // WR
+    if (type == 1) { // WR
       wr_keys[from][to].insert(keys.begin(), keys.end());
       for (const auto &key : keys) wr_var_of[from][to][key] = -1;
     }
@@ -60,28 +57,9 @@ public:
     wr_var_of[from][to][key] = var;
   }
 
-  void map_ww_var(int var, int from, int to, const std::set<int64_t> &keys) {
-    assert(!ww_info.contains(var));
-    ww_info[var] = WWVarInfo{from, to, keys};
-    ww_var_of[from][to] = var;
-  }
-
-  void map_rw_var(int var, int from, int to) {
-    assert(!rw_info.contains(var));
-    rw_info[var] = RWVarInfo{from, to};
-  } 
-
   void set_n_vars(int n) { n_vars = n; }
 
-  bool is_ww_var(int var) { return ww_info.contains(var); }
-
-  bool is_wr_var(int var) { return wr_info.contains(var); }
-
-  bool is_rw_var(int var) { return rw_info.contains(var); }
-  
-  bool has_ww_keys(int from, int to) {
-    return ww_keys.contains(from) && ww_keys[from].contains(to) && !ww_keys[from][to].empty();
-  }
+  bool is_wr_var(int var) { return wr_info.contains(var); } // meaningless, all wr vars...
 
   bool has_wr_keys(int from, int to) {
     return wr_keys.contains(from) && wr_keys[from].contains(to) && !wr_keys[from][to].empty();
