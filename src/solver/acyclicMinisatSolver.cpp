@@ -26,6 +26,7 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
                                            const history::HistoryMetaInfo &history_meta_info,
                                            const std::string &isolation_level) {
   assert(isolation_level == "tcc");
+  target_isolation_level = isolation_level;
 
   // 0. touch n_vertices
   n_vertices = known_graph.num_vertices();

@@ -31,6 +31,7 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   dep_from.assign(polygraph->n_vertices, {});
   wr_from_keys.assign(polygraph->n_vertices, {});
   wr_from_of_key.assign(polygraph->n_vertices, {});
+  wr_var_of_key.assign(polygraph->n_vertices, {});
   
   for (const auto &[from, to, type] : polygraph->known_edges) {
     icd_graph.add_known_edge(from, to);
@@ -97,7 +98,7 @@ void AcyclicSolverHelper::build_co(int var, std::vector<std::tuple<int, int, Rea
     while (!q.empty()) {
       const auto &[x, reason] = q.front();
       if (x == from) reach_from = true;
-      if (x != from && polygraph->write_keys_of.at(x).contains(key)) {
+      if (x != to && x != from && polygraph->write_keys_of[x].contains(key)) {
         to_be_added_edges.emplace_back(x, from, reason);
       }
       for (const auto &[y, edge_var] : dep_from[x]) {
@@ -119,14 +120,14 @@ void AcyclicSolverHelper::build_co(int var, std::vector<std::tuple<int, int, Rea
     auto q = std::queue<std::pair<int, Reason>>{};
     auto vis = std::vector<bool>(polygraph->n_vertices, false);
     q.push({from, Reason{var}});
-    vis[to] = true;
+    vis[from] = true;
     while (!q.empty()) {
       const auto &[x, reason] = q.front();
       for (const auto &key : wr_from_keys[to]) {
-        assert(wr_from_of_key[to].contains(key) && wr_from_of_key[to].contains(key) != -1);
+        assert(wr_from_of_key[to].contains(key) && wr_from_of_key[to][key] != -1);
         int wr_from = wr_from_of_key[to][key];
         if (x != wr_from && polygraph->write_keys_of[x].contains(key)) {
-          int wr_var = wr_from_of_key.at(to).at(key);
+          int wr_var = wr_var_of_key.at(to).at(key);
           to_be_added_edges.emplace_back(x, wr_from, Reason{reason, wr_var});
         }
       }
@@ -180,7 +181,7 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
       assert(!dep_from[to].contains({from, var}));
       dep_from[to].insert({from, var});
       assert(!wr_from_keys[to].contains(key));
-      wr_from_keys[to].insert(from);
+      wr_from_keys[to].insert(key);
       assert(!wr_from_of_key[to].contains(key) || wr_from_of_key[to][key] == -1);
       wr_from_of_key[to][key] = from;
       assert(!wr_var_of_key[to].contains(key) || wr_var_of_key[to][key] == -2);

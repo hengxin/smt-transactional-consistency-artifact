@@ -80,6 +80,12 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
     }
   }
 
+  Logger::log("[Write Keys of each Txn]");
+  for (int i = 0; i < n_vertices; i++) {
+    const auto &keys = polygraph->write_keys_of[i];
+    Logger::log(fmt::format("{}: {}", i, Logger::urdset2str(keys)));
+  }
+
   return polygraph;
 }
 
