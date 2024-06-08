@@ -33,16 +33,10 @@ bool init_pair_conflict(AcyclicSolver &solver) {
 
   auto edge = [&polygraph](int v) -> std::pair<int, int> {
     // * note: hard to extend to RW edges
-    if (polygraph->is_ww_var(v)) {
-      auto &[from, to, _] = polygraph->ww_info[v];
-      return {from, to};
-    } else if (polygraph->is_wr_var(v)) {
+    if (polygraph->is_wr_var(v)) {
       auto &&[from, to, _] = polygraph->wr_info[v];
       return {from, to};
-    } else if (polygraph->is_rw_var(v)) {
-      auto &&[from, to] = polygraph->rw_info[v];
-      return {from, to};
-    }
+    } 
     assert(false);
   };
 
@@ -56,19 +50,19 @@ bool init_pair_conflict(AcyclicSolver &solver) {
     }
 
     // conflict case II: 1 RW edge
-    if (from1 == from2) {
-      if (polygraph->is_wr_var(v1) && polygraph->is_ww_var(v2)) {
-        std::swap(v1, v2);
-        std::swap(to1, to2);
-        // from1 = from2
-      } 
-      if (polygraph->is_ww_var(v1) && polygraph->is_wr_var(v2) && to1 != to2) {
-        // derive RW edge: to2 -> to1
-        const auto &[_1, _2, wr_key] = polygraph->wr_info[v2];
-        const auto &[_3, _4, ww_keys] = polygraph->ww_info[v1];
-        if (ww_keys.contains(wr_key) && graph.reachable(to1, to2)) return true;
-      }
-    } 
+    // if (from1 == from2) {
+    //   if (polygraph->is_wr_var(v1) && polygraph->is_ww_var(v2)) {
+    //     std::swap(v1, v2);
+    //     std::swap(to1, to2);
+    //     // from1 = from2
+    //   } 
+    //   if (polygraph->is_ww_var(v1) && polygraph->is_wr_var(v2) && to1 != to2) {
+    //     // derive RW edge: to2 -> to1
+    //     const auto &[_1, _2, wr_key] = polygraph->wr_info[v2];
+    //     const auto &[_3, _4, ww_keys] = polygraph->ww_info[v1];
+    //     if (ww_keys.contains(wr_key) && graph.reachable(to1, to2)) return true;
+    //   }
+    // } 
 
     return false;
   };

@@ -406,7 +406,7 @@ bool ICDGraph::preprocess() {
 bool ICDGraph::add_known_edge(int from, int to) { // reason default set to (-1, -1)
   // add_known_edge should not be called after initialisation
   if (!reasons_of[from][to].empty()) return true;
-  reasons_of[from][to].insert({-1, -1});
+  reasons_of[from][to].insert({});
   out[from].insert(to), in[to].insert(from);
   if (++m > max_m) max_m = m;
   return true; // always returns true
@@ -414,18 +414,18 @@ bool ICDGraph::add_known_edge(int from, int to) { // reason default set to (-1, 
 
 bool ICDGraph::add_edge(int from, int to, const Reason &reason) { 
   // if a cycle is detected, the edge will not be added into the graph
-  Logger::log(fmt::format("   - ICDGraph: adding {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
+  Logger::log(fmt::format("   - ICDGraph: adding {} -> {}, reason = {}", from, to, reason.to_string()));
   if (reasons_of.contains(from) && reasons_of[from].contains(to) && !reasons_of[from][to].empty()) {
     reasons_of[from][to].insert(reason);
-    Logger::log(fmt::format("   - existing {} -> {}, adding ({}, {}) into reasons", from, to, reason.first, reason.second));
-    Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
+    Logger::log(fmt::format("   - existing {} -> {}, adding ({}) into reasons", from, to, reason.to_string()));
+    // Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
     return true;
   }
   Logger::log(fmt::format("   - new edge {} -> {}, detecting cycle", from, to));
   if (!detect_cycle(from, to, reason)) {
     Logger::log("   - no cycle, ok to add edge");
     reasons_of[from][to].insert(reason);
-    Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
+    // Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
 
     // {
     //   // record levels
@@ -443,18 +443,18 @@ bool ICDGraph::add_edge(int from, int to, const Reason &reason) {
 }
 
 void ICDGraph::remove_edge(int from, int to, const Reason &reason) {
-  Logger::log(fmt::format("   - ICDGraph: removing {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
+  Logger::log(fmt::format("   - ICDGraph: removing {} -> {}, reason = {}", from, to, reason.to_string()));
   assert(reasons_of.contains(from));
   assert(reasons_of[from].contains(to));
   auto &reasons = reasons_of[from][to];
   if (!reasons.contains(reason)) {
-    Logger::log(fmt::format("   - !assertion failed, now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
-    std::cout << std::endl; // force to flush
+    // Logger::log(fmt::format("   - !assertion failed, now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
+    // std::cout << std::endl; // force to flush
   }
   assert(reasons.contains(reason));
   reasons.erase(reasons.find(reason));
-  Logger::log(fmt::format("   - removing reasons ({}, {}) in reasons_of[{}][{}]", reason.first, reason.second, from, to));
-  Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
+  Logger::log(fmt::format("   - removing reasons {} in reasons_of[{}][{}]", reason.to_string(), from, to));
+  // Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
   if (reasons.empty()) {
     Logger::log(fmt::format("   - empty reasons! removing {} -> {}", from, to));
     if (out[from].contains(to)) out[from].erase(to);
@@ -489,7 +489,7 @@ bool ICDGraph::detect_cycle(int from, int to, const Reason &reason) {
   return false;
 }
 
-void ICDGraph::construct_dfs_cycle(int from, int to, std::vector<int> &pre, std::pair<int, int> &reason) {
+void ICDGraph::construct_dfs_cycle(int from, int to, std::vector<int> &pre, const Reason &reason) {
   auto vars = std::vector<int>{};
 
   auto add_var = [&vars](int v) -> bool {
@@ -498,26 +498,33 @@ void ICDGraph::construct_dfs_cycle(int from, int to, std::vector<int> &pre, std:
     return true;
   };
 
+  auto add_reason = [&add_var](const Reason &reason) -> bool {
+    bool ret = false;
+    for (const auto &v : reason.vars) {
+      ret |= add_var(v);
+    }
+    return ret;
+  };
+
   int var_edge_cnt = 0, edge_cnt = 0;
   for (int x = from; x != to; ) {
     assert(x != -1);
     int pred = pre[x];
     assert(pred != -1);
     assert(reasons_of.contains(pred) && reasons_of[pred].contains(x) && !reasons_of[pred][x].empty());
-    const auto [reason1, reason2] = *reasons_of[pred][x].begin();
+    const auto &reason = *reasons_of[pred][x].begin();
     if (!polygraph->reachable_in_known_graph(pred, x)) {
-      add_var(reason1), add_var(reason2);
+      bool added = add_reason(reason);
       ++edge_cnt;
-      if (reason1 != -1 && reason2 != -1) ++var_edge_cnt;
+      if (added) ++var_edge_cnt;
     }
     x = pred;
   }
 
   {
-    const auto [reason1, reason2] = reason;
-    add_var(reason1), add_var(reason2);
+    bool added = add_reason(reason);
     ++edge_cnt;
-    if (reason1 != -1 && reason2 != -1) ++var_edge_cnt;
+    if (added) ++var_edge_cnt;
   }
 
 #ifdef MONITOR_ENABLED

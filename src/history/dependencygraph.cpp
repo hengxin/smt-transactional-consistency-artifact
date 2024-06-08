@@ -64,16 +64,12 @@ auto operator<<(std::ostream &os, const EdgeInfo &edge_info) -> std::ostream & {
   };
 
   switch (edge_info.type) {
-    case EdgeType::WW:
-      out << "WW";
+    case EdgeType::CO:
+      out << "CO";
       print_keys();
       break;
     case EdgeType::WR:
       out << "WR";
-      print_keys();
-      break;
-    case EdgeType::RW:
-      out << "RW";
       print_keys();
       break;
     case EdgeType::SO:

@@ -33,7 +33,6 @@ using boost::not_a_dag;
 using boost::out_edges;
 using boost::target;
 using boost::topological_sort;
-using checker::history::WWConstraint;
 using checker::history::WRConstraint;
 using checker::history::Constraints;
 using checker::history::DependencyGraph;

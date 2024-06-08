@@ -467,14 +467,8 @@ Lit AcyclicSolver::pickBranchLit() {
 
       auto edge = [&](int v) -> std::pair<int, int> {
         auto polygraph = solver_helper->get_polygraph();
-        if (polygraph->is_ww_var(v)) {
-          auto &[from, to, _] = polygraph->ww_info[v];
-          return {from, to};
-        } else if (polygraph->is_wr_var(v)) {
+        if (polygraph->is_wr_var(v)) {
           auto &&[from, to, _] = polygraph->wr_info[v];
-          return {from, to};
-        } else if (polygraph->is_rw_var(v)) {
-          auto &&[from, to] = polygraph->rw_info[v];
           return {from, to};
         }
         assert(false);

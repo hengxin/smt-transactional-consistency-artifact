@@ -7,6 +7,7 @@
 #include <bitset>
 #include <tuple>
 #include <stack>
+#include <queue>
 #include <cassert>
 #include <random>
 #include <fmt/format.h>
@@ -26,30 +27,28 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   polygraph = _polygraph;
   icd_graph.init(polygraph->n_vertices, polygraph->n_vars, polygraph);
   conflict_clauses.clear();
-  ww_to.assign(polygraph->n_vertices, {});
-  wr_to.assign(polygraph->n_vertices, {});
   added_edges_of.assign(polygraph->n_vars, {});
-  known_induced_edges_of.assign(polygraph->n_vars, {});
+  dep_from.assign(polygraph->n_vertices, {});
+  wr_from_keys.assign(polygraph->n_vertices, {});
+  wr_from_of_key.assign(polygraph->n_vertices, {});
   
   for (const auto &[from, to, type] : polygraph->known_edges) {
-    if (type == 1) { // WW
-      assert(polygraph->has_ww_keys(from, to));
-      const auto &keys = polygraph->ww_keys[from][to];
-      ww_keys[from][to].insert(keys.begin(), keys.end());
-      for (const auto &key : keys) {
-        ww_to[from][key].insert(to);
-      } 
-    } else if (type == 2) { // WR
-      assert(polygraph->has_wr_keys(from, to));
-      for (const auto &key : polygraph->wr_keys[from][to]) {
-        wr_to[from][key].insert(to);
+    icd_graph.add_known_edge(from, to);
+    if (type == 0 || type == 1) { // SO or WR
+      dep_from[to].insert({from, -1});
+      if (type == 1) { // WR
+        const auto &keys = polygraph->wr_keys.at(from).at(to);
+        for (const auto &key : keys) {
+          assert(!wr_from_keys[to].contains(key));
+          wr_from_keys[to].insert(key);
+          assert(!wr_from_of_key[to].contains(key) || wr_from_of_key[to][key] == -1);
+          wr_from_of_key[to][key] = from;
+          assert(!wr_var_of_key[to].contains(key) || wr_var_of_key[to][key] == -2); // -1 is used as known, use -2 instead...
+          wr_var_of_key[to][key] = -1;
+        }
       }
-    }
-  }
-  for (int v = 0; v < polygraph->n_vars; v++) { // move ww keys (in constraints) into a unified position
-    if (polygraph->is_ww_var(v)) {
-      const auto &[from, to, keys] = polygraph->ww_info[v];
-      ww_keys[from][to].insert(keys.begin(), keys.end());
+    } else { // CO
+      assert(type == 2); 
     }
   }
 
@@ -59,7 +58,7 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   // ! deprecated
   // initialize vars_heap, sorting by n_edges_of_var
   int n_vars = polygraph->n_vars;
-  for (int i = 0; i < n_vars; i++) vars_heap.insert({known_induced_edges_of[i].size(), i});
+  for (int i = 0; i < n_vars; i++) vars_heap.insert({0, i});
 
   if (!icd_graph.preprocess()) {
     throw std::runtime_error{"Conflict found in Known Graph!"};
@@ -84,8 +83,61 @@ void AcyclicSolverHelper::remove_var(int var) {
   }
 }
 
-void build_co(int var, std::vector<std::tuple<int, int, Reason>> &to_be_added_edges) {
+void AcyclicSolverHelper::build_co(int var, std::vector<std::tuple<int, int, Reason>> &to_be_added_edges) {
   // TODO: build CO edges of var
+  const auto &[from, to, key] = polygraph->wr_info[var];
+
+  // 1. backward search starting from to
+  auto build_co_dest_from = [&]() -> bool {
+    bool reach_from = false;
+    auto q = std::queue<std::pair<int, Reason>>{};
+    auto vis = std::vector<bool>(polygraph->n_vertices, false);
+    q.push({to, Reason{var}});
+    vis[to] = true;
+    while (!q.empty()) {
+      const auto &[x, reason] = q.front();
+      if (x == from) reach_from = true;
+      if (x != from && polygraph->write_keys_of.at(x).contains(key)) {
+        to_be_added_edges.emplace_back(x, from, reason);
+      }
+      for (const auto &[y, edge_var] : dep_from[x]) {
+        if (vis[y]) continue;
+        q.push({y, Reason{reason, edge_var}});
+        vis[y] = true;
+      }
+      q.pop();
+    }
+    return reach_from;
+  };
+
+  // if from can be reached from to, then add (from, to) will not change the reachability of from and to
+  //  there's no need to consider (from, to) as a part of (wr U so)+
+  if (build_co_dest_from()) return;
+
+  // 2. backward search starting from from
+  {
+    auto q = std::queue<std::pair<int, Reason>>{};
+    auto vis = std::vector<bool>(polygraph->n_vertices, false);
+    q.push({from, Reason{var}});
+    vis[to] = true;
+    while (!q.empty()) {
+      const auto &[x, reason] = q.front();
+      for (const auto &key : wr_from_keys[to]) {
+        assert(wr_from_of_key[to].contains(key) && wr_from_of_key[to].contains(key) != -1);
+        int wr_from = wr_from_of_key[to][key];
+        if (x != wr_from && polygraph->write_keys_of[x].contains(key)) {
+          int wr_var = wr_from_of_key.at(to).at(key);
+          to_be_added_edges.emplace_back(x, wr_from, Reason{reason, wr_var});
+        }
+      }
+      for (const auto &[y, edge_var] : dep_from[x]) {
+        if (vis[y]) continue;
+        q.push({y, Reason{reason, edge_var}});
+        vis[y] = true;
+      }
+      q.pop();
+    }
+  }
 }
 
 bool AcyclicSolverHelper::add_edges_of_var(int var) { 
@@ -131,6 +183,8 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
       wr_from_keys[to].insert(from);
       assert(!wr_from_of_key[to].contains(key) || wr_from_of_key[to][key] == -1);
       wr_from_of_key[to][key] = from;
+      assert(!wr_var_of_key[to].contains(key) || wr_var_of_key[to][key] == -2);
+      wr_var_of_key[to][key] = var;
       Logger::log(fmt::format(" - inserting ({} -> {}, key = {}) into solver_helper", from, to, key));
     } 
   } else {
@@ -187,6 +241,8 @@ void AcyclicSolverHelper::remove_edges_of_var(int var) {
     wr_from_keys[to].erase(key);
     assert(wr_from_of_key[to][key] == from);
     wr_from_of_key[to][key] = -1;
+    assert(wr_var_of_key[to][key] == var);
+    wr_var_of_key[to][key] = -2;
 
     Logger::log(fmt::format(" - deleting ({} -> {}, key = {}) in solver_helper", from, to, key));
   } else {

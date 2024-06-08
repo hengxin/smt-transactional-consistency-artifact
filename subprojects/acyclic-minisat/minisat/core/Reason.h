@@ -11,9 +11,13 @@ class Reason {
 public:
   std::set<int> vars; // v1 & v2 & ... & vn
   Reason(): vars({}) {}
-  Reason(const int var): vars({}) { vars.insert(var); }
+  Reason(const int &v): vars({}) { 
+    if (v != -1) vars.insert(v); 
+  }
   Reason(const std::set<int> &_vars): vars(_vars) {}
-  Reason(const Reason &reason, const int &v): vars(reason.vars) { vars.insert(v); }
+  Reason(const Reason &reason, const int &v): vars(reason.vars) { 
+    if (v != -1) vars.insert(v); 
+  }
   Reason(const Reason &reason1, const Reason &reason2): vars(reason1.vars) { vars.insert(reason2.vars.begin(), reason2.vars.end()); }
 
   bool any() { return !vars.empty(); }

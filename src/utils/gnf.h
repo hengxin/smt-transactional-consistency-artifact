@@ -110,279 +110,280 @@ auto write_to_gnf_file(fs::path &gnf_path,
                        const history::DependencyGraph &known_graph,
                        const history::Constraints &constraints,
                        const bool enable_unique_encoding = false) -> void {
-  const auto &[ww_constraints, wr_constraints] = constraints;
+  // TODO
+  // const auto &[ww_constraints, wr_constraints] = constraints;
 
-  // 0. generate rw constraints
-  struct RWConstraint {
-    int64_t from_txn_id, to_txn_id;
-    std::unordered_set<std::pair<int64_t, int64_t>, decltype(hash_txns_pair)> reasons; // {<middle, key>}
-  };
-  auto rw_constraints = [&]() -> std::vector<RWConstraint> {
-    auto nodes = std::unordered_set<int64_t>{};
-    auto ww_edges = std::unordered_map<int64_t, std::unordered_set<int64_t>>{};
-    auto ww_edge_keys = std::unordered_map<std::pair<int64_t, int64_t>, std::unordered_set<int64_t>, decltype(hash_txns_pair)>{};
-    auto add_ww_edge = [&](const history::WWConstraint::Edge &edge) -> void {
-      const auto &[from, to, edge_info] = edge;
-      nodes.insert(from), nodes.insert(to);
-      ww_edges[from].insert(to);
-      for (const auto &key : edge_info.keys) {
-        ww_edge_keys[std::make_pair(from, to)].insert(key);
-      }
-    };
-    for (const auto &[either_txn_id, or_txn_id, either_edges, or_edges] : ww_constraints) {
-      add_ww_edge(either_edges.at(0)), add_ww_edge(or_edges.at(0));
-    }
-    for (const auto &e : known_graph.ww.edges()) {
-      add_ww_edge(e);
-    }
+  // // 0. generate rw constraints
+  // struct RWConstraint {
+  //   int64_t from_txn_id, to_txn_id;
+  //   std::unordered_set<std::pair<int64_t, int64_t>, decltype(hash_txns_pair)> reasons; // {<middle, key>}
+  // };
+  // auto rw_constraints = [&]() -> std::vector<RWConstraint> {
+  //   auto nodes = std::unordered_set<int64_t>{};
+  //   auto ww_edges = std::unordered_map<int64_t, std::unordered_set<int64_t>>{};
+  //   auto ww_edge_keys = std::unordered_map<std::pair<int64_t, int64_t>, std::unordered_set<int64_t>, decltype(hash_txns_pair)>{};
+  //   auto add_ww_edge = [&](const history::WWConstraint::Edge &edge) -> void {
+  //     const auto &[from, to, edge_info] = edge;
+  //     nodes.insert(from), nodes.insert(to);
+  //     ww_edges[from].insert(to);
+  //     for (const auto &key : edge_info.keys) {
+  //       ww_edge_keys[std::make_pair(from, to)].insert(key);
+  //     }
+  //   };
+  //   for (const auto &[either_txn_id, or_txn_id, either_edges, or_edges] : ww_constraints) {
+  //     add_ww_edge(either_edges.at(0)), add_ww_edge(or_edges.at(0));
+  //   }
+  //   for (const auto &e : known_graph.ww.edges()) {
+  //     add_ww_edge(e);
+  //   }
 
-    auto wr_edges = std::unordered_map<int64_t, std::unordered_set<int64_t>>{};
-    auto wr_edge_keys = std::unordered_map<std::pair<int64_t, int64_t>, std::unordered_set<int64_t>, decltype(hash_txns_pair)>{};
-    for (const auto &[key, read_txn_id, write_txn_ids] : wr_constraints) {
-      nodes.insert(read_txn_id);
-      for (const auto &write_txn_id : write_txn_ids) {
-        nodes.insert(write_txn_id);
-        wr_edges[write_txn_id].insert(read_txn_id);
-        wr_edge_keys[std::make_pair(write_txn_id, read_txn_id)].insert(key);
-      }
-    }
-    for (const auto &e : known_graph.wr.edges()) {
-      const auto &[from, to, info] = e;
-      nodes.insert(from), nodes.insert(to);
-      wr_edges[from].insert(to);
-      for (const auto &key : info.get().keys) {
-        wr_edge_keys[std::make_pair(from, to)].insert(key);
-      }
-    }
+  //   auto wr_edges = std::unordered_map<int64_t, std::unordered_set<int64_t>>{};
+  //   auto wr_edge_keys = std::unordered_map<std::pair<int64_t, int64_t>, std::unordered_set<int64_t>, decltype(hash_txns_pair)>{};
+  //   for (const auto &[key, read_txn_id, write_txn_ids] : wr_constraints) {
+  //     nodes.insert(read_txn_id);
+  //     for (const auto &write_txn_id : write_txn_ids) {
+  //       nodes.insert(write_txn_id);
+  //       wr_edges[write_txn_id].insert(read_txn_id);
+  //       wr_edge_keys[std::make_pair(write_txn_id, read_txn_id)].insert(key);
+  //     }
+  //   }
+  //   for (const auto &e : known_graph.wr.edges()) {
+  //     const auto &[from, to, info] = e;
+  //     nodes.insert(from), nodes.insert(to);
+  //     wr_edges[from].insert(to);
+  //     for (const auto &key : info.get().keys) {
+  //       wr_edge_keys[std::make_pair(from, to)].insert(key);
+  //     }
+  //   }
 
-    auto rw_reasons_per_pair = std::unordered_map<std::pair<int64_t, int64_t>, 
-                                                  std::unordered_set<std::pair<int64_t, int64_t>, decltype(hash_txns_pair)>, 
-                                                  decltype(hash_txns_pair)>{}; // <from, to> -> <middle, key>
-    for (const auto &from : nodes) {
-      for (const auto &wr_to : wr_edges[from]) {
-        for (const auto &ww_to : ww_edges[from]) {
-          if (wr_to == ww_to) continue;
-          for (const auto &key : wr_edge_keys.at(std::make_pair(from, wr_to))) {
-            if (ww_edge_keys[std::make_pair(from, ww_to)].contains(key)) {
-              rw_reasons_per_pair[std::make_pair(wr_to, ww_to)].insert(std::make_pair(from, key));
-            }
-          }
-        }
-      }
-    }
+  //   auto rw_reasons_per_pair = std::unordered_map<std::pair<int64_t, int64_t>, 
+  //                                                 std::unordered_set<std::pair<int64_t, int64_t>, decltype(hash_txns_pair)>, 
+  //                                                 decltype(hash_txns_pair)>{}; // <from, to> -> <middle, key>
+  //   for (const auto &from : nodes) {
+  //     for (const auto &wr_to : wr_edges[from]) {
+  //       for (const auto &ww_to : ww_edges[from]) {
+  //         if (wr_to == ww_to) continue;
+  //         for (const auto &key : wr_edge_keys.at(std::make_pair(from, wr_to))) {
+  //           if (ww_edge_keys[std::make_pair(from, ww_to)].contains(key)) {
+  //             rw_reasons_per_pair[std::make_pair(wr_to, ww_to)].insert(std::make_pair(from, key));
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
 
-    auto rw_constraints = std::vector<RWConstraint>{};
-    for (const auto &[rw_edge, reasons] : rw_reasons_per_pair) {
-      const auto &[from, to] = rw_edge;
-      rw_constraints.emplace_back(RWConstraint{
-                                    .from_txn_id = from, 
-                                    .to_txn_id = to,
-                                    .reasons = reasons
-                                  });
+  //   auto rw_constraints = std::vector<RWConstraint>{};
+  //   for (const auto &[rw_edge, reasons] : rw_reasons_per_pair) {
+  //     const auto &[from, to] = rw_edge;
+  //     rw_constraints.emplace_back(RWConstraint{
+  //                                   .from_txn_id = from, 
+  //                                   .to_txn_id = to,
+  //                                   .reasons = reasons
+  //                                 });
       
-      // std::cerr << "from = " << from << ", to = " << to << ", reasons = {";
-      // for (const auto &[middle, key] : reasons) {
-      //   std::cerr << "(" << middle << ", " << key <<  ") ";
-      // }
-      // std::cerr << "}\n";
-    }
-    return rw_constraints;
-  }();
+  //     // std::cerr << "from = " << from << ", to = " << to << ", reasons = {";
+  //     // for (const auto &[middle, key] : reasons) {
+  //     //   std::cerr << "(" << middle << ", " << key <<  ") ";
+  //     // }
+  //     // std::cerr << "}\n";
+  //   }
+  //   return rw_constraints;
+  // }();
 
-  // 1. alloc variable ids
-  int n_vars = 0, n_nodes = 0;
-  auto id_of_node = std::unordered_map<int64_t, int>{};
-  auto edge_of_id = std::unordered_map<int, std::pair<int64_t, int64_t>>{};
-  auto id_of_edge = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{};
-  auto alloc_node_id = [&](int64_t node) -> void {
-    if (id_of_node.contains(node)) return;
-    id_of_node[node] = n_nodes++;
-  };
-  auto alloc_edge_id = [&](int64_t from, int64_t to) -> void {
-    alloc_node_id(from), alloc_node_id(to);
-    if (id_of_edge.contains(std::make_pair(from, to))) return;
-    id_of_edge[std::make_pair(from, to)] = ++n_vars;
-    edge_of_id[n_vars] = std::make_pair(from, to);
-  };
+  // // 1. alloc variable ids
+  // int n_vars = 0, n_nodes = 0;
+  // auto id_of_node = std::unordered_map<int64_t, int>{};
+  // auto edge_of_id = std::unordered_map<int, std::pair<int64_t, int64_t>>{};
+  // auto id_of_edge = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{};
+  // auto alloc_node_id = [&](int64_t node) -> void {
+  //   if (id_of_node.contains(node)) return;
+  //   id_of_node[node] = n_nodes++;
+  // };
+  // auto alloc_edge_id = [&](int64_t from, int64_t to) -> void {
+  //   alloc_node_id(from), alloc_node_id(to);
+  //   if (id_of_edge.contains(std::make_pair(from, to))) return;
+  //   id_of_edge[std::make_pair(from, to)] = ++n_vars;
+  //   edge_of_id[n_vars] = std::make_pair(from, to);
+  // };
 
-  // 1.1 e(i, j)
-  // 1.1.1 SO edges, and other possible edges in known graph(caused by pruning)
-  for (const auto &[from, to, _] : known_graph.edges()) { alloc_edge_id(from, to); } 
-  // 1.1.2 WW edges
-  for (const auto &[either_txn_id, or_txn_id, _1, _2] : ww_constraints) {
-    alloc_edge_id(either_txn_id, or_txn_id),
-    alloc_edge_id(or_txn_id, either_txn_id);
-  }
-  // 1.1.3 WR edges
-  for (const auto &[key, read_txn_id, write_txn_ids] : wr_constraints) {
-    for (const auto &write_txn_id : write_txn_ids) {
-      alloc_edge_id(write_txn_id, read_txn_id);
-    }
-  }
-  // 1.1.4 RW edges
-  for (const auto &[from, to, _] : rw_constraints) { alloc_edge_id(from, to); }
+  // // 1.1 e(i, j)
+  // // 1.1.1 SO edges, and other possible edges in known graph(caused by pruning)
+  // for (const auto &[from, to, _] : known_graph.edges()) { alloc_edge_id(from, to); } 
+  // // 1.1.2 WW edges
+  // for (const auto &[either_txn_id, or_txn_id, _1, _2] : ww_constraints) {
+  //   alloc_edge_id(either_txn_id, or_txn_id),
+  //   alloc_edge_id(or_txn_id, either_txn_id);
+  // }
+  // // 1.1.3 WR edges
+  // for (const auto &[key, read_txn_id, write_txn_ids] : wr_constraints) {
+  //   for (const auto &write_txn_id : write_txn_ids) {
+  //     alloc_edge_id(write_txn_id, read_txn_id);
+  //   }
+  // }
+  // // 1.1.4 RW edges
+  // for (const auto &[from, to, _] : rw_constraints) { alloc_edge_id(from, to); }
 
-  // 1.2 SO, WW, RW(i, j), WR(k, i, j)
-  auto so_edge_id = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{};
-  auto ww_edge_id = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{};
-  auto rw_edge_id = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{};
-  auto wr_key_edge_id = std::unordered_map<std::pair<int64_t, int64_t>, 
-                                           std::unordered_map<int64_t, int>, 
-                                           decltype(hash_txns_pair)>{};
-  auto alloc_type_edge_id = [&n_vars](std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)> &type_edge_map, 
-                                      int64_t from, int64_t to) -> void {
-    if (type_edge_map.contains(std::make_pair(from, to))) return;
-    type_edge_map[std::make_pair(from, to)] = ++n_vars;
-  };
-  for (const auto &[edge, _] : id_of_edge) {
-    const auto &[from, to] = edge;
-    alloc_type_edge_id(so_edge_id, from, to);
-    alloc_type_edge_id(ww_edge_id, from, to);
-    alloc_type_edge_id(rw_edge_id, from, to);
-  }
-  auto alloc_wr_key_edge_id = [&n_vars, &wr_key_edge_id](int64_t from, int64_t to, int64_t key) -> void {
-    if (wr_key_edge_id[std::make_pair(from, to)].contains(key)) return;
-    wr_key_edge_id[std::make_pair(from, to)][key] = ++n_vars;
-  };
-  for (const auto &[key, read_txn_id, write_txn_ids] : wr_constraints) {
-    for (const auto &write_txn_id : write_txn_ids) {
-      alloc_wr_key_edge_id(write_txn_id, read_txn_id, key);
-    }
-  }
-  for (const auto &e : known_graph.wr.edges()) {
-    const auto &[from, to, info] = e;
-    for (const auto &key : info.get().keys) {
-      alloc_wr_key_edge_id(from, to, key);
-    }
-  }
+  // // 1.2 SO, WW, RW(i, j), WR(k, i, j)
+  // auto so_edge_id = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{};
+  // auto ww_edge_id = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{};
+  // auto rw_edge_id = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{};
+  // auto wr_key_edge_id = std::unordered_map<std::pair<int64_t, int64_t>, 
+  //                                          std::unordered_map<int64_t, int>, 
+  //                                          decltype(hash_txns_pair)>{};
+  // auto alloc_type_edge_id = [&n_vars](std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)> &type_edge_map, 
+  //                                     int64_t from, int64_t to) -> void {
+  //   if (type_edge_map.contains(std::make_pair(from, to))) return;
+  //   type_edge_map[std::make_pair(from, to)] = ++n_vars;
+  // };
+  // for (const auto &[edge, _] : id_of_edge) {
+  //   const auto &[from, to] = edge;
+  //   alloc_type_edge_id(so_edge_id, from, to);
+  //   alloc_type_edge_id(ww_edge_id, from, to);
+  //   alloc_type_edge_id(rw_edge_id, from, to);
+  // }
+  // auto alloc_wr_key_edge_id = [&n_vars, &wr_key_edge_id](int64_t from, int64_t to, int64_t key) -> void {
+  //   if (wr_key_edge_id[std::make_pair(from, to)].contains(key)) return;
+  //   wr_key_edge_id[std::make_pair(from, to)][key] = ++n_vars;
+  // };
+  // for (const auto &[key, read_txn_id, write_txn_ids] : wr_constraints) {
+  //   for (const auto &write_txn_id : write_txn_ids) {
+  //     alloc_wr_key_edge_id(write_txn_id, read_txn_id, key);
+  //   }
+  // }
+  // for (const auto &e : known_graph.wr.edges()) {
+  //   const auto &[from, to, info] = e;
+  //   for (const auto &key : info.get().keys) {
+  //     alloc_wr_key_edge_id(from, to, key);
+  //   }
+  // }
 
-  // 1.3 edge sets of WW and RW edges
-  auto either_edge_set_of_ww_constraint = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{}; 
-  auto or_edge_set_of_ww_constraint = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{}; 
-  auto alloc_edge_set_id = [&n_vars](std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)> &edge_set_map,
-                                     int64_t from, int64_t to) -> void {
-    if (edge_set_map.contains(std::make_pair(from, to))) return;
-    edge_set_map[std::make_pair(from, to)] = ++n_vars;
-  };
-  for (const auto &[either_txn_id, or_txn_id, _1, _2] : ww_constraints) {
-    alloc_edge_set_id(either_edge_set_of_ww_constraint, either_txn_id, or_txn_id);
-    alloc_edge_set_id(or_edge_set_of_ww_constraint, or_txn_id, either_txn_id);
-  }
-  // 1.4 acyclicity itself
-  const auto acyclicity_var = ++n_vars;
+  // // 1.3 edge sets of WW and RW edges
+  // auto either_edge_set_of_ww_constraint = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{}; 
+  // auto or_edge_set_of_ww_constraint = std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)>{}; 
+  // auto alloc_edge_set_id = [&n_vars](std::unordered_map<std::pair<int64_t, int64_t>, int, decltype(hash_txns_pair)> &edge_set_map,
+  //                                    int64_t from, int64_t to) -> void {
+  //   if (edge_set_map.contains(std::make_pair(from, to))) return;
+  //   edge_set_map[std::make_pair(from, to)] = ++n_vars;
+  // };
+  // for (const auto &[either_txn_id, or_txn_id, _1, _2] : ww_constraints) {
+  //   alloc_edge_set_id(either_edge_set_of_ww_constraint, either_txn_id, or_txn_id);
+  //   alloc_edge_set_id(or_edge_set_of_ww_constraint, or_txn_id, either_txn_id);
+  // }
+  // // 1.4 acyclicity itself
+  // const auto acyclicity_var = ++n_vars;
 
-  // 2. construct logical clauses
-  auto clauses = std::vector<std::vector<int>>{};
-  auto add_clause = [&clauses](std::vector<int> clause) { clauses.emplace_back(clause); };
-  // 2.1 (SO, WW, RW(i, j), WR(k, i, j)) <=> e(i, j)
-  for (const auto &[edge, edge_id] : id_of_edge) {
-    add_clause({edge_id, -so_edge_id[edge]});
-    add_clause({edge_id, -ww_edge_id[edge]});
-    add_clause({edge_id, -rw_edge_id[edge]});
-    auto last_clause = std::vector<int>{-edge_id, so_edge_id[edge], ww_edge_id[edge], rw_edge_id[edge]};
-    if (wr_key_edge_id.contains(edge)) {
-      for (const auto &[key, wr_edge_id] : wr_key_edge_id.at(edge)) {
-        last_clause.emplace_back(wr_edge_id);
-        add_clause({edge_id, -wr_edge_id});
-      }
-    }
-    add_clause(last_clause);
-  }
-  // 2.2 edge set of WW and RW edges
-  for (const auto &[either_txn_id, or_txn_id, either_edges, or_edges] : ww_constraints) {
-    const auto either_var = either_edge_set_of_ww_constraint[std::make_pair(either_txn_id, or_txn_id)];
-    const auto or_var = or_edge_set_of_ww_constraint[std::make_pair(or_txn_id, either_txn_id)];
-    add_clause({either_var, or_var}), add_clause({-either_var, -or_var});
+  // // 2. construct logical clauses
+  // auto clauses = std::vector<std::vector<int>>{};
+  // auto add_clause = [&clauses](std::vector<int> clause) { clauses.emplace_back(clause); };
+  // // 2.1 (SO, WW, RW(i, j), WR(k, i, j)) <=> e(i, j)
+  // for (const auto &[edge, edge_id] : id_of_edge) {
+  //   add_clause({edge_id, -so_edge_id[edge]});
+  //   add_clause({edge_id, -ww_edge_id[edge]});
+  //   add_clause({edge_id, -rw_edge_id[edge]});
+  //   auto last_clause = std::vector<int>{-edge_id, so_edge_id[edge], ww_edge_id[edge], rw_edge_id[edge]};
+  //   if (wr_key_edge_id.contains(edge)) {
+  //     for (const auto &[key, wr_edge_id] : wr_key_edge_id.at(edge)) {
+  //       last_clause.emplace_back(wr_edge_id);
+  //       add_clause({edge_id, -wr_edge_id});
+  //     }
+  //   }
+  //   add_clause(last_clause);
+  // }
+  // // 2.2 edge set of WW and RW edges
+  // for (const auto &[either_txn_id, or_txn_id, either_edges, or_edges] : ww_constraints) {
+  //   const auto either_var = either_edge_set_of_ww_constraint[std::make_pair(either_txn_id, or_txn_id)];
+  //   const auto or_var = or_edge_set_of_ww_constraint[std::make_pair(or_txn_id, either_txn_id)];
+  //   add_clause({either_var, or_var}), add_clause({-either_var, -or_var});
 
-    auto bind_edge_set = [&](int v, const std::vector<history::WWConstraint::Edge> &edges) -> void {
-      auto last_clause = std::vector<int>{v};
-      for (auto i = 0_uz; i < edges.size(); i++) {
-        const auto &[from, to, edge_info] = edges.at(i);
-        int edge_id = 0;
-        if (i == 0) { // WW
-          assert(ww_edge_id.contains(std::make_pair(from, to)));
-          edge_id = ww_edge_id[std::make_pair(from, to)];
-          last_clause.emplace_back(-edge_id);
-          add_clause({-v, edge_id});
-        } else { // WR
-          assert(wr_key_edge_id.contains(std::make_pair(from, to)));
-          for (const auto &key : edge_info.keys) {
-            assert(wr_key_edge_id.at(std::make_pair(from, to)).contains(key));
-            edge_id = wr_key_edge_id[std::make_pair(from, to)][key];
-            last_clause.emplace_back(-edge_id);
-            add_clause({-v, edge_id});
-          }
-        }
-      }
+  //   auto bind_edge_set = [&](int v, const std::vector<history::WWConstraint::Edge> &edges) -> void {
+  //     auto last_clause = std::vector<int>{v};
+  //     for (auto i = 0_uz; i < edges.size(); i++) {
+  //       const auto &[from, to, edge_info] = edges.at(i);
+  //       int edge_id = 0;
+  //       if (i == 0) { // WW
+  //         assert(ww_edge_id.contains(std::make_pair(from, to)));
+  //         edge_id = ww_edge_id[std::make_pair(from, to)];
+  //         last_clause.emplace_back(-edge_id);
+  //         add_clause({-v, edge_id});
+  //       } else { // WR
+  //         assert(wr_key_edge_id.contains(std::make_pair(from, to)));
+  //         for (const auto &key : edge_info.keys) {
+  //           assert(wr_key_edge_id.at(std::make_pair(from, to)).contains(key));
+  //           edge_id = wr_key_edge_id[std::make_pair(from, to)][key];
+  //           last_clause.emplace_back(-edge_id);
+  //           add_clause({-v, edge_id});
+  //         }
+  //       }
+  //     }
 
-      // for (const auto &[from, to, _] : edges) {
-      //   assert(id_of_edge.contains(std::make_pair(from, to)));
-      //   int edge_id = id_of_edge[std::make_pair(from, to)];
-      //   last_clause.emplace_back(-edge_id);
-      //   add_clause({-v, edge_id});
-      // }
+  //     // for (const auto &[from, to, _] : edges) {
+  //     //   assert(id_of_edge.contains(std::make_pair(from, to)));
+  //     //   int edge_id = id_of_edge[std::make_pair(from, to)];
+  //     //   last_clause.emplace_back(-edge_id);
+  //     //   add_clause({-v, edge_id});
+  //     // }
 
-      add_clause(last_clause);
-    }; // bind variable v with edge set, add the logical formula into clauses 
-    bind_edge_set(either_var, either_edges), bind_edge_set(or_var, or_edges);
-  }
-  // 2.3 WR + WW -> RW
-  for (const auto &[from, to, reasons] : rw_constraints) {
-    for (const auto &[middle, key] : reasons) {
-      add_clause({-wr_key_edge_id[std::make_pair(middle, from)][key],
-                  -ww_edge_id[std::make_pair(middle, to)],
-                  rw_edge_id[std::make_pair(from, to)]});
-    }
-  }
-  // 2.4 WR some
-  for (const auto &[key, read_txn_id, write_txn_ids] : wr_constraints) {
-    auto clause = std::vector<int>{};
-    for (const auto write_txn_id : write_txn_ids) {
-      assert(wr_key_edge_id.contains(std::make_pair(write_txn_id, read_txn_id)));
-      assert(wr_key_edge_id.at(std::make_pair(write_txn_id, read_txn_id)).contains(key));
-      const auto edge_id = wr_key_edge_id[std::make_pair(write_txn_id, read_txn_id)][key];
-      clause.emplace_back(edge_id);
-    }
-    add_clause(clause);
-    if (enable_unique_encoding) {
-      unsigned n = clause.size();
-      for (unsigned i = 0; i < n; i++) {
-        for (unsigned j = i + 1; j < n; j++) {
-          add_clause({-clause[i], -clause[j]});
-        }
-      }
-    }
-  }
-  // 2.5 acyclicity
-  add_clause({acyclicity_var});
-  // 2.6 known edge(SO edge)s
-  for (const auto &[from, to, _] : known_graph.edges()) {
-    assert(so_edge_id.contains(std::make_pair(from, to)));
-    const auto edge_id = so_edge_id[std::make_pair(from, to)];
-    add_clause({edge_id});  
-  }
+  //     add_clause(last_clause);
+  //   }; // bind variable v with edge set, add the logical formula into clauses 
+  //   bind_edge_set(either_var, either_edges), bind_edge_set(or_var, or_edges);
+  // }
+  // // 2.3 WR + WW -> RW
+  // for (const auto &[from, to, reasons] : rw_constraints) {
+  //   for (const auto &[middle, key] : reasons) {
+  //     add_clause({-wr_key_edge_id[std::make_pair(middle, from)][key],
+  //                 -ww_edge_id[std::make_pair(middle, to)],
+  //                 rw_edge_id[std::make_pair(from, to)]});
+  //   }
+  // }
+  // // 2.4 WR some
+  // for (const auto &[key, read_txn_id, write_txn_ids] : wr_constraints) {
+  //   auto clause = std::vector<int>{};
+  //   for (const auto write_txn_id : write_txn_ids) {
+  //     assert(wr_key_edge_id.contains(std::make_pair(write_txn_id, read_txn_id)));
+  //     assert(wr_key_edge_id.at(std::make_pair(write_txn_id, read_txn_id)).contains(key));
+  //     const auto edge_id = wr_key_edge_id[std::make_pair(write_txn_id, read_txn_id)][key];
+  //     clause.emplace_back(edge_id);
+  //   }
+  //   add_clause(clause);
+  //   if (enable_unique_encoding) {
+  //     unsigned n = clause.size();
+  //     for (unsigned i = 0; i < n; i++) {
+  //       for (unsigned j = i + 1; j < n; j++) {
+  //         add_clause({-clause[i], -clause[j]});
+  //       }
+  //     }
+  //   }
+  // }
+  // // 2.5 acyclicity
+  // add_clause({acyclicity_var});
+  // // 2.6 known edge(SO edge)s
+  // for (const auto &[from, to, _] : known_graph.edges()) {
+  //   assert(so_edge_id.contains(std::make_pair(from, to)));
+  //   const auto edge_id = so_edge_id[std::make_pair(from, to)];
+  //   add_clause({edge_id});  
+  // }
 
-  // 3. output to .gnf file
-  auto write_file_st_time = std::chrono::steady_clock::now();
-  std::ofstream ofs;
-  ofs.open(gnf_path, std::ios::out | std::ios::trunc); 
-  // 3.1 basic info, like .cnf
-  ofs << "p cnf " << n_vars << " " << clauses.size() << "\n";
-  for (const auto &clause : clauses) {
-    for (const auto &v : clause) { ofs << v << " "; }
-    ofs << "0\n";
-  }
-  // 3.2 graph info
-  ofs << "digraph int " << known_graph.num_vertices() << " " << edge_of_id.size() << " 0\n";
-  for (const auto &[edge, id] : id_of_edge) {
-    const auto &[from, to] = edge;
-    assert(id_of_node.contains(from) && id_of_node.contains(to));
-    ofs << "edge 0 " << id_of_node.at(from) << " " << id_of_node.at(to) << " " << id << "\n";
-  }
-  ofs << "acyclic 0 " << acyclicity_var << "\n";
-  ofs.close();
+  // // 3. output to .gnf file
+  // auto write_file_st_time = std::chrono::steady_clock::now();
+  // std::ofstream ofs;
+  // ofs.open(gnf_path, std::ios::out | std::ios::trunc); 
+  // // 3.1 basic info, like .cnf
+  // ofs << "p cnf " << n_vars << " " << clauses.size() << "\n";
+  // for (const auto &clause : clauses) {
+  //   for (const auto &v : clause) { ofs << v << " "; }
+  //   ofs << "0\n";
+  // }
+  // // 3.2 graph info
+  // ofs << "digraph int " << known_graph.num_vertices() << " " << edge_of_id.size() << " 0\n";
+  // for (const auto &[edge, id] : id_of_edge) {
+  //   const auto &[from, to] = edge;
+  //   assert(id_of_node.contains(from) && id_of_node.contains(to));
+  //   ofs << "edge 0 " << id_of_node.at(from) << " " << id_of_node.at(to) << " " << id << "\n";
+  // }
+  // ofs << "acyclic 0 " << acyclicity_var << "\n";
+  // ofs.close();
   
-  auto write_file_ed_time = std::chrono::steady_clock::now();
+  // auto write_file_ed_time = std::chrono::steady_clock::now();
   // BOOST_LOG_TRIVIAL(info) << "write .gnf time: " << std::chrono::duration_cast<std::chrono::milliseconds>(write_file_ed_time -write_file_st_time);
 }
 } // namespace checker::utils
