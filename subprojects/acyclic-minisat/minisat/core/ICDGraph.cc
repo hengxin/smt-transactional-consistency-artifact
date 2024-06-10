@@ -406,7 +406,9 @@ bool ICDGraph::preprocess() {
 bool ICDGraph::add_known_edge(int from, int to) { // reason default set to (-1, -1)
   // add_known_edge should not be called after initialisation
   if (!reasons_of[from][to].empty()) return true;
-  reasons_of[from][to].insert({});
+  reasons_of[from][to].insert(Reason{});
+  Logger::log(fmt::format("   - ICDGraph: adding known edge {} -> {}", from, to));
+  Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
   out[from].insert(to), in[to].insert(from);
   if (++m > max_m) max_m = m;
   return true; // always returns true
@@ -418,14 +420,14 @@ bool ICDGraph::add_edge(int from, int to, const Reason &reason) {
   if (reasons_of.contains(from) && reasons_of[from].contains(to) && !reasons_of[from][to].empty()) {
     reasons_of[from][to].insert(reason);
     Logger::log(fmt::format("   - existing {} -> {}, adding ({}) into reasons", from, to, reason.to_string()));
-    // Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
+    Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
     return true;
   }
   Logger::log(fmt::format("   - new edge {} -> {}, detecting cycle", from, to));
   if (!detect_cycle(from, to, reason)) {
     Logger::log("   - no cycle, ok to add edge");
     reasons_of[from][to].insert(reason);
-    // Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
+    Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
 
     // {
     //   // record levels
@@ -454,7 +456,7 @@ void ICDGraph::remove_edge(int from, int to, const Reason &reason) {
   assert(reasons.contains(reason));
   reasons.erase(reasons.find(reason));
   Logger::log(fmt::format("   - removing reasons {} in reasons_of[{}][{}]", reason.to_string(), from, to));
-  // Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
+  Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
   if (reasons.empty()) {
     Logger::log(fmt::format("   - empty reasons! removing {} -> {}", from, to));
     if (out[from].contains(to)) out[from].erase(to);
@@ -677,6 +679,18 @@ auto reasons2str(const std::unordered_multiset<std::pair<int, int>, decltype(pai
   auto ret = os.str();
   ret.erase(ret.length() - 2); // delete last ", "
   return ret; 
+}
+
+auto reasons2str(const std::unordered_multiset<Reason> &reasons) -> std::string {
+  if (reasons.empty()) return std::string{"null"};
+  auto os = std::ostringstream{"{"};
+  for (const auto &reason : reasons) {
+    os << reason.to_string() << "; ";
+  }
+  os << "}";
+  auto ret = os.str();
+  ret.erase(ret.length() - 2);
+  return ret;
 }
 
 } // namespace Minisat::Logger

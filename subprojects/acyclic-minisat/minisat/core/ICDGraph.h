@@ -92,6 +92,8 @@ namespace Minisat::Logger {
 
 auto reasons2str(const std::unordered_multiset<std::pair<int, int>, decltype(pair_hash_endpoint2)> &s) -> std::string;
 
+auto reasons2str(const std::unordered_multiset<Reason> &reasons) -> std::string;
+
 } // namespace Minisat::Logger
 
 #endif // MINISAT_ICDGRAPH_H

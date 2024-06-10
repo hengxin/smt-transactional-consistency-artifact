@@ -152,7 +152,7 @@ void AcyclicSolverHelper::build_co(int var, std::vector<std::tuple<int, int, Rea
         for (const auto &key : wr_from_keys[z]) {
           assert(wr_from_of_key[z].contains(key) && wr_from_of_key[z][key] != -1);
           int wr_from = wr_from_of_key[z][key];
-          if (x != wr_from && polygraph->write_keys_of[z].contains(key)) {
+          if (x != wr_from && polygraph->write_keys_of[x].contains(key)) {
             int wr_var = wr_var_of_key.at(z).at(key);
             to_be_added_edges.emplace_back(x, wr_from, Reason{Reason{reason, forward_visit_reason_of[z]}, wr_var});
           }
