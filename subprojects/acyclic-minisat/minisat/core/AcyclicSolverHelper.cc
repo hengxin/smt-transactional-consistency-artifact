@@ -29,6 +29,7 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   conflict_clauses.clear();
   added_edges_of.assign(polygraph->n_vars, {});
   dep_from.assign(polygraph->n_vertices, {});
+  dep_to.assign(polygraph->n_vertices, {});
   wr_from_keys.assign(polygraph->n_vertices, {});
   wr_from_of_key.assign(polygraph->n_vertices, {});
   wr_var_of_key.assign(polygraph->n_vertices, {});
@@ -37,6 +38,7 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
     icd_graph.add_known_edge(from, to);
     if (type == 0 || type == 1) { // SO or WR
       dep_from[to].insert({from, -1});
+      dep_to[from].insert({to, -1});
       if (type == 1) { // WR
         const auto &keys = polygraph->wr_keys.at(from).at(to);
         for (const auto &key : keys) {
@@ -115,7 +117,30 @@ void AcyclicSolverHelper::build_co(int var, std::vector<std::tuple<int, int, Rea
   //  there's no need to consider (from, to) as a part of (wr U so)+
   if (build_co_dest_from()) return;
 
-  // 2. backward search starting from from
+  // TODO: fix the bug
+  // 2.1 forward search starting from to
+  auto forward_visit = std::unordered_set<int>{};
+  auto forward_visit_reason_of = std::unordered_map<int, Reason>{};
+  {
+    auto q = std::queue<std::pair<int, Reason>>{};
+    auto vis = std::vector<bool>(polygraph->n_vertices, false);
+    q.push({to, Reason{}});
+    vis[to] = true;
+    while (!q.empty()) {
+      const auto &[x, reason] = q.front();
+      assert(!forward_visit.contains(x));
+      forward_visit.insert(x);
+      assert(!forward_visit_reason_of.contains(x));
+      forward_visit_reason_of[x] = reason;
+      for (const auto &[y, edge_var] : dep_to[x]) {
+        if (vis[y]) continue;
+        q.push({y, Reason{reason, edge_var}});
+        vis[y] = true;
+      }
+      q.pop();
+    }
+  }
+  // 2.2 backward search starting from from
   {
     auto q = std::queue<std::pair<int, Reason>>{};
     auto vis = std::vector<bool>(polygraph->n_vertices, false);
@@ -123,14 +148,17 @@ void AcyclicSolverHelper::build_co(int var, std::vector<std::tuple<int, int, Rea
     vis[from] = true;
     while (!q.empty()) {
       const auto &[x, reason] = q.front();
-      for (const auto &key : wr_from_keys[to]) {
-        assert(wr_from_of_key[to].contains(key) && wr_from_of_key[to][key] != -1);
-        int wr_from = wr_from_of_key[to][key];
-        if (x != wr_from && polygraph->write_keys_of[x].contains(key)) {
-          int wr_var = wr_var_of_key.at(to).at(key);
-          to_be_added_edges.emplace_back(x, wr_from, Reason{reason, wr_var});
+      for (const auto &z : forward_visit) {
+        for (const auto &key : wr_from_keys[z]) {
+          assert(wr_from_of_key[z].contains(key) && wr_from_of_key[z][key] != -1);
+          int wr_from = wr_from_of_key[z][key];
+          if (x != wr_from && polygraph->write_keys_of[z].contains(key)) {
+            int wr_var = wr_var_of_key.at(z).at(key);
+            to_be_added_edges.emplace_back(x, wr_from, Reason{Reason{reason, forward_visit_reason_of[z]}, wr_var});
+          }
         }
       }
+
       for (const auto &[y, edge_var] : dep_from[x]) {
         if (vis[y]) continue;
         q.push({y, Reason{reason, edge_var}});
@@ -180,6 +208,8 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
     if (!cycle) {
       assert(!dep_from[to].contains({from, var}));
       dep_from[to].insert({from, var});
+      assert(!dep_to[from].contains({to, var}));
+      dep_to[from].insert({to, var});
       assert(!wr_from_keys[to].contains(key));
       wr_from_keys[to].insert(key);
       assert(!wr_from_of_key[to].contains(key) || wr_from_of_key[to][key] == -1);
@@ -238,6 +268,8 @@ void AcyclicSolverHelper::remove_edges_of_var(int var) {
     const auto &[from, to, key] = polygraph->wr_info[var];
     assert(dep_from[to].contains({from, var}));
     dep_from[to].erase({from, var});
+    assert(dep_to[from].contains({to, var}));
+    dep_to[from].erase({to, var});
     assert(wr_from_keys[to].contains(key));
     wr_from_keys[to].erase(key);
     assert(wr_from_of_key[to][key] == from);

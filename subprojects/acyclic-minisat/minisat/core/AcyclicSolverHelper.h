@@ -37,6 +37,7 @@ class AcyclicSolverHelper {
   std::set<std::pair<int, int>> vars_heap;
 
   std::vector<std::unordered_set<std::pair<int, int>, decltype(pair_hash_endpoint3)>> dep_from; // to -> { (from, var) }, for WR and SO edges
+  std::vector<std::unordered_set<std::pair<int, int>, decltype(pair_hash_endpoint3)>> dep_to; // from -> { (to, var) }, for WR and SO edges
   std::vector<std::unordered_set<int64_t>> wr_from_keys; // to -> { key }, only for WR edges
   std::vector<std::unordered_map<int64_t, int>> wr_from_of_key; // to -> (key -> from), only for WR edges
   std::vector<std::unordered_map<int64_t, int>> wr_var_of_key; // to -> (key -> var), only for WR edges
