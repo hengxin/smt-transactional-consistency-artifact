@@ -117,7 +117,6 @@ void AcyclicSolverHelper::build_co(int var, std::vector<std::tuple<int, int, Rea
   //  there's no need to consider (from, to) as a part of (wr U so)+
   if (build_co_dest_from()) return;
 
-  // TODO: fix the bug
   // 2.1 forward search starting from to
   auto forward_visit = std::unordered_set<int>{};
   auto forward_visit_reason_of = std::unordered_map<int, Reason>{};
@@ -179,9 +178,6 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
   if (polygraph->is_wr_var(var)) {
     Logger::log(fmt::format("- adding {}, type = WR", var));
 
-    auto to_be_added_edges = std::vector<std::tuple<int, int, Reason>>{};
-    build_co(var, to_be_added_edges);
-
     // 1. add itself
     const auto &[from, to, key] = polygraph->wr_info[var];
     Logger::log(fmt::format(" - WR: {} -> {}, reason = {}, Itself", from, to, Reason{var}.to_string()));
@@ -193,6 +189,9 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
     Logger::log(" - success");
     added_edges.push({from, to, Reason{var}});
     
+    auto to_be_added_edges = std::vector<std::tuple<int, int, Reason>>{};
+    build_co(var, to_be_added_edges);
+
     // 2. add derived CO edges
     for (const auto &[from, to, reason] : to_be_added_edges) {
       Logger::log(fmt::format(" - CO: {} -> {}, reason = {}, Derived", from, to, reason.to_string()));

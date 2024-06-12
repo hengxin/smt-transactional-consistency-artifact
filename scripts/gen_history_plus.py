@@ -9,6 +9,12 @@ from rich.progress import track
 
 n_hist = '1'
 histories_to_be_added = [
+  '10_25_10_300_0.5_r_0.5_100',
+  '10_25_10_300_0.5_uv_0.5_100',
+  '10_50_10_300_0.5_r_0.5_100',
+  '10_50_10_300_0.5_uv_0.5_100',
+  # '10_75_5_100_0.5_r_0.5_100',
+  # '10_75_5_100_0.5_uv_0.5_100',
   # '10_50_10_100_0.5_r_0.5_100',
   # '10_20_10_100_0.5_r_0.5_100',
 
@@ -48,11 +54,11 @@ histories_to_be_added = [
   # '20_300_8_5000_0.5_r_1.3_100',
   # '20_400_8_5000_0.5_r_1.3_100',
   # '20_500_8_5000_0.5_r_1.3_100',
-  '20_100_8_5000_0.5_r_1.5_100',
-  '20_200_8_5000_0.5_r_1.5_100',
-  '20_300_8_5000_0.5_r_1.5_100',
-  '20_400_8_5000_0.5_r_1.5_100',
-  '20_500_8_5000_0.5_r_1.5_100',
+  # '20_100_8_5000_0.5_r_1.5_100',
+  # '20_200_8_5000_0.5_r_1.5_100',
+  # '20_300_8_5000_0.5_r_1.5_100',
+  # '20_400_8_5000_0.5_r_1.5_100',
+  # '20_500_8_5000_0.5_r_1.5_100',
   # '20_500_8_5000_0.5_r_1.5_100',
   # '20_500_8_5000_0.5_r_0.5_100',
   # '20_500_8_5000_0.5_r_0.7_100',
@@ -188,8 +194,9 @@ root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 # specific_path = 'dbcop-logs/op2'
 # specific_path = 'dbcop-logs/various'
 # specific_path = 'dbcop-logs/tmp3'
-specific_path = 'dbcop-logs/repeat-ratio/1.5'
-history_dir = os.path.join(root_path, 'history', 'ser', specific_path)
+# specific_path = 'dbcop-logs/repeat-ratio/1.5'
+specific_path = 'tcc'
+history_dir = os.path.join(root_path, 'history', 'si', specific_path)
 # history_dir = os.path.join(root_path, 'history', 'si', specific_path)
 
 # === main thread ===

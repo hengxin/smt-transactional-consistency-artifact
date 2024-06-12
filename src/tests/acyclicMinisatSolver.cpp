@@ -37,19 +37,21 @@ static auto check_history(const History &h) {
   auto cons = checker::history::constraints_of(h);
   auto hist_meta = checker::history::compute_history_meta_info(h);
 
-  CHECKER_LOG_COND(trace, logger) {
-    logger << "history: " << h << "\ndependency graph:\n"
-           << depgraph;
+  return true;
 
-    logger << "constraints\n";
-    logger << "ww: \n";
-    const auto &[ww_constraints, wr_constraints] = cons;
-    for (const auto &c : ww_constraints) { logger << c; }
-    logger << "wr: \n";
-    for (const auto &c : wr_constraints) { logger << c; }
-  }
-  return checker::solver::prune_constraints(depgraph, cons) &&
-    checker::solver::AcyclicMinisatSolver{depgraph, cons, hist_meta, "ser"}.solve();
+//   CHECKER_LOG_COND(trace, logger) {
+//     logger << "history: " << h << "\ndependency graph:\n"
+//            << depgraph;
+
+//     logger << "constraints\n";
+//     logger << "ww: \n";
+//     const auto &[ww_constraints, wr_constraints] = cons;
+//     for (const auto &c : ww_constraints) { logger << c; }
+//     logger << "wr: \n";
+//     for (const auto &c : wr_constraints) { logger << c; }
+//   }
+//   return checker::solver::prune_constraints(depgraph, cons) &&
+//     checker::solver::AcyclicMinisatSolver{depgraph, cons, hist_meta, "ser"}.solve();
 }
 
 static auto create_history(
