@@ -1422,7 +1422,7 @@ auto fast_prune_si_constraints(DependencyGraph &dependency_graph,
             //   return false; // rw edge (to2, to) forms a cycle
             // }
             // SI:
-            if ((pred_edges.at(vertex_map.at(to2)) & reachability.at(vertex_map.at(to))).any()) {
+            if ((pred_edges.at(to2) & reachability.at(vertex_map.at(to))).any()) { // to2 is already mapped by vertex_map
               return false; // rw edge (to2, to) forms a cycle
             }
           }
@@ -1510,7 +1510,7 @@ auto fast_prune_si_constraints(DependencyGraph &dependency_graph,
           //   return false; // rw edge (to, to2) forms a cycle
           // }
           // SI:
-          if ((pred_edges.at(vertex_map.at(to)) & reachability.at(vertex_map.at(to2))).any()) {
+          if ((pred_edges.at(vertex_map.at(to)) & reachability.at(to2)).any()) { // to2 is already mapped by vertex_map
             return false; // rw edge (to, to2) forms a cycle
           }
         }
@@ -1845,7 +1845,7 @@ auto prune_si_constraints(DependencyGraph &dependency_graph,
           auto e = dependency_graph.ww.edge(from, v);
           assert(e);
           if (auto keys = keys_intersection(e.value().get().keys, info.keys); !keys.empty()) {
-            if ((pred_edges.at(vertex_map.at(v)) & reachability.at(vertex_map.at(to))).any()) {
+            if ((pred_edges.at(vertex_map.at(to)) & reachability.at(vertex_map.at(v))).any()) {
               return false; // rw edge (to, v) forms a cycle
             }
             // we should check (from, v), for there's a trail of from -> to -> v , 
