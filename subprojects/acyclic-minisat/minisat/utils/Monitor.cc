@@ -18,6 +18,12 @@ Monitor::Monitor() {
   propagated_lit_add_times = 0;
   cycle_width_count.clear();
   var_divide_known_edge_ratio_sum = 0;
+
+  dfs_when_finding_cycle_in_icd_graph_times = 0;
+  add_edge_in_icd_graph_times = 0;
+  find_cycle_in_icd_graph_times = 0;
+
+  dfs_m_times = 0;
 }
 
 Monitor *Monitor::get_monitor() {
@@ -28,8 +34,8 @@ Monitor *Monitor::get_monitor() {
 void Monitor::show_statistics() {
   std::cerr << "[Monitor]" << "\n";
   std::cerr << "find_cycle_times: " << find_cycle_times << "\n";
-  // std::cerr << "propagated_lit_times: " << propagated_lit_times << "\n";
   // std::cerr << "add_edge_times: " << add_edge_times << "\n";
+  // std::cerr << "propagated_lit_times: " << propagated_lit_times << "\n";
   // std::cerr << "extend_times: " << extend_times << "\n";
   // std::cerr << "#skipped bridge = " << skipped_bridge_count << "\n";
   if (find_cycle_times != 0) std::cerr << "avg cycle length = " << 1.0 * cycle_edge_count_sum / find_cycle_times << "\n";
@@ -39,6 +45,14 @@ void Monitor::show_statistics() {
   std::cerr << std::endl;
   // if (find_cycle_times != 0) std::cerr << "avg var_edge/total_edge in cycles = " << 1.0 * var_divide_known_edge_ratio_sum / find_cycle_times << std::endl;
   if (add_edge_times != 0) std::cerr << "find cycle times/add edge times = " << 1.0 * find_cycle_times / add_edge_times << "\n";
+
+  std::cerr << "\n(ICD graph)\n";
+
+  std::cerr << "#call PK algo times: " << add_edge_in_icd_graph_times << "\n";
+  std::cerr << "#dfs times: " << dfs_when_finding_cycle_in_icd_graph_times << "\n";
+  std::cerr << "#find cycle times: " << find_cycle_in_icd_graph_times << "\n";
+  std::cerr << "#dfs iter on edge times: " << dfs_m_times << "\n";
+
 
   // std::cerr << "#construct unit-edge propagation times = " << construct_uep_count << "\n";
   // if (construct_uep_count != 0) {

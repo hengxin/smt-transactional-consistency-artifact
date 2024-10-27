@@ -62,9 +62,9 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   for (const auto &[from, to, _] : polygraph->known_edges) {
     known_edges.emplace_back(from, to);
   }
-  std::cout << "before reducing known graph, n_edges = " << known_edges.size() << std::endl;
+  std::cerr << "before reducing known graph, n_edges = " << known_edges.size() << std::endl;
   reduce_known_graph(polygraph->n_vertices, known_edges);
-  std::cout << "after reducing known graph, n_edges = " << known_edges.size() << std::endl;
+  std::cerr << "after reducing known graph, n_edges = " << known_edges.size() << std::endl;
   for (const auto &[from, to] : known_edges) {
     icd_graph.add_known_edge(from, to);
   }

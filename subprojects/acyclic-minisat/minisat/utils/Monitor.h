@@ -10,6 +10,12 @@ public:
   int find_cycle_times;
   int propagated_lit_times;
   int64_t add_edge_times;
+  int64_t add_edge_in_icd_graph_times;
+  int64_t dfs_when_finding_cycle_in_icd_graph_times;
+  int64_t find_cycle_in_icd_graph_times;
+
+  int64_t dfs_m_times = 0;
+
   int64_t extend_times;
   int64_t cycle_edge_count_sum;
   std::unordered_map<int, int64_t> cycle_width_count;

@@ -1,31 +1,12 @@
-[2024-05-31 20:16:58.115183] [0x00007f0b8a240e00] [debug]   use acyclic-minisat as backend solver
-[2024-05-31 20:16:58.115215] [0x00007f0b8a240e00] [debug]   target isolation level: ser
-[2024-05-31 20:16:58.115221] [0x00007f0b8a240e00] [debug]   history type: cobra
-[2024-05-31 20:16:58.139713] [0x00007f0b8a240e00] [info]    #sessions: 9
-[2024-05-31 20:16:58.139746] [0x00007f0b8a240e00] [info]    #transactions: 10290
-[2024-05-31 20:16:58.139844] [0x00007f0b8a240e00] [info]    #events: 77086
-[2024-05-31 20:16:58.256762] [0x00007f0b8a240e00] [debug]   #ww constraints: 30959
-[2024-05-31 20:16:58.256801] [0x00007f0b8a240e00] [debug]   #wr constraints: 39306
-[2024-05-31 20:16:58.256805] [0x00007f0b8a240e00] [info]    #constraints: 70265
-[2024-05-31 20:16:58.299267] [0x00007f0b8a240e00] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
-[2024-05-31 20:16:58.308535] [0x00007f0b8a240e00] [debug]   #unit wr constraints = 34765
-[2024-05-31 20:16:58.308575] [0x00007f0b8a240e00] [debug]   unit wr ratio = 0.884471
-[2024-05-31 20:16:58.308580] [0x00007f0b8a240e00] [debug]   max wr length = 39
-[2024-05-31 20:16:58.308583] [0x00007f0b8a240e00] [debug]   average wr length = 2.45359
-[2024-05-31 20:16:58.308587] [0x00007f0b8a240e00] [debug]   average wr length(w/o unit cons) = 13.582
-[2024-05-31 20:16:58.308771] [0x00007f0b8a240e00] [debug]   #some constraint: 70265
-[2024-05-31 20:16:58.308782] [0x00007f0b8a240e00] [debug]   #unique constraint: 747274
-[2024-05-31 20:16:58.324839] [0x00007f0b8a240e00] [info]    construct time: 209ms
-[2024-05-31 20:16:58.324863] [0x00007f0b8a240e00] [debug]   pruning method: unit
-[2024-05-31 20:16:58.403927] [0x00007f0b8a240e00] [debug]   #ww constraints after pruning: 30959
-[2024-05-31 20:16:58.403961] [0x00007f0b8a240e00] [debug]   #wr constraints after pruning: 4541
-[2024-05-31 20:16:58.408369] [0x00007f0b8a240e00] [debug]   after pruning, remeasuring repeat values...
-[2024-05-31 20:16:58.408418] [0x00007f0b8a240e00] [debug]   #unit wr constraints = 0
-[2024-05-31 20:16:58.408425] [0x00007f0b8a240e00] [debug]   unit wr ratio = 0
-[2024-05-31 20:16:58.408428] [0x00007f0b8a240e00] [debug]   max wr length = 39
-[2024-05-31 20:16:58.408432] [0x00007f0b8a240e00] [debug]   average wr length = 13.582
-[2024-05-31 20:16:58.408436] [0x00007f0b8a240e00] [debug]   average wr length(w/o unit cons) = 13.582
-[2024-05-31 20:16:58.408444] [0x00007f0b8a240e00] [debug]   #some constraint: 35500
-[2024-05-31 20:16:58.408447] [0x00007f0b8a240e00] [debug]   #unique constraint: 747274
-[2024-05-31 20:16:58.408452] [0x00007f0b8a240e00] [info]    prune time: 83ms
-[2024-05-31 20:16:58.429645] [0x00007f0b8a240e00] [info]    solver initializing time: 21ms
+nohup: ignoring input
+[2024-10-25 20:06:40.580062] [0x0000782b030adb80] [debug]   use acyclic-minisat as backend solver
+[2024-10-25 20:06:40.580082] [0x0000782b030adb80] [debug]   target isolation level: ser
+[2024-10-25 20:06:40.580086] [0x0000782b030adb80] [debug]   history type: cobra
+[2024-10-25 20:06:40.607741] [0x0000782b030adb80] [info]    #sessions: 9
+[2024-10-25 20:06:40.607767] [0x0000782b030adb80] [info]    #transactions: 10290
+[2024-10-25 20:06:40.607855] [0x0000782b030adb80] [info]    #events: 77086
+[2024-10-25 20:06:40.700078] [0x0000782b030adb80] [debug]   #ww constraints: 30959
+[2024-10-25 20:06:40.700105] [0x0000782b030adb80] [debug]   #wr constraints: 39306
+[2024-10-25 20:06:40.700109] [0x0000782b030adb80] [info]    #constraints: 70265
+[2024-10-25 20:06:40.732262] [0x0000782b030adb80] [info]    construct time: 152ms
+[2024-10-25 20:06:40.747589] [0x0000782b030adb80] [info]    solver initializing time: 15ms

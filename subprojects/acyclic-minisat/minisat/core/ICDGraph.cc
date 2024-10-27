@@ -467,14 +467,28 @@ bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
   }
 
   if (to == from) return true; // self loop!
+
+  #ifdef MONITOR_ENABLED
+    Monitor::get_monitor()->add_edge_in_icd_graph_times++;
+  #endif
+
   // TODO: PK toposort algorithm
   int lower_bound = level[to], upper_bound = level[from];
   if (lower_bound < upper_bound) {
+    #ifdef MONITOR_ENABLED
+      Monitor::get_monitor()->dfs_when_finding_cycle_in_icd_graph_times++;
+    #endif
+    
     bool cycle = false;
     auto forward_visit = std::vector<int>{};
     auto pre = std::vector<int>(n, -1);
     dfs_forward(to, upper_bound, forward_visit, pre, cycle);
     if (cycle) {
+
+      #ifdef MONITOR_ENABLED
+        Monitor::get_monitor()->find_cycle_in_icd_graph_times++;
+      #endif
+
       construct_dfs_cycle(from, to, pre, reason);
       return true;
     }
@@ -533,6 +547,11 @@ void ICDGraph::dfs_forward(int x, int upper_bound, std::vector<int> &forward_vis
   vis[x] = true;
   forward_visit.emplace_back(x);
   for (const auto &y : out[x]) {
+
+    #ifdef MONITOR_ENABLED
+      Monitor::get_monitor()->dfs_m_times++;
+    #endif
+
     if (level[y] == upper_bound) { // y == to
       pre[y] = x;
       cycle = true;
@@ -550,6 +569,11 @@ void ICDGraph::dfs_backward(int x, int lower_bound, std::vector<int> &backward_v
   vis[x] = true;
   backward_visit.emplace_back(x);
   for (const auto &y : in[x]) {
+
+    #ifdef MONITOR_ENABLED
+      Monitor::get_monitor()->dfs_m_times++;
+    #endif
+
     if (!vis[y] && lower_bound < level[y]) dfs_backward(y, lower_bound, backward_visit);
   }
 }

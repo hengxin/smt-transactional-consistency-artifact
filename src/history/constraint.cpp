@@ -158,8 +158,19 @@ auto constraints_of(const History &history)
             if (!cur_value.contains(key)) {
               useful_reads.emplace_back(event);
             } else {
-              if (cur_value[key] != value) 
-                throw std::runtime_error{"exception found in 1 txn."}; // violate ser
+              if (cur_value[key] != value) {
+                std::cerr << "session_id: " << session.id << std::endl;
+                std::cerr << "txn_id: " << txn_id << std::endl;
+                for (const auto &[key_, value_, type_, txn_id_] : txn.events) {
+                  if (key_ != key) continue;
+                  if (type_ == EventType::READ) {
+                    std::cerr << "R(" << key_ << ", " << value_ << ")" << std::endl; 
+                  } else { // EventType::WRITE
+                    std::cerr << "W(" << key_ << ", " << value_ << ")" << std::endl; 
+                  }
+                } 
+                throw std::runtime_error{"violate INT!"}; // violate INT
+              }
             }
           } else { // EventType::WRITE
             cur_value[key] = value;
