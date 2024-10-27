@@ -10,6 +10,7 @@
 #include "minisat/mtl/Vec.h"
 #include "minisat/core/SolverTypes.h"
 #include "minisat/core/Polygraph.h"
+#include "minisat/core/ReasonSet.h"
 
 namespace Minisat {
 
@@ -30,7 +31,9 @@ class ICDGraph {
   
   int n, max_m, m; // n_vertices, n_edges
   std::vector<std::unordered_set<int>> in, out; // in[from], out[from] = { to }
-  std::unordered_map<int, std::unordered_map<int, std::unordered_multiset<std::pair<int, int>, decltype(pair_hash_endpoint2)>>> reasons_of; // (from, to) -> {(ww_reason, wr_reason)}
+  std::vector<std::unordered_set<int>> known_out, dep_out;
+  // std::unordered_map<int, std::unordered_map<int, std::unordered_multiset<std::pair<int, int>, decltype(pair_hash_endpoint2)>>> reasons_of; // (from, to) -> {(ww_reason, wr_reason)}
+  ReasonSet reason_set;
   // "multi" is used to handle conflict drived by known edges, for example, 
   // known graph contains edge WR: 1 -> 2, keys = {1, 2}
   // In some pass, variable v: (WW: 1 -> 3, keys = {1, 2}) is decided to be added,
@@ -65,6 +68,7 @@ class ICDGraph {
 
   void construct_dfs_cycle(int from, int to, std::vector<int> &pre, std::pair<int, int> &reason);
   void dfs_forward(int x, int upper_bound, std::vector<int> &forward_visit, std::vector<int> &pre, bool &cycle);
+  void dfs_forward_with_look_ahead(int x, int upper_bound, std::vector<int> &forward_visit, std::vector<int> &pre, bool &cycle, int &stop, int from, bool look_ahead);
   void dfs_backward(int x, int lower_bound, std::vector<int> &backward_visit);
   void reorder(std::vector<int> &forward_visit, std::vector<int> &backward_visit);
 
