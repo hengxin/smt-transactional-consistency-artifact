@@ -7,15 +7,19 @@ from rich.progress import track
 
 # === config ===
 
-n_hist = '1'
+n_hist = '3'
 histories_to_be_added = [
   # '10_50_10_100_0.5_r_0.5_100',
   # '10_20_10_100_0.5_r_0.5_100',
   # '25_100_8_5000_0.3_r_0.5_100',
-  '25_50_8_5000_0.3_r_0.3_1000',
-  '25_50_8_5000_0.5_r_0.3_1000',
-  '25_50_8_5000_0.95_r_0.3_1000',
+  # '25_50_8_5000_0.3_r_0.3_1000',
+  # '25_50_8_5000_0.5_r_0.3_1000',
+  # '25_50_8_5000_0.95_r_0.3_1000',
   # '15_50_8_5000_0.3_r_0.5_100',
+  '30_500_8_5000_0.5_r_0.75_0.5_100',
+  '30_500_8_5000_0.95_r_0.75_0.5_100',
+  '30_500_8_5000_0.3_r_0.75_0.5_100',
+  '25_400_8_5000_0.5_r_1_1.5_50',
 
   # Repeat Ratio
   # '20_100_8_5000_0.5_r_0.5_100',
@@ -193,7 +197,7 @@ root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 # specific_path = 'dbcop-logs/op2'
 # specific_path = 'dbcop-logs/various'
 # specific_path = 'dbcop-logs/tmp3'
-specific_path = 'general-small'
+specific_path = 'general-test'
 history_dir = os.path.join(root_path, 'history', 'ser', specific_path)
 # history_dir = os.path.join(root_path, 'history', 'si', specific_path)
 
@@ -218,10 +222,10 @@ for history in histories_to_be_added:
     continue
 
   configs = [_.strip() for _ in history.split('_')]
-  if len(configs) != 8:
+  if len(configs) != 9:
     print(f'can NOT parse invalid history config {history}, skip')
     continue
-  n_sess, n_txns, n_evts, n_keys, read_p, r, zipf_s, zipf_N = configs
+  n_sess, n_txns, n_evts, n_keys, read_p, r, rate, zipf_s, zipf_N = configs
   print(f'gen {history}')
   if r == 'r': # repeat value
     cmd = [dbcop, 'generate', '-d', '/tmp/gen', 
@@ -232,6 +236,7 @@ for history in histories_to_be_added:
                   '--readp', read_p,
                   '--key_distrib', 'zipf',
                   '--repeat_value',
+                  '-r', rate, 
                   '-s', zipf_s,
                   '-N', zipf_N,
                   '--nhist', n_hist]

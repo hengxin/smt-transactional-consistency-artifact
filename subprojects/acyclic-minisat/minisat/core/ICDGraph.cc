@@ -316,7 +316,7 @@ void ICDGraph::init(int _n_vertices = 0, int n_vars = 0, Polygraph *_polygraph =
   // note: currently n_vars is useless
   n = _n_vertices, m = max_m = 0;
   level.assign(n, 1), in.assign(n, {}), out.assign(n, {}), vis.assign(n, false); // for PK toposort algorithm, use level as topological order
-  known_out.assign(n, {}), dep_out.assign(n, {});
+  // known_out.assign(n, {}), dep_out.assign(n, {});
   assigned.assign(n_vars, false);
   polygraph = _polygraph;
 }
@@ -405,8 +405,9 @@ bool ICDGraph::add_known_edge(int from, int to) { // reason default set to (-1, 
   if (reason_set.any(from, to)) return true;
   const std::pair<int, int> known_reason = {-1, -1};
   reason_set.add_reason_edge(from, to, known_reason);
-  out[from].insert(to), in[to].insert(from);
-  known_out[from].insert(to);
+  out[from].insert(to);
+  in[to].insert(from);
+  // known_out[from].insert(to);
   if (++m > max_m) max_m = m;
   return true; // always returns true
 }
@@ -415,10 +416,10 @@ bool ICDGraph::add_edge(int from, int to, std::pair<int, int> reason) {
   // if a cycle is detected, the edge will not be added into the graph
   Logger::log(fmt::format("   - ICDGraph: adding {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
   if (reason_set.any(from, to)) {
-    if (!reason_set.dep(from, to)) {
-      assert(!dep_out[from].contains(to));
-      dep_out[from].insert(to);
-    }
+    // if (!reason_set.dep(from, to)) {
+    //   assert(!dep_out[from].contains(to));
+    //   dep_out[from].insert(to);
+    // }
     reason_set.add_reason_edge(from, to, reason);
     Logger::log(fmt::format("   - existing {} -> {}, adding ({}, {}) into reasons", from, to, reason.first, reason.second));
     // Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
@@ -437,8 +438,9 @@ bool ICDGraph::add_edge(int from, int to, std::pair<int, int> reason) {
     //   Logger::log("");
     // }
 
-    out[from].insert(to), in[to].insert(from);
-    dep_out[from].insert(to);
+    out[from].insert(to);
+    in[to].insert(from);
+    // dep_out[from].insert(to);
     if (++m > max_m) max_m = m;
     return true;
   }
@@ -455,12 +457,13 @@ void ICDGraph::remove_edge(int from, int to, std::pair<int, int> reason) {
     Logger::log(fmt::format("   - empty reasons! removing {} -> {}", from, to));
     if (out[from].contains(to)) out[from].erase(to);
     if (in[to].contains(from)) in[to].erase(from);
-    if (dep_out[from].contains(to)) dep_out[from].erase(to);
+    // if (dep_out[from].contains(to)) dep_out[from].erase(to);
     --m;
-  } else if (!reason_set.dep(from, to)) {
-    assert(dep_out[from].contains(to));
-    dep_out[from].erase(to);
-  }
+  } 
+  // else if (!reason_set.dep(from, to)) {
+  //   assert(dep_out[from].contains(to));
+  //   dep_out[from].erase(to);
+  // }
 }
 
 bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
@@ -485,9 +488,14 @@ bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
     bool cycle = false;
     auto forward_visit = std::vector<int>{};
     auto pre = std::vector<int>(n, -1);
-    // dfs_forward(to, upper_bound, forward_visit, pre, cycle);
     int stop = from;
-    dfs_forward_with_look_ahead(to, upper_bound, forward_visit, pre, cycle, stop, from);
+
+    #ifndef LOOK_AHEAD
+      dfs_forward(to, upper_bound, forward_visit, pre, cycle);
+    #else
+      dfs_forward_with_look_ahead(to, upper_bound, forward_visit, pre, cycle, stop, from, /* look_ahead = */true);
+    #endif
+
     if (cycle) {
 
       #ifdef MONITOR_ENABLED
@@ -583,6 +591,19 @@ void ICDGraph::dfs_forward_with_look_ahead(int x, int upper_bound, std::vector<i
   forward_visit.emplace_back(x);
 
   if (look_ahead) {
+    // for (const auto &y : dep_out[x]) {
+      
+    //   #ifdef MONITOR_ENABLED
+    //     Monitor::get_monitor()->dfs_m_times++;
+    //   #endif
+      
+    //   if (polygraph->reachable_in_known_graph(y, from)) {
+    //     stop = y;
+    //     pre[y] = x;
+    //     cycle = true;
+    //     return;
+    //   }
+    // }
     if (polygraph->reachable_in_known_graph(x, from)) {
       stop = x;
       cycle = true;
@@ -603,7 +624,8 @@ void ICDGraph::dfs_forward_with_look_ahead(int x, int upper_bound, std::vector<i
     }
     if (!vis[y] && level[y] < upper_bound) {
       pre[y] = x;
-      dfs_forward(y, upper_bound, forward_visit, pre, cycle, reason_set.dep(x, y));
+      // dfs_forward_with_look_ahead(y, upper_bound, forward_visit, pre, cycle, stop, from, reason_set.known(x, y));
+      dfs_forward_with_look_ahead(y, upper_bound, forward_visit, pre, cycle, stop, from, reason_set.dep(x, y));
       if (cycle) return;
     }
   }
