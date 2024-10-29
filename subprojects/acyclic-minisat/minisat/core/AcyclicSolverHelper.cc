@@ -246,6 +246,8 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
         ww_to[from][key].insert(to);
         Logger::log(fmt::format(" - inserting ({} -> {}, key = {}) into ww_to, now ww_to[{}][{}] = {} ", from, to, key, from, key, Logger::urdset2str(ww_to[from][key])));
       }
+
+      polygraph->add_ww_var(var);
     } 
   } else if (polygraph->is_wr_var(var)) {
     Logger::log(fmt::format("- adding {}, type = WR", var));
@@ -292,6 +294,7 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
     // disable icd_graph's get_propagated_lits temporarily
     icd_graph.get_propagated_lits(propagated_lits);
     construct_wr_cons_propagated_lits(var);
+    construct_theory_propagated_lits();
     return true;
   } 
 
@@ -380,6 +383,7 @@ void AcyclicSolverHelper::remove_edges_of_var(int var) {
       ww_to[from][key].erase(to);
       Logger::log(fmt::format(" - deleting ({} -> {}, key = {}) into ww_to, now ww_to[{}][{}] = {} ", from, to, key, from, key, Logger::urdset2str(ww_to[from][key])));
     }
+    polygraph->remove_ww_var(var);
   } else if (polygraph->is_wr_var(var)) { 
     const auto &[from, to, key] = polygraph->wr_info[var];
     assert(wr_to[from][key].contains(to));
@@ -514,6 +518,11 @@ Var AcyclicSolverHelper::get_var_represents_min_edges() {
   if (vars_heap.empty()) return var_Undef;
   auto it = vars_heap.begin();
   return Var(it->second);
+}
+
+void AcyclicSolverHelper::construct_theory_propagated_lits() {
+  // do nothing
+  // TODO: delete this function?
 }
 
 void AcyclicSolverHelper::construct_wr_cons_propagated_lits(int var) {

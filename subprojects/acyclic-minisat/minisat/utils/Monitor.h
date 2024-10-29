@@ -16,6 +16,8 @@ public:
 
   int64_t dfs_m_times = 0;
 
+  int64_t theory_propagate_times;
+
   int64_t extend_times;
   int64_t cycle_edge_count_sum;
   std::unordered_map<int, int64_t> cycle_width_count;

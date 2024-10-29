@@ -140,6 +140,7 @@ CRef AcyclicSolver::propagate() {
     ws.shrink(i - j);
   }
 
+
   // ---- addon begin ----
   bool re_propagate = false;
   if (confl == CRef_Undef) {

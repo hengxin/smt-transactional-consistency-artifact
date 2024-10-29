@@ -510,7 +510,17 @@ bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
       return true;
     }
     auto backward_visit = std::vector<int>{};
-    dfs_backward(from, lower_bound, backward_visit);
+
+    #ifndef THEORY_PROPAGATE
+      dfs_backward(from, lower_bound, backward_visit);
+    #else
+      auto cur_reason_set = std::unordered_set<int>{};
+      const auto &[r1, r2] = reason;
+      if (r1 != -1) cur_reason_set.insert(r1);
+      if (r2 != -1) cur_reason_set.insert(r2);
+
+      dfs_backward_with_theory_propagate(from, lower_bound, backward_visit, to, upper_bound, cur_reason_set);
+    #endif
     reorder(forward_visit, backward_visit);
   }
   return false;
@@ -644,6 +654,59 @@ void ICDGraph::dfs_backward(int x, int lower_bound, std::vector<int> &backward_v
   }
 }
 
+void ICDGraph::dfs_backward_with_theory_propagate(int x, int lower_bound, std::vector<int> &backward_visit, int to, int upper_bound, std::unordered_set<int> &cur_reason_set) {
+  // TODO: theory propagate
+  vis[x] = true;
+  backward_visit.emplace_back(x);
+
+  if (cur_reason_set.size() <= THEORY_PROPAGATE_THRESHOLD) {
+    for (const auto &v : polygraph->unassigned_ww_vars_with_end_of[x]) {
+      const auto &[v_from, v_to, _] = polygraph->ww_info[v];
+      assert(v_to == x);
+      if (level[v] <= upper_bound) continue;
+      // only consider those level > upper_bound, adding which will call dfs() in PK algorithm
+      if (polygraph->reachable_in_known_graph(to, v_from)) {
+        // adding v will form a cycle
+
+        #ifdef MONITOR_ENABLED
+          Monitor::get_monitor()->theory_propagate_times++;
+        #endif
+
+        auto cur_v_reason = cur_reason_set;
+        cur_v_reason.insert(v);
+        auto v_reason = std::vector<Lit>{};
+        for (const auto &v2 : cur_v_reason) v_reason.emplace_back(~mkLit(v2));
+        propagated_lits.emplace_back(std::pair<Lit, std::vector<Lit>>{~mkLit(v), v_reason});
+      }
+    }
+  }
+
+  for (const auto &y : in[x]) {
+
+    #ifdef MONITOR_ENABLED
+      Monitor::get_monitor()->dfs_m_times++;
+    #endif
+
+    if (!vis[y] && lower_bound < level[y]) {
+      const auto &[r1, r2] = reason_set.get_minimal_reason(y, x);
+      bool add_r1 = false, add_r2 = false;
+      if (r1 != -1 && !cur_reason_set.contains(r1)) {
+        add_r1 = true;
+        cur_reason_set.insert(r1);
+      } 
+      if (r2 != -1 && !cur_reason_set.contains(r2)) {
+        add_r2 = true;
+        cur_reason_set.insert(r2);
+      } 
+
+      dfs_backward_with_theory_propagate(y, lower_bound, backward_visit, to, upper_bound, cur_reason_set);
+      
+      if (add_r2) cur_reason_set.erase(r2);
+      if (add_r1) cur_reason_set.erase(r1);
+    } 
+  }
+}
+
 void ICDGraph::reorder(std::vector<int> &forward_visit, std::vector<int> &backward_visit) {
   sort(forward_visit.begin(), forward_visit.end(), [&](const int &u, const int &v) { return level[u] < level[v]; });
   sort(backward_visit.begin(), backward_visit.end(), [&](const int &u, const int &v) { return level[u] < level[v]; });
@@ -719,7 +782,7 @@ void ICDGraph::get_minimal_cycle(std::vector<Lit> &cur_conflict_clauses) {
 }
 
 void ICDGraph::get_propagated_lits(std::vector<std::pair<Lit, std::vector<Lit>>> &cur_propagated_lits) {
-  cur_propagated_lits.clear();
+  // cur_propagated_lits.clear();
   for (auto lit : propagated_lits) cur_propagated_lits.push_back(lit);
   propagated_lits.clear();
 }

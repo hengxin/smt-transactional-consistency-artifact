@@ -5,6 +5,7 @@
 #include <set>
 #include <map>
 #include <unordered_map>
+#include <unordered_set>
 #include <queue>
 #include <vector>
 #include <bitset>
@@ -48,6 +49,8 @@ public:
   std::unordered_map<int, int> txn_distance;
   int n_total_txns, n_sess;
 
+  std::vector<std::unordered_set<int>> unassigned_ww_vars_with_end_of; // for theory propagate
+
   Polygraph(int _n_vertices = 0) { n_vertices = _n_vertices, n_vars = 0; }
 
   void add_known_edge(int from, int to, int type, const std::vector<int64_t> &keys) { 
@@ -78,7 +81,30 @@ public:
     rw_info[var] = RWVarInfo{from, to};
   } 
 
-  void set_n_vars(int n) { n_vars = n; }
+  void set_n_vars(int n) { 
+    n_vars = n;
+
+    // also initialize vars_assigned
+    unassigned_ww_vars_with_end_of.assign(n_vertices, {});
+    for (int v = 0; v < n_vars; v++) {
+      if (is_ww_var(v)) {
+        const auto &[from, to, _] = ww_info[v];
+        unassigned_ww_vars_with_end_of[to].insert(v);
+      }
+    }
+  }
+
+  void add_ww_var(int var) {
+    const auto &[from, to, _] = ww_info[var];
+    assert(unassigned_ww_vars_with_end_of[to].contains(var));
+    unassigned_ww_vars_with_end_of[to].erase(var);
+  }
+
+  void remove_ww_var(int var) {
+    const auto &[from, to, _] = ww_info[var];
+    assert(!unassigned_ww_vars_with_end_of[to].contains(var));
+    unassigned_ww_vars_with_end_of[to].insert(var);
+  }
 
   bool is_ww_var(int var) { return ww_info.contains(var); }
 

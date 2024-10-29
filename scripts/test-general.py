@@ -48,6 +48,7 @@ logging.info(f'root path = {root_path}')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'no-uv', 'polysi-fig7-like')
 history_path = os.path.join(root_path, 'history', 'ser', 'general')
+# history_path = os.path.join(root_path, 'history', 'ser', 'general-small')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'scalability4')
 logging.info(f'history path = {history_path}')
 
@@ -69,7 +70,7 @@ logging.info(f'pruning method = {pruning_method}')
 # on 926 ubuntu, it's okay to set n_threads to 4
 # on local virtual machine, n_threads is recommanded to be set to 3
 # a large n_threads may lead to the not-full-usage of a cpu core, or trigger processes being incorrectly killed due to the exceeded memory usage
-n_threads = 1
+n_threads = 3
 logging.info(f'use {n_threads} thread(s)')
 
 output_path = os.path.join(root_path, 'results', 'new-general.json')
@@ -179,7 +180,7 @@ def run_task(thread_id, task):
     cmd.append(pruning_method)
   logging.debug(f'thread {thread_id} runs cmd {cmd}')
   # result = subprocess.run(cmd, capture_output=True, text=True)
-  process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
 
   process_id = process.pid
   max_memory = 0

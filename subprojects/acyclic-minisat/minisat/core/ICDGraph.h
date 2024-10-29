@@ -70,6 +70,7 @@ class ICDGraph {
   void dfs_forward(int x, int upper_bound, std::vector<int> &forward_visit, std::vector<int> &pre, bool &cycle);
   void dfs_forward_with_look_ahead(int x, int upper_bound, std::vector<int> &forward_visit, std::vector<int> &pre, bool &cycle, int &stop, int from, bool look_ahead);
   void dfs_backward(int x, int lower_bound, std::vector<int> &backward_visit);
+  void dfs_backward_with_theory_propagate(int x, int lower_bound, std::vector<int> &backward_visit, int to, int upper_bound, std::unordered_set<int> &cur_reason_set);
   void reorder(std::vector<int> &forward_visit, std::vector<int> &backward_visit);
 
 public:

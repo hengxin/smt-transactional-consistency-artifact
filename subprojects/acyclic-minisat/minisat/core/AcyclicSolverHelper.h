@@ -39,6 +39,7 @@ class AcyclicSolverHelper {
   std::vector<std::vector<std::tuple<int, int, std::pair<int, int>>>> known_induced_edges_of; // <from, to, reason>
 
   void construct_wr_cons_propagated_lits(int var);
+  void construct_theory_propagated_lits();
 
 public:
   std::vector<std::vector<Lit>> conflict_clauses;

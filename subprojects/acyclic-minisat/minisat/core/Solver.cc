@@ -328,6 +328,16 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         // Select next clause to look at:
         while (!seen[var(trail[index--])]);
         p     = trail[index+1];
+        
+        if (reason(var(p)) == CRef_Undef && pathC > 1) {
+            std::cout << c << std::endl;
+            std::cout << var(p) << std::endl;
+            for (int j = 0; j < c.size(); j++) {
+                std::cout << var(c[j]) << " ";
+            }
+            std::cout << std::endl;
+        }
+
         confl = reason(var(p));
         seen[var(p)] = 0;
         pathC--;

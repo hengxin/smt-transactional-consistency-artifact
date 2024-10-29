@@ -16,7 +16,7 @@
 // #define ENDENSER_KNOWN_GRAPH 1
 // #define ENDENSER_RATIO 0.3
 
-#define REDUCE_KNOWN_GRAPH 1     
+// #define REDUCE_KNOWN_GRAPH 1     
 
 // #define HEURISTIC_TOPO_ORDER 1
 
@@ -25,16 +25,19 @@
 // use ICD algorithm default
 #define PK_TOPO_ALGORITHM 1
 
-#define INIT_PAIR_CONFLICT 1
+// #define INIT_PAIR_CONFLICT 1
 
-#define LOOK_AHEAD 1
+// #define LOOK_AHEAD 1
+
+#define THEORY_PROPAGATE 1
+#define THEORY_PROPAGATE_THRESHOLD 4
 
 #define MONITOR_ENABLED 1
 
 // #define LOGGER_ENABLED 1
 
 // WR constraint propagation
-#define ENABLE_WRCP 1 
+// #define ENABLE_WRCP 1 
 
 // #define ENABLE_UEP 1
 // !NOT Implemented

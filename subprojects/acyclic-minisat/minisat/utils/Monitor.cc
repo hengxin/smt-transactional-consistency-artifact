@@ -24,6 +24,8 @@ Monitor::Monitor() {
   find_cycle_in_icd_graph_times = 0;
 
   dfs_m_times = 0;
+
+  theory_propagate_times = 0;
 }
 
 Monitor *Monitor::get_monitor() {
@@ -52,6 +54,9 @@ void Monitor::show_statistics() {
   std::cerr << "#dfs times: " << dfs_when_finding_cycle_in_icd_graph_times << "\n";
   std::cerr << "#find cycle times: " << find_cycle_in_icd_graph_times << "\n";
   std::cerr << "#dfs iter on edge times: " << dfs_m_times << "\n";
+
+  std::cerr << "\n";
+  std::cerr << "#theory propagate times: " << theory_propagate_times << "\n";
 
 
   // std::cerr << "#construct unit-edge propagation times = " << construct_uep_count << "\n";
