@@ -47,7 +47,8 @@ logging.info(f'root path = {root_path}')
 # history_path = history_path = os.path.join(root_path, 'history', 'ser',  '{}-logs'.format(history_type), 'one-shot-chengRW') 
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'no-uv', 'polysi-fig7-like')
-history_path = os.path.join(root_path, 'history', 'ser', 'general')
+# history_path = os.path.join(root_path, 'history', 'ser', 'general')
+history_path = os.path.join(root_path, 'history', 'ser', 'general-pldi')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'scalability4')
 logging.info(f'history path = {history_path}')
 
@@ -62,7 +63,7 @@ solver = 'acyclic-minisat'
 assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3' or solver == 'monosat-baseline'
 logging.info(f'solver = {solver}')
 
-pruning_method = 'basic'
+pruning_method = 'fast'
 assert pruning_method == 'fast' or pruning_method == 'normal' or pruning_method == 'none' or pruning_method == 'unit' or pruning_method == 'basic'
 logging.info(f'pruning method = {pruning_method}')
 
@@ -162,7 +163,7 @@ def run_task(thread_id, task):
   current_task_id = current_task_progress.add_task("%s" % task, visible=False)
   current_task_steps_id = task_steps_progress.add_task("[bold blue]Thread %d: Running %s" % (thread_id, task))
 
-  if task.endswith('-10K'):
+  if task.endswith('k') or task.endswith('-10K'):
     history_type = 'cobra'
   else:
     history_type = 'dbcop'
