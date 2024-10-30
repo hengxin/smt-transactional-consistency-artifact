@@ -29,18 +29,26 @@ participants = [
   #   'name': 'no-reduce',
   #   'data_path': 'various+no-reduce'
   # },
+  # {
+  #   'name': 'baseline',
+  #   'data_path': 'new-opt/various-baseline'
+  # },
   {
     'name': 'baseline',
-    'data_path': 'new-opt/various-baseline'
+    'data_path': 'various-pldi-baseline-nopruning'
+  },
+  {
+    'name': 'baseline-pruning',
+    'data_path': 'various-pldi-baseline'
+  },
+  {
+    'name': 'ours',
+    'data_path': 'various-pldi-ours'
   },
   # {
   #   'name': 'mono',
   #   'data_path': 'various+ours-mono'
   # },
-  {
-    'name': 'ours',
-    'data_path': 'various-ours'
-  },
   # {
   #   'name': 'ours-HT',
   #   'data_path': 'various+HT'
@@ -62,33 +70,39 @@ experiment_set = [
   {
     'id': 'a',
     'name': 'sessions', # ${name}.json is the output file
-    'set': '{}_100_15_5000_0.5_r_0.5_100',
+    'set': '{}_100_15_5000_0.5_r_0.5_0.5_100',
     'param': [5, 10, 15, 20, 25, 30],
   },
   {
     'id': 'b',
     'name': 'txns',
-    'set': '20_{}_15_5000_0.5_r_0.5_100',
+    'set': '20_{}_15_5000_0.5_r_0.5_0.5_100',
     'param': [10, 20, 30, 40, 50, 100, 150, 200, 250],
   },
   {
     'id': 'c',
     'name': 'evts',
-    'set': '20_100_{}_5000_0.5_r_0.5_100',
+    'set': '20_100_{}_5000_0.5_r_0.5_0.5_100',
     'param': [5, 10, 15, 20, 25, 30],
   },
   {
     'id': 'd',
     'name': 'readpct', 
-    'set': '20_100_15_5000_{}_r_0.5_100',
+    'set': '20_100_15_5000_{}_r_0.5_0.5_100',
     'param': [0.05, 0.25, 0.5, 0.75, 0.95],
   },
-  # {
-  #   'id': 'e',
-  #   'name': 'zipf_s',
-  #   'set': '20_100_15_5000_0.5_r_{}_100',
-  #   'param': [0, 0.5, 1, 1.5, 2, 2.5, 4],
-  # },
+  {
+    'id': 'e',
+    'name': 'keys', 
+    'set': '20_100_15_{}_0.5_r_0.5_0.5_100',
+    'param': [2000, 4000, 6000, 8000, 10000],
+  },
+  {
+    'id': 'f',
+    'name': 'dupkeypct', 
+    'set': '20_100_15_5000_0.5_r_{}_0.5_100',
+    'param': [0, 0.2, 0.4, 0.6, 0.8, 1],
+  },
 ]
 
 def adjust_time(time): # ms -> s

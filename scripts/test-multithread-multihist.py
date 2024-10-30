@@ -67,12 +67,12 @@ logging.info(f'history path = {history_path}')
 checker_path = os.path.join(root_path, 'builddir-release', 'checker')
 logging.info(f'checker path = {checker_path}')
 
-solver = 'acyclic-minisat'
-# solver = 'monosat'
+# solver = 'acyclic-minisat'
+solver = 'monosat'
 assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3' or solver == 'monosat-baseline'
 logging.info(f'solver = {solver}')
 
-pruning_method = 'fast'
+pruning_method = 'none'
 assert pruning_method == 'fast' or pruning_method == 'normal' or pruning_method == 'none' or pruning_method == 'basic'
 logging.info(f'pruning method = {pruning_method}')
 
@@ -82,10 +82,10 @@ logging.info(f'pruning method = {pruning_method}')
 n_threads = 1
 logging.info(f'use {n_threads} thread(s)')
 
-output_path = os.path.join(root_path, 'results', 'test-results.json')
+output_path = os.path.join(root_path, 'results', 'various-pldi-baseline-nopruning.json')
 logging.info(f'output path = {output_path}')
 
-timeout_duration = 600 # s
+timeout_duration = 60 # s
 
 # === global variables ===
 # tasks = os.listdir(history_path)
