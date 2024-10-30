@@ -401,9 +401,11 @@ bool ICDGraph::preprocess() {
 
 bool ICDGraph::add_known_edge(int from, int to) { // reason default set to (-1, -1)
   // add_known_edge should not be called after initialisation
-  if (!reasons_of[from][to].empty()) return true;
-  reasons_of[from][to].insert({-1, -1});
-  out[from].insert(to), in[to].insert(from);
+  if (reason_set.any(from, to)) return true;
+  const std::pair<int, int> known_reason = {-1, -1};
+  reason_set.add_reason_edge(from, to, known_reason);
+  out[from].insert(to);
+  in[to].insert(from);
   if (++m > max_m) max_m = m;
   return true; // always returns true
 }
@@ -411,17 +413,17 @@ bool ICDGraph::add_known_edge(int from, int to) { // reason default set to (-1, 
 bool ICDGraph::add_edge(int from, int to, std::pair<int, int> reason) { 
   // if a cycle is detected, the edge will not be added into the graph
   Logger::log(fmt::format("   - ICDGraph: adding {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
-  if (reasons_of.contains(from) && reasons_of[from].contains(to) && !reasons_of[from][to].empty()) {
-    reasons_of[from][to].insert(reason);
+  if (reason_set.any(from, to)) {
+    reason_set.add_reason_edge(from, to, reason);
     Logger::log(fmt::format("   - existing {} -> {}, adding ({}, {}) into reasons", from, to, reason.first, reason.second));
-    Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
+    // Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
     return true;
   }
   Logger::log(fmt::format("   - new edge {} -> {}, detecting cycle", from, to));
   if (!detect_cycle(from, to, reason)) {
     Logger::log("   - no cycle, ok to add edge");
-    reasons_of[from][to].insert(reason);
-    Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
+    reason_set.add_reason_edge(from, to, reason);
+    // Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
 
     // {
     //   // record levels
@@ -430,7 +432,8 @@ bool ICDGraph::add_edge(int from, int to, std::pair<int, int> reason) {
     //   Logger::log("");
     // }
 
-    out[from].insert(to), in[to].insert(from);
+    out[from].insert(to);
+    in[to].insert(from);
     if (++m > max_m) max_m = m;
     return true;
   }
@@ -440,23 +443,15 @@ bool ICDGraph::add_edge(int from, int to, std::pair<int, int> reason) {
 
 void ICDGraph::remove_edge(int from, int to, std::pair<int, int> reason) {
   Logger::log(fmt::format("   - ICDGraph: removing {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
-  assert(reasons_of.contains(from));
-  assert(reasons_of[from].contains(to));
-  auto &reasons = reasons_of[from][to];
-  if (!reasons.contains(reason)) {
-    Logger::log(fmt::format("   - !assertion failed, now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
-    std::cout << std::endl; // force to flush
-  }
-  assert(reasons.contains(reason));
-  reasons.erase(reasons.find(reason));
   Logger::log(fmt::format("   - removing reasons ({}, {}) in reasons_of[{}][{}]", reason.first, reason.second, from, to));
-  Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
-  if (reasons.empty()) {
+  reason_set.remove_reason_edge(from, to, reason);
+  // Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
+  if (!reason_set.any(from, to)) {
     Logger::log(fmt::format("   - empty reasons! removing {} -> {}", from, to));
     if (out[from].contains(to)) out[from].erase(to);
     if (in[to].contains(from)) in[to].erase(from);
     --m;
-  }
+  } 
 }
 
 bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
@@ -513,8 +508,9 @@ void ICDGraph::construct_dfs_cycle(int from, int to, std::vector<int> &pre, std:
     assert(x != -1);
     int pred = pre[x];
     assert(pred != -1);
-    assert(reasons_of.contains(pred) && reasons_of[pred].contains(x) && !reasons_of[pred][x].empty());
-    const auto [reason1, reason2] = *reasons_of[pred][x].begin();
+
+    assert(reason_set.any(pred, x));
+    const auto &[reason1, reason2] = reason_set.get_minimal_reason(pred, x);
     if (!polygraph->reachable_in_known_graph(pred, x)) {
       add_var(reason1), add_var(reason2);
       ++edge_cnt;

@@ -16,7 +16,7 @@
 // #define ENDENSER_KNOWN_GRAPH 1
 // #define ENDENSER_RATIO 0.3
 
-#define REDUCE_KNOWN_GRAPH 1     
+// #define REDUCE_KNOWN_GRAPH 1     
 
 #define HEURISTIC_TOPO_ORDER 1
 
