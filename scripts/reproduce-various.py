@@ -34,16 +34,16 @@ participants = [
   #   'data_path': 'new-opt/various-baseline'
   # },
   {
-    'name': 'baseline',
-    'data_path': 'various-pldi-baseline-nopruning'
+    'name': 'ours',
+    'data_path': 'various-pldi-ours'
   },
   {
     'name': 'baseline-pruning',
     'data_path': 'various-pldi-baseline'
   },
   {
-    'name': 'ours',
-    'data_path': 'various-pldi-ours'
+    'name': 'baseline',
+    'data_path': 'various-pldi-baseline-nopruning'
   },
   # {
   #   'name': 'mono',
