@@ -58,7 +58,8 @@ root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 logging.info(f'root path = {root_path}')
 # will run all histories under this path
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'various')
-history_path = os.path.join(root_path, 'history', 'ser', 'same-listappend-rw')
+# history_path = os.path.join(root_path, 'history', 'ser', 'same-listappend-rw')
+history_path = os.path.join(root_path, 'history', 'ser', 'various-pldi')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_general_partition_writes')
 logging.info(f'history path = {history_path}')
 
@@ -84,7 +85,7 @@ logging.info(f'use {n_threads} thread(s)')
 output_path = os.path.join(root_path, 'results', 'test-results.json')
 logging.info(f'output path = {output_path}')
 
-timeout_duration = 420 # s
+timeout_duration = 600 # s
 
 # === global variables ===
 # tasks = os.listdir(history_path)
