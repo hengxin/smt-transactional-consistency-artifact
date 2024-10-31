@@ -48,7 +48,8 @@ logging.info(f'root path = {root_path}')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'no-uv', 'polysi-fig7-like')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general')
-history_path = os.path.join(root_path, 'history', 'ser', 'general-pldi')
+# history_path = os.path.join(root_path, 'history', 'ser', 'general-pldi')
+history_path = os.path.join(root_path, 'history', 'ser', 'tmp')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'scalability4')
 logging.info(f'history path = {history_path}')
 
@@ -63,9 +64,11 @@ solver = 'acyclic-minisat'
 assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3' or solver == 'monosat-baseline'
 logging.info(f'solver = {solver}')
 
-pruning_method = 'fast'
+pruning_method = 'basic'
 assert pruning_method == 'fast' or pruning_method == 'normal' or pruning_method == 'none' or pruning_method == 'unit' or pruning_method == 'basic'
 logging.info(f'pruning method = {pruning_method}')
+
+timeout = '10m'
 
 # on 926 ubuntu, it's okay to set n_threads to 4
 # on local virtual machine, n_threads is recommanded to be set to 3
@@ -174,7 +177,7 @@ def run_task(thread_id, task):
   else: # dbcop
     bincode_path = os.path.join(history_path, history_dir, 'hist-00000', 'history.bincode')
   
-  cmd = [checker_path, bincode_path, '--solver', solver, '--history-type', history_type]
+  cmd = ['timeout', timeout, checker_path, bincode_path, '--solver', solver, '--history-type', history_type]
   if pruning_method != 'none':
     cmd.append('--pruning')
     cmd.append(pruning_method)

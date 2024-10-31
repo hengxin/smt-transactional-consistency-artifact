@@ -14,10 +14,10 @@ histories_to_be_added = [
   # '30_500_8_5000_0.5_r_0.75_0.5_100',
   # '30_500_8_5000_0.95_r_0.75_0.5_100',
   # '30_500_8_5000_0.5_r_1_1.5_100',
-  '25_400_8_5000_0.95_r_0.5_0.5_100',
-  '25_400_8_5000_0.3_r_0.5_0.5_100',
+  # '25_400_8_5000_0.95_r_0.5_0.5_100',
+  # '25_400_8_5000_0.3_r_0.5_0.5_100',
   '25_400_8_5000_0.5_r_0.5_0.5_100',
-  '25_400_8_5000_0.5_r_1_1.5_100',
+  # '25_400_8_5000_0.5_r_1_1.5_100',
 
   # # Various
   # # default: 20_100_15_5000_0.5_r_0.5_0.5_100
@@ -77,7 +77,8 @@ root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 # specific_path = 'dbcop-logs/op2'
 # specific_path = 'dbcop-logs/various'
 # specific_path = 'dbcop-logs/tmp3'
-specific_path = 'general-pldi'
+# specific_path = 'general-pldi'
+specific_path = 'tmp'
 history_dir = os.path.join(root_path, 'history', 'ser', specific_path)
 # history_dir = os.path.join(root_path, 'history', 'si', specific_path)
 
