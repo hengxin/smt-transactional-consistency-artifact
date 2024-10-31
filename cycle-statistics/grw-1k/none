@@ -1,0 +1,78 @@
+[2024-10-31 16:04:32.789731] [0x0000718b84eb7b80] [debug]   use acyclic-minisat as backend solver
+[2024-10-31 16:04:32.789741] [0x0000718b84eb7b80] [debug]   target isolation level: ser
+[2024-10-31 16:04:32.789744] [0x0000718b84eb7b80] [debug]   history type: dbcop
+[2024-10-31 16:04:32.790201] [0x0000718b84eb7b80] [info]    #sessions: 21
+[2024-10-31 16:04:32.790207] [0x0000718b84eb7b80] [info]    #transactions: 1001
+[2024-10-31 16:04:32.790212] [0x0000718b84eb7b80] [info]    #events: 8500
+[2024-10-31 16:04:32.839882] [0x0000718b84eb7b80] [debug]   #ww constraints: 27993
+[2024-10-31 16:04:32.839896] [0x0000718b84eb7b80] [debug]   #wr constraints: 3954
+[2024-10-31 16:04:32.839900] [0x0000718b84eb7b80] [info]    #constraints: 31947
+[2024-10-31 16:04:32.847499] [0x0000718b84eb7b80] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2024-10-31 16:04:32.847612] [0x0000718b84eb7b80] [debug]   #unit wr constraints = 3780
+[2024-10-31 16:04:32.847632] [0x0000718b84eb7b80] [debug]   unit wr ratio = 0.955994
+[2024-10-31 16:04:32.847634] [0x0000718b84eb7b80] [debug]   max wr length = 5
+[2024-10-31 16:04:32.847636] [0x0000718b84eb7b80] [debug]   average wr length = 1.06904
+[2024-10-31 16:04:32.847638] [0x0000718b84eb7b80] [debug]   average wr length(w/o unit cons) = 2.56897
+[2024-10-31 16:04:32.847643] [0x0000718b84eb7b80] [debug]   #some constraint: 31947
+[2024-10-31 16:04:32.847645] [0x0000718b84eb7b80] [debug]   #unique constraint: 28427
+[2024-10-31 16:04:32.848329] [0x0000718b84eb7b80] [info]    construct time: 58ms
+[2024-10-31 16:04:32.849978] [0x0000718b84eb7b80] [info]    solver initializing time: 1ms
+#vars: 60213
+[Monitor]
+find_cycle_times: 14241
+avg cycle length = 6.64708
+width = 20, count = 2
+width = 21, count = 3
+width = 18, count = 11
+width = 19, count = 8
+width = 1, count = 80
+width = 15, count = 52
+width = 16, count = 47
+width = 11, count = 562
+width = 5, count = 1933
+width = 8, count = 1508
+width = 7, count = 1799
+width = 6, count = 2005
+width = 2, count = 382
+width = 12, count = 347
+width = 9, count = 1204
+width = 4, count = 1674
+width = 17, count = 22
+width = 10, count = 849
+width = 3, count = 1417
+width = 14, count = 119
+width = 13, count = 217
+
+
+[Suffix Sum]
+14241
+14161
+13779
+12362
+10688
+8755
+6750
+4951
+3443
+2239
+1390
+828
+481
+264
+145
+93
+46
+24
+13
+5
+3
+
+find cycle times/add edge times = 0.000309782
+
+(ICD graph)
+#call PK algo times: 88963030
+#dfs times: 16401
+#find cycle times: 14241
+#dfs iter on edge times: 2054429
+[2024-10-31 16:09:46.554833] [0x0000718b84eb7b80] [info]    solve time: 313704ms
+accept: true

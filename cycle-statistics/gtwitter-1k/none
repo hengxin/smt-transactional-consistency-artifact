@@ -1,0 +1,33 @@
+#vars: 4326
+[Monitor]
+find_cycle_times: 276
+avg cycle length = 3.00725
+width = 8, count = 3
+width = 7, count = 5
+width = 6, count = 11
+width = 1, count = 12
+width = 4, count = 31
+width = 5, count = 28
+width = 3, count = 57
+width = 2, count = 129
+
+
+[Suffix Sum]
+276
+264
+135
+78
+47
+19
+8
+3
+
+find cycle times/add edge times = 0.00711946
+
+(ICD graph)
+#call PK algo times: 26469
+#dfs times: 344
+#find cycle times: 276
+#dfs iter on edge times: 29220
+[2024-10-31 16:03:14.455847] [0x0000714318c47b80] [info]    solve time: 135ms
+accept: true

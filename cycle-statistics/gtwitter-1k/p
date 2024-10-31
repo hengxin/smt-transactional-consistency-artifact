@@ -1,0 +1,56 @@
+[2024-10-31 16:19:37.546999] [0x00007b22884bab80] [debug]   use acyclic-minisat as backend solver
+[2024-10-31 16:19:37.547011] [0x00007b22884bab80] [debug]   target isolation level: ser
+[2024-10-31 16:19:37.547014] [0x00007b22884bab80] [debug]   history type: cobra
+[2024-10-31 16:19:37.548923] [0x00007b22884bab80] [info]    #sessions: 9
+[2024-10-31 16:19:37.548929] [0x00007b22884bab80] [info]    #transactions: 1044
+[2024-10-31 16:19:37.548942] [0x00007b22884bab80] [info]    #events: 6734
+[2024-10-31 16:19:37.552049] [0x00007b22884bab80] [debug]   #ww constraints: 659
+[2024-10-31 16:19:37.552055] [0x00007b22884bab80] [debug]   #wr constraints: 2976
+[2024-10-31 16:19:37.552059] [0x00007b22884bab80] [info]    #constraints: 3635
+[2024-10-31 16:19:37.552928] [0x00007b22884bab80] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2024-10-31 16:19:37.553029] [0x00007b22884bab80] [debug]   #unit wr constraints = 2948
+[2024-10-31 16:19:37.553043] [0x00007b22884bab80] [debug]   unit wr ratio = 0.990591
+[2024-10-31 16:19:37.553046] [0x00007b22884bab80] [debug]   max wr length = 3
+[2024-10-31 16:19:37.553049] [0x00007b22884bab80] [debug]   average wr length = 1.01075
+[2024-10-31 16:19:37.553052] [0x00007b22884bab80] [debug]   average wr length(w/o unit cons) = 2.14286
+[2024-10-31 16:19:37.553058] [0x00007b22884bab80] [debug]   #some constraint: 3635
+[2024-10-31 16:19:37.553061] [0x00007b22884bab80] [debug]   #unique constraint: 695
+[2024-10-31 16:19:37.553693] [0x00007b22884bab80] [info]    construct time: 6ms
+[2024-10-31 16:19:37.553703] [0x00007b22884bab80] [debug]   pruning method: fast
+[2024-10-31 16:19:37.556724] [0x00007b22884bab80] [debug]   constructing reachability time: 0ms
+[2024-10-31 16:19:37.556730] [0x00007b22884bab80] [debug]   checking time: 0ms
+[2024-10-31 16:19:37.556732] [0x00007b22884bab80] [debug]   adding edge time: 0ms
+[2024-10-31 16:19:37.556905] [0x00007b22884bab80] [debug]   #ww constraints after pruning: 14
+[2024-10-31 16:19:37.556908] [0x00007b22884bab80] [debug]   #wr constraints after pruning: 11
+[2024-10-31 16:19:37.557013] [0x00007b22884bab80] [debug]   after pruning, remeasuring repeat values...
+[2024-10-31 16:19:37.557016] [0x00007b22884bab80] [debug]   #unit wr constraints = 0
+[2024-10-31 16:19:37.557021] [0x00007b22884bab80] [debug]   unit wr ratio = 0
+[2024-10-31 16:19:37.557023] [0x00007b22884bab80] [debug]   max wr length = 3
+[2024-10-31 16:19:37.557026] [0x00007b22884bab80] [debug]   average wr length = 2.27273
+[2024-10-31 16:19:37.557029] [0x00007b22884bab80] [debug]   average wr length(w/o unit cons) = 2.27273
+[2024-10-31 16:19:37.557031] [0x00007b22884bab80] [debug]   #some constraint: 25
+[2024-10-31 16:19:37.557033] [0x00007b22884bab80] [debug]   #unique constraint: 31
+[2024-10-31 16:19:37.557036] [0x00007b22884bab80] [info]    prune time: 3ms
+[2024-10-31 16:19:37.557763] [0x00007b22884bab80] [info]    solver initializing time: 0ms
+#vars: 53
+[Monitor]
+find_cycle_times: 10
+avg cycle length = 2.3
+width = 3, count = 3
+width = 2, count = 7
+
+
+[Suffix Sum]
+10
+10
+3
+
+find cycle times/add edge times = 0.144928
+
+(ICD graph)
+#call PK algo times: 84
+#dfs times: 18
+#find cycle times: 10
+#dfs iter on edge times: 879
+[2024-10-31 16:19:37.575167] [0x00007b22884bab80] [info]    solve time: 17ms
+accept: true
