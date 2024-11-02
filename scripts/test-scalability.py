@@ -57,7 +57,7 @@ history_path = os.path.join(root_path, 'history', 'ser', 'scalability')
 logging.info(f'history path = {history_path}')
 
 # checker_path = os.path.join(root_path, 'builddir', 'checker')
-checker_path = os.path.join(root_path, 'builddir-release-10m', 'checker')
+checker_path = os.path.join(root_path, 'builddir-release-20w', 'checker')
 if checker_path.find('release2') != -1:
   print('Warning! Running on release copy! May not be updated!')
 logging.info(f'checker path = {checker_path}')
