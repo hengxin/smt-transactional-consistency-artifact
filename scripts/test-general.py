@@ -2,6 +2,7 @@
 # system
 import os
 import subprocess
+import resource
 import humanize
 import psutil
 import time
@@ -49,6 +50,7 @@ logging.info(f'root path = {root_path}')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'no-uv', 'polysi-fig7-like')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general')
 history_path = os.path.join(root_path, 'history', 'ser', 'general-pldi')
+# history_path = os.path.join(root_path, 'history', 'ser', 'general-pldi2')
 # history_path = os.path.join(root_path, 'history', 'ser', 'tmp')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'scalability4')
 logging.info(f'history path = {history_path}')
@@ -59,16 +61,23 @@ if checker_path.find('release2') != -1:
   print('Warning! Running on release copy! May not be updated!')
 logging.info(f'checker path = {checker_path}')
 
-solver = 'acyclic-minisat'
-# solver = 'monosat'
+# solver = 'acyclic-minisat'
+solver = 'monosat'
 assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3' or solver == 'monosat-baseline'
 logging.info(f'solver = {solver}')
 
-pruning_method = 'none'
+pruning_method = 'fast'
 assert pruning_method == 'fast' or pruning_method == 'normal' or pruning_method == 'none' or pruning_method == 'unit' or pruning_method == 'basic'
 logging.info(f'pruning method = {pruning_method}')
 
-timeout = '10m'
+timeout = '30m'
+
+def set_memory_limit(max_memory):
+  soft_limit = max_memory
+  hard_limit = max_memory
+  resource.setrlimit(resource.RLIMIT_AS, (soft_limit, hard_limit))
+
+memory_limit = 16 * 1024 * 1024 * 1024  # 16 GB
 
 # on 926 ubuntu, it's okay to set n_threads to 4
 # on local virtual machine, n_threads is recommanded to be set to 3
@@ -183,7 +192,11 @@ def run_task(thread_id, task):
     cmd.append(pruning_method)
   logging.debug(f'thread {thread_id} runs cmd {cmd}')
   # result = subprocess.run(cmd, capture_output=True, text=True)
-  process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  process = subprocess.Popen(cmd, 
+                             preexec_fn=lambda: set_memory_limit(memory_limit),
+                             stdout=subprocess.PIPE, 
+                             stderr=subprocess.PIPE
+                             )
 
   process_id = process.pid
   max_memory = 0

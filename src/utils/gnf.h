@@ -5,16 +5,20 @@
 #include <cstdio>
 #include <string>
 #include <vector>
+#include <queue>
 #include <filesystem>
 #include <fstream>
 #include <cassert>
 #include <cstdint>
 #include <unordered_map>
 #include <chrono>
+#include <bitset>
 
 #include "utils/literal.h"
 #include "history/constraint.h"
 #include "history/dependencygraph.h"
+
+// #define ENCODE_SMALL_WIDTH_CYCLES
 
 namespace fs = std::filesystem;
 
@@ -361,6 +365,90 @@ auto write_to_gnf_file(fs::path &gnf_path,
     const auto edge_id = so_edge_id[std::make_pair(from, to)];
     add_clause({edge_id});  
   }
+
+  #ifdef ENCODE_SMALL_WIDTH_CYCLES
+  const int MAX_N = 100000 + 10;
+  if (n_nodes < MAX_N) {
+    auto edge_vars = std::vector<int>{};
+    for (const auto &[v, edge] : edge_of_id) {
+      edge_vars.emplace_back(v); 
+    }
+
+    std::cerr << "#edge vars: " << edge_vars.size() << std::endl;
+
+    auto reachability = [&]() {
+      auto edges = std::vector<std::vector<int>>(n_nodes, std::vector<int>{});
+      auto deg = std::vector<int>(n_nodes, 0);
+      for (const auto &[from, to, _] : known_graph.edges()) {
+        edges[id_of_node[from]].emplace_back(id_of_node[to]);
+        ++deg[id_of_node[to]];
+      }
+
+      auto reversed_topo_order = std::vector<int>{};
+      {
+        auto q = std::queue<int>{};
+        for (int x = 0; x < n_nodes; x++) {
+          if (!deg[x]) { q.push(x); }
+        }
+        while (!q.empty()) {
+          int x = q.front();
+          reversed_topo_order.emplace_back(x);
+          q.pop();
+          for (const auto y : edges[x]) {
+            --deg[y];
+            if (deg[y] == 0) { q.push(y); }
+          }
+        }
+        assert(int(reversed_topo_order.size()) == n_nodes);
+        std::reverse(reversed_topo_order.begin(), reversed_topo_order.end());
+      }
+
+      auto r = std::vector<std::bitset<MAX_N>>(n_nodes);
+
+      for (const auto &x : reversed_topo_order) {
+        r.at(x).set(x);
+
+        for (const auto &y : edges[x]) {
+          r.at(x) |= r.at(y);
+        }
+      }
+
+      return r;
+    }();
+
+    auto can_reach = [&reachability, &id_of_node](int64_t from, int64_t to) -> bool {
+      return reachability.at(id_of_node[from]).test(id_of_node[to]);
+    };
+
+    // 1. self conflict(derived RW edges)
+    auto self_conflict = [&](int v) -> bool {
+      const auto &[from, to] = edge_of_id[v];
+      return can_reach(to, from);
+    };
+
+    for (const auto v : edge_vars) {
+      if (self_conflict(v)) {
+        add_clause({-v});
+      }
+    }
+
+    auto conflict = [&](int v1, int v2) -> bool {
+      const auto &[from1, to1] = edge_of_id[v1];
+      const auto &[from2, to2] = edge_of_id[v2];
+      return can_reach(to1, from2) && can_reach(to2, from1);
+    };
+
+    // 2. conflict(for 2 edges)
+    for (const auto v1 : edge_vars) {
+      for (const auto v2 : edge_vars) {
+        if (v1 >= v2) continue; // assume v1 < v2
+        if (conflict(v1, v2)) {
+          add_clause({-v1, -v2});
+        }
+      }
+    }
+  }
+  #endif
 
   // 3. output to .gnf file
   auto write_file_st_time = std::chrono::steady_clock::now();

@@ -11,6 +11,7 @@
 #include "minisat/core/AcyclicSolver.h"
 #include "minisat/core/Graph.h"
 #include "minisat/core/Logger.h"
+#include "minisat/core/OptOption.h"
 
 namespace Minisat {
 
@@ -22,10 +23,13 @@ bool init_pair_conflict(AcyclicSolver &solver) {
     Logger::log(fmt::format(" - failed!  polygraph has {} vertices, > limit 100000", polygraph->n_vertices));
     return false;
   }
-  if (polygraph->n_vars > 100000) {
-    Logger::log(fmt::format(" - failed! solver has {} vars, > limit 10000", polygraph->n_vars));
-    return false;
-  }
+
+  #ifndef ENCODE_MORE_CONFLICT
+    if (polygraph->n_vars > 100000) {
+      Logger::log(fmt::format(" - failed! solver has {} vars, > limit 10000", polygraph->n_vars));
+      return false;
+    }
+  #endif
 
   Graph graph = Graph(polygraph->n_vertices);
   for (const auto &[from, to, _] : polygraph->known_edges) {
@@ -98,6 +102,83 @@ bool init_pair_conflict(AcyclicSolver &solver) {
       }
     }
   }
+
+  #ifdef ENCODE_MORE_CONFLICT
+    if (CONFLICT_WIDTH >= 3) {
+      auto conflict = [&edge, &graph, &polygraph](int v1, int v2, int v3) -> bool {
+        auto [from1, to1] = edge(v1);
+        auto [from2, to2] = edge(v2);
+        auto [from3, to3] = edge(v3);
+
+        if (graph.reachable(to1, from2) && graph.reachable(to2, from3) && graph.reachable(to3, from1)) {
+          return true;
+        }
+        if (graph.reachable(to1, from3) && graph.reachable(to3, from2) && graph.reachable(to2, from1)) {
+          return true;
+        }
+
+        return false;
+      };
+
+      for (int v1 = 0; v1 < polygraph->n_vars; v1++) {
+        for (int v2 = v1 + 1; v2 < polygraph->n_vars; v2++) {
+          for (int v3 = v2 + 1; v3 < polygraph->n_vars; v3++) {
+            if (conflict(v1, v2, v3)) {
+              vec<Lit> lits;
+              lits.push(~mkLit(v1)), lits.push(~mkLit(v2)), lits.push(~mkLit(v3));
+              solver.addClause_(lits); 
+              Logger::log(Logger::lits2str(lits));
+            }
+          }
+        }
+      }
+    }
+
+    if (CONFLICT_WIDTH >= 4) {
+      auto conflict = [&edge, &graph, &polygraph](int v1, int v2, int v3, int v4) -> bool {
+        auto [from1, to1] = edge(v1);
+        auto [from2, to2] = edge(v2);
+        auto [from3, to3] = edge(v3);
+        auto [from4, to4] = edge(v3);
+
+        if (graph.reachable(to1, from2) && graph.reachable(to2, from3) && graph.reachable(to3, from4) && graph.reachable(to4, from1)) {
+          return true;
+        }
+        if (graph.reachable(to1, from2) && graph.reachable(to2, from4) && graph.reachable(to4, from3) && graph.reachable(to3, from1)) {
+          return true;
+        }
+        if (graph.reachable(to1, from3) && graph.reachable(to3, from2) && graph.reachable(to2, from4) && graph.reachable(to4, from1)) {
+          return true;
+        }
+        if (graph.reachable(to1, from3) && graph.reachable(to3, from4) && graph.reachable(to4, from2) && graph.reachable(to2, from1)) {
+          return true;
+        }
+        if (graph.reachable(to1, from4) && graph.reachable(to4, from2) && graph.reachable(to2, from3) && graph.reachable(to3, from1)) {
+          return true;
+        }
+        if (graph.reachable(to1, from4) && graph.reachable(to4, from3) && graph.reachable(to3, from2) && graph.reachable(to2, from1)) {
+          return true;
+        }
+
+        return false;
+      };
+
+      for (int v1 = 0; v1 < polygraph->n_vars; v1++) {
+        for (int v2 = v1 + 1; v2 < polygraph->n_vars; v2++) {
+          for (int v3 = v2 + 1; v3 < polygraph->n_vars; v3++) {
+            for (int v4 = v3 + 1; v4 < polygraph->n_vars; v4++) {
+              if (conflict(v1, v2, v3, v4)) {
+                vec<Lit> lits;
+                lits.push(~mkLit(v1)), lits.push(~mkLit(v2)), lits.push(~mkLit(v3)), lits.push(~mkLit(v4));
+                solver.addClause_(lits); 
+                Logger::log(Logger::lits2str(lits));
+              }
+            }
+          }
+        }
+      }
+    }
+  #endif
 
   return true;
 }

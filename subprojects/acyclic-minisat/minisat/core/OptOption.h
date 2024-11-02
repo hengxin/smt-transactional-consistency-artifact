@@ -27,6 +27,10 @@
 
 #define INIT_PAIR_CONFLICT 1
 
+#define ENCODE_MORE_CONFLICT 1
+
+#define CONFLICT_WIDTH 4
+
 #define MONITOR_ENABLED 1
 
 // #define LOGGER_ENABLED 1
