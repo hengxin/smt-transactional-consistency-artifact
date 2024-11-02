@@ -19,14 +19,14 @@ bool init_pair_conflict(AcyclicSolver &solver) {
   Logger::log("[Init Pair Conflict]");
   Polygraph *polygraph = solver.get_polygraph();
   if (polygraph->n_vars == 0) return true; // already satisfied
-  if (polygraph->n_vertices > 200000) {
-    Logger::log(fmt::format(" - failed!  polygraph has {} vertices, > limit 100000", polygraph->n_vertices));
+  if (polygraph->n_vertices > 1000000 + 50) {
+    Logger::log(fmt::format(" - failed!  polygraph has {} vertices, > limit 1m", polygraph->n_vertices));
     return false;
   }
 
   #ifndef ENCODE_MORE_CONFLICT
-    if (polygraph->n_vars > 100000) {
-      Logger::log(fmt::format(" - failed! solver has {} vars, > limit 10000", polygraph->n_vars));
+    if (polygraph->n_vars > 10000000) {
+      Logger::log(fmt::format(" - failed! solver has {} vars, > limit 10m", polygraph->n_vars));
       return false;
     }
   #endif

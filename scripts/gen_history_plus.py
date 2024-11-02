@@ -1,7 +1,7 @@
 from logging import config
 import os
 import subprocess
-import shutil # pip3 install pytest-shutil
+import shutil 
 from rich.progress import track
 
 
@@ -20,7 +20,9 @@ histories_to_be_added = [
   # '20_50_8_500_0.5_r_0.5_0.5_100',
   # '20_50_8_500_0.95_r_0.5_0.5_100',
   # '20_50_8_500_0.3_r_0.5_0.5_100',
-  '250_2000_20_50000_0.5_r_0.5_0.5_100',
+  '50_2000_20_50000_0.8_r_0.5_0.5_1000',
+  '50_2000_20_50000_0.5_r_0.5_0.5_1000',
+  '50_2000_20_50000_0.2_r_0.5_0.5_1000',
 
   # '25_400_8_5000_0.5_r_1_1.5_100',
 
@@ -83,7 +85,8 @@ root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 # specific_path = 'dbcop-logs/various'
 # specific_path = 'dbcop-logs/tmp3'
 # specific_path = 'general-pldi'
-specific_path = 'tmp'
+# specific_path = 'tmp'
+specific_path = 'scalability'
 history_dir = os.path.join(root_path, 'history', 'ser', specific_path)
 # history_dir = os.path.join(root_path, 'history', 'si', specific_path)
 

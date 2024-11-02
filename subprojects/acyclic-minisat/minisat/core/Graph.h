@@ -21,7 +21,7 @@ public:
   bool prepared_bridge;
   std::set<std::pair<int, int>> bridges;
 
-  static const int MAX_N_VERTICES = 200000;
+  static const int MAX_N_VERTICES = 1000000 + 50;
 
   bool prepared_reachability;
   std::vector<std::bitset<MAX_N_VERTICES>> reachability;
