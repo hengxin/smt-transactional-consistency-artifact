@@ -79,7 +79,12 @@ auto MonosatSolver::solve() -> bool {
 
 MonosatSolver::~MonosatSolver() { 
   deleteSolver(solver); 
-  fs::remove(gnf_path);
+  try {
+    bool deleted_tmp_file = fs::remove(gnf_path);
+    if (!deleted_tmp_file) std::cerr << "tmp file is not correctly deleted." << std::endl;
+  } catch (const fs::filesystem_error& e) {
+    std::cerr << "Error deleting file: " << e.what() << '\n';
+  }
 };
 
 }

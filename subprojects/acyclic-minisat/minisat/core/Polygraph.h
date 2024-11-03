@@ -22,7 +22,8 @@ class Polygraph {
   using WRVarInfo = std::tuple<int, int, int64_t>; // <from, to, key>
   using RWVarInfo = std::pair<int, int>; // <from, to>
 
-  static const int MAX_N_VERTICES = 1000000 + 50;
+  // static const int MAX_N_VERTICES = 1000000 + 50;
+  static const int MAX_N_VERTICES = 200000 + 50;
   std::vector<std::bitset<MAX_N_VERTICES>> reachability; 
 
 public:

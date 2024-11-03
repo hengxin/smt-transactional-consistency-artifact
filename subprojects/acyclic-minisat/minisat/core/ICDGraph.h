@@ -20,7 +20,8 @@ constexpr static auto pair_hash_endpoint2 = [](const auto &t) {
   return h(t1) ^ h(t2); 
 };
 
-constexpr int MAX_N = 1000000 + 50;
+constexpr int MAX_N = 200000 + 50;
+// constexpr int MAX_N = 1000000 + 50;
 
 class ICDGraph {
   /* implement a graph data structure, to support below operations:
