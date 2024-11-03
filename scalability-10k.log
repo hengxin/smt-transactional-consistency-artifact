@@ -1,0 +1,25 @@
+[2024-11-02 16:58:54,383] [INFO]  root path = /home/rikka/smt-transactional-consistency-artifact/scripts/..
+[2024-11-02 16:58:54,383] [INFO]  history path = /home/rikka/smt-transactional-consistency-artifact/scripts/../history/ser/scalability-2
+[2024-11-02 16:58:54,383] [INFO]  checker path = /home/rikka/smt-transactional-consistency-artifact/scripts/../builddir-release-20w/checker
+[2024-11-02 16:58:54,383] [INFO]  solver = acyclic-minisat
+[2024-11-02 16:58:54,383] [INFO]  pruning method = fast
+[2024-11-02 16:58:54,383] [INFO]  use 1 thread(s)
+[2024-11-02 16:58:54,383] [INFO]  output path = /home/rikka/smt-transactional-consistency-artifact/scripts/../results/scalability-100k.json
+[2024-11-02 16:58:54,384] [INFO]  thread 0 starts running task 50_2000_20_50000_0.5_r_0.5_0.5_1000
+[2024-11-02 16:58:54,384] [DEBUG]  thread 0 runs cmd ['timeout', '24h', '/home/rikka/smt-transactional-consistency-artifact/scripts/../builddir-release-20w/checker', '/home/rikka/smt-transactional-consistency-artifact/scripts/../history/ser/scalability-2/50_2000_20_50000_0.5_r_0.5_0.5_1000/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--pruning', 'fast']
+[2024-11-02 17:13:06,372] [INFO]  !subprocess of task 50_2000_20_50000_0.5_r_0.5_0.5_1000 does not return 0
+[2024-11-02 17:13:07,374] [DEBUG]  thread finished checking 50_2000_20_50000_0.5_r_0.5_0.5_1000, stdout = [2024-11-02 16:58:54.518361] [0x00007fa7cc03ab80] [info]    #sessions: 51
+[2024-11-02 16:58:54.518405] [0x00007fa7cc03ab80] [info]    #transactions: 100001
+[2024-11-02 16:58:54.518926] [0x00007fa7cc03ab80] [info]    #events: 2050000
+[2024-11-02 17:09:38.273266] [0x00007fa7cc03ab80] [info]    #constraints: 29512141
+[2024-11-02 17:09:59.450410] [0x00007fa7cc03ab80] [info]    construct time: 665057ms
+, stderr = 
+[2024-11-02 17:13:07,374] [DEBUG]  thread 0 starts parsing logs of task 50_2000_20_50000_0.5_r_0.5_0.5_1000, max memory = 2228224, logs = ['[2024-11-02 16:58:54.518361] [0x00007fa7cc03ab80] [info]    #sessions: 51', '[2024-11-02 16:58:54.518405] [0x00007fa7cc03ab80] [info]    #transactions: 100001', '[2024-11-02 16:58:54.518926] [0x00007fa7cc03ab80] [info]    #events: 2050000', '[2024-11-02 17:09:38.273266] [0x00007fa7cc03ab80] [info]    #constraints: 29512141', '[2024-11-02 17:09:59.450410] [0x00007fa7cc03ab80] [info]    construct time: 665057ms', '']
+[2024-11-02 17:13:07,375] [DEBUG]  thread 0 updates results['50_2000_20_50000_0.5_r_0.5_0.5_1000']['max memory'] to '2228224'
+[2024-11-02 17:13:07,375] [DEBUG]  thread 0 updates results['50_2000_20_50000_0.5_r_0.5_0.5_1000']['#sessions'] to '51'
+[2024-11-02 17:13:07,375] [DEBUG]  thread 0 updates results['50_2000_20_50000_0.5_r_0.5_0.5_1000']['#transactions'] to '100001'
+[2024-11-02 17:13:07,375] [DEBUG]  thread 0 updates results['50_2000_20_50000_0.5_r_0.5_0.5_1000']['#events'] to '2050000'
+[2024-11-02 17:13:07,375] [DEBUG]  thread 0 updates results['50_2000_20_50000_0.5_r_0.5_0.5_1000']['#constraints'] to '29512141'
+[2024-11-02 17:13:07,375] [DEBUG]  thread 0 updates results['50_2000_20_50000_0.5_r_0.5_0.5_1000']['construct time'] to '665057ms'
+[2024-11-02 17:13:07,375] [WARNING]  thread 0 found ''(empty line) in logs, skip
+[2024-11-02 17:13:07,375] [INFO]  thread 0 finished task 50_2000_20_50000_0.5_r_0.5_0.5_1000
