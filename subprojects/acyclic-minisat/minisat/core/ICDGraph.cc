@@ -486,6 +486,10 @@ bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
 
       construct_dfs_cycle(from, to, pre, reason);
 
+      #ifdef FIND_MINIMAL_CYCLE
+        find_minimal_cycle(from, to, reason);
+      #endif
+
       for (const auto &x : forward_visit) vis[x] = false;
       return true;
     }
@@ -494,6 +498,38 @@ bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
     reorder(forward_visit, backward_visit);
   }
   return false;
+}
+
+void ICDGraph::find_minimal_cycle(int from, int to, std::pair<int, int> &reason) {
+  auto q = std::priority_queue<std::pair<int, int>>{};
+  auto dis = std::vector<int>(n, 0x3fffffff);
+  auto extended = std::vector<bool>(n, false);
+  q.push({dis[to] = 0, to});
+  while (!q.empty()) {
+    int x = q.top().second;
+    q.pop();
+    if (extended[x]) continue;
+    extended[x] = true;
+    for (const auto &y : out[x]) {
+      auto cur_reason = reason_set.get_minimal_reason(x, y);
+      int reason_width = 0;
+      if (cur_reason.first != -1) ++reason_width;
+      if (cur_reason.second != -1) ++reason_width;
+      if (dis[y] > dis[x] + reason_width) {
+        dis[y] = dis[x] + reason_width;
+        q.push({-dis[y], y});
+      }
+    }
+  }
+  int width = dis[from];
+  if (reason.first != -1) ++width;
+  if (reason.second != -1) ++width;
+  // note that reason cannot be directly modeled as shortest path, 
+  // for var 1 may be added into reason twice
+
+  #ifdef MONITOR_ENABLED
+    Monitor::get_monitor()->minimal_cycle_width_count[width]++;
+  #endif
 }
 
 void ICDGraph::construct_dfs_cycle(int from, int to, std::vector<int> &pre, std::pair<int, int> &reason) {

@@ -18,6 +18,8 @@
 
 // #define REDUCE_KNOWN_GRAPH 1     
 
+#define FIND_MINIMAL_CYCLE 1
+
 #define HEURISTIC_TOPO_ORDER 1
 
 // #define HEURISTIC_DIST_INIT_TOPO 1

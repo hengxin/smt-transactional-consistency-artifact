@@ -19,6 +19,7 @@ Monitor::Monitor() {
   uep_b_size_sum = uep_f_size_sum = 0;
   propagated_lit_add_times = 0;
   cycle_width_count.clear();
+  minimal_cycle_width_count.clear();
   var_divide_known_edge_ratio_sum = 0;
 
   dfs_when_finding_cycle_in_icd_graph_times = 0;
@@ -45,6 +46,12 @@ void Monitor::show_statistics() {
   for (const auto &[width, count] : cycle_width_count) {
     std::cerr << "width = " << width << ", count = " << count << std::endl;
     max_width = std::max(max_width, width);
+  }
+  std::cerr << std::endl;
+
+  std::cerr << "[Minimal]" << std::endl;
+  for (const auto &[width, count] : minimal_cycle_width_count) {
+    std::cerr << "width = " << width << ", count = " << count << std::endl;
   }
   std::cerr << std::endl;
   
