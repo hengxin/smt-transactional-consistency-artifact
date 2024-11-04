@@ -18,7 +18,7 @@
 #include "history/constraint.h"
 #include "history/dependencygraph.h"
 
-// #define ENCODE_SMALL_WIDTH_CYCLES
+#define ENCODE_SMALL_WIDTH_CYCLES
 
 namespace fs = std::filesystem;
 

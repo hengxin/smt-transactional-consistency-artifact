@@ -18,7 +18,7 @@
 
 // #define REDUCE_KNOWN_GRAPH 1     
 
-#define FIND_MINIMAL_CYCLE 1
+// #define FIND_MINIMAL_CYCLE 1
 
 #define HEURISTIC_TOPO_ORDER 1
 
@@ -33,7 +33,7 @@
 
 #define CONFLICT_WIDTH 4
 
-#define MONITOR_ENABLED 1
+// #define MONITOR_ENABLED 1
 
 // #define LOGGER_ENABLED 1
 
