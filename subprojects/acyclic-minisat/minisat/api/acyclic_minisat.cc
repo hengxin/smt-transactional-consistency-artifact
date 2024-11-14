@@ -20,6 +20,8 @@ bool am_solve_with_suggestion(int n_vertices, const KnownGraph &known_graph, con
                               const std::unordered_map<int, int> &txn_distance,
                               const int n_sessions, const int n_total_transactions) {
   // Logger::log(fmt::format("[Acyclic Minisat QxQ starts a new solving pass with suggest_distance = {}]", suggest_distance));
+  auto start_time = std::chrono::high_resolution_clock::now();
+
   AcyclicSolver S;
   auto show_model = [&S](std::string model_name = "Model") -> void {
     Logger::log(fmt::format("[{}]", model_name));
@@ -59,6 +61,12 @@ bool am_solve_with_suggestion(int n_vertices, const KnownGraph &known_graph, con
 #ifdef INIT_PAIR_CONFLICT
   init_pair_conflict(S);
 #endif
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+  #ifdef MONITOR_ENABLED
+    Monitor::get_monitor()->encode_time += 
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+  #endif
 
   if (!S.simplify()) {
     Logger::log("[Conflict detected in simplify()!]");

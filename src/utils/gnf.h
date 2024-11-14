@@ -369,8 +369,15 @@ auto write_to_gnf_file(fs::path &gnf_path,
   #ifdef ENCODE_SMALL_WIDTH_CYCLES
   const int MAX_N = 100000 + 10;
   if (n_nodes < MAX_N) {
+    auto known_edge = std::map<int, bool>{};
+    for (const auto &[from, to, _] : known_graph.edges()) {
+      assert(id_of_edge.contains(std::make_pair(from, to)));
+      const auto edge_id = id_of_edge[std::make_pair(from, to)];
+      known_edge[edge_id] = true;
+    }    
     auto edge_vars = std::vector<int>{};
     for (const auto &[v, edge] : edge_of_id) {
+      if (known_edge[v]) continue;
       edge_vars.emplace_back(v); 
     }
 

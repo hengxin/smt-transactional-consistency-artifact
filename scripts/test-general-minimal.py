@@ -38,7 +38,7 @@ from rich.table import Table
 logging.basicConfig(
   level = logging.DEBUG,  
   format = '[%(asctime)s] [%(levelname)s]  %(message)s',  
-  filename = 'test.log',  
+  filename = 'minimal-10k.log',  
   filemode = 'w'  
 )
 
@@ -50,19 +50,19 @@ logging.info(f'root path = {root_path}')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'no-uv', 'polysi-fig7-like')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general')
 history_path = os.path.join(root_path, 'history', 'ser', 'general-pldi')
-# history_path = os.path.join(root_path, 'history', 'ser', 'general-5k')
+# history_path = os.path.join(root_path, 'history', 'ser', 'general-1k')
 # history_path = os.path.join(root_path, 'history', 'ser', 'tmp')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'scalability4')
 logging.info(f'history path = {history_path}')
 
 # checker_path = os.path.join(root_path, 'builddir', 'checker')
-checker_path = os.path.join(root_path, 'builddir-release', 'checker')
+checker_path = os.path.join(root_path, 'builddir-release-minimal', 'checker')
 if checker_path.find('release2') != -1:
   print('Warning! Running on release copy! May not be updated!')
 logging.info(f'checker path = {checker_path}')
 
-# solver = 'acyclic-minisat'
-solver = 'monosat'
+solver = 'acyclic-minisat'
+# solver = 'monosat'
 assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3' or solver == 'monosat-baseline'
 logging.info(f'solver = {solver}')
 
@@ -70,7 +70,7 @@ pruning_method = 'fast'
 assert pruning_method == 'fast' or pruning_method == 'normal' or pruning_method == 'none' or pruning_method == 'unit' or pruning_method == 'basic'
 logging.info(f'pruning method = {pruning_method}')
 
-timeout = '30m'
+timeout = '12h'
 
 def set_memory_limit(max_memory):
   soft_limit = max_memory
@@ -85,7 +85,7 @@ memory_limit = 16 * 1024 * 1024 * 1024  # 16 GB
 n_threads = 1
 logging.info(f'use {n_threads} thread(s)')
 
-output_path = os.path.join(root_path, 'results', 'new-general.json')
+output_path = os.path.join(root_path, 'results', 'general-10k-minimal.json')
 logging.info(f'output path = {output_path}')
 
 # === global variables ===

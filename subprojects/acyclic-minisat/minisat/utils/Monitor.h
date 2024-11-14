@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <unordered_map>
+#include <chrono>
 
 namespace Minisat {
 class Monitor {
@@ -26,6 +27,13 @@ public:
   int64_t propagated_lit_add_times;  
 
   double var_divide_known_edge_ratio_sum;
+
+  std::chrono::milliseconds encode_time;
+  std::chrono::milliseconds rw_derivation_and_cycle_detection_time;
+  std::chrono::milliseconds cycle_detection_time;
+  std::chrono::milliseconds theory_propagation_time;
+  std::chrono::milliseconds propagate_time;
+  std::chrono::milliseconds search_time;
 
   static Monitor *monitor;
 

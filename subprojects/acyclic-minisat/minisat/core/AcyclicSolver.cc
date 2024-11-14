@@ -240,7 +240,15 @@ lbool AcyclicSolver::search(int nof_conflicts) {
   starts++;
 
   for (; ; ) {
+    auto prop_start_time = std::chrono::high_resolution_clock::now();
     CRef confl = propagate();
+    auto prop_end_time = std::chrono::high_resolution_clock::now();
+
+    #ifdef MONITOR_ENABLED
+      Monitor::get_monitor()->propagate_time +=
+        std::chrono::duration_cast<std::chrono::milliseconds>(prop_end_time - prop_start_time);
+    #endif
+
     if (confl != CRef_Undef) {
       // CONFLICT
       conflicts++; conflictC++;
@@ -396,6 +404,7 @@ lbool AcyclicSolver::solve_() { // same as Solver.cc
     }
 
     // Search:
+    auto search_start_time = std::chrono::high_resolution_clock::now();
     int curr_restarts = 0;
     while (status == l_Undef){
         double rest_base = luby_restart ? luby(restart_inc, curr_restarts) : pow(restart_inc, curr_restarts);
@@ -403,6 +412,12 @@ lbool AcyclicSolver::solve_() { // same as Solver.cc
         if (!withinBudget()) break;
         curr_restarts++;
     }
+    auto search_end_time = std::chrono::high_resolution_clock::now();
+
+    #ifdef MONITOR_ENABLED
+      Monitor::get_monitor()->search_time += 
+        std::chrono::duration_cast<std::chrono::milliseconds>(search_end_time - search_start_time);
+    #endif
 
     if (verbosity >= 1)
         printf("===============================================================================\n");

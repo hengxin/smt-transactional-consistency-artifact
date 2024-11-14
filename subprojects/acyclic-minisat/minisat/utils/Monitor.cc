@@ -27,6 +27,13 @@ Monitor::Monitor() {
   find_cycle_in_icd_graph_times = 0;
 
   dfs_m_times = 0;
+
+  encode_time = std::chrono::milliseconds::zero();
+  rw_derivation_and_cycle_detection_time = std::chrono::milliseconds::zero();
+  cycle_detection_time = std::chrono::milliseconds::zero();
+  theory_propagation_time = std::chrono::milliseconds::zero();
+  propagate_time = std::chrono::milliseconds::zero();
+  search_time = std::chrono::milliseconds::zero();
 }
 
 Monitor *Monitor::get_monitor() {
@@ -77,6 +84,15 @@ void Monitor::show_statistics() {
   std::cerr << "#find cycle times: " << find_cycle_in_icd_graph_times << "\n";
   std::cerr << "#dfs iter on edge times: " << dfs_m_times << "\n";
 
+  std::cerr << "\n";
+  std::cerr << "[Time]\n";
+  std::cerr << "encode time: " << encode_time.count() << "ms\n";
+  std::cerr << "propagate time: " << propagate_time.count() << "ms\n";
+  std::cerr << "search time: " << search_time.count() << "ms\n";
+  std::cerr << "RW derivation time: " << (rw_derivation_and_cycle_detection_time - cycle_detection_time).count() << "ms\n";
+  std::cerr << "cycle detection time: " << cycle_detection_time.count() << "ms\n";
+  std::cerr << "theory propagation time: " << theory_propagation_time.count() << "ms\n";
+  std::cerr << std::endl;
 
   // std::cerr << "#construct unit-edge propagation times = " << construct_uep_count << "\n";
   // if (construct_uep_count != 0) {

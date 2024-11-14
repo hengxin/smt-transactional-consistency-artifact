@@ -1,0 +1,411 @@
+[2024-11-04 20:16:40,352] [INFO]  root path = /home/rikka/smt-transactional-consistency-artifact/scripts/..
+[2024-11-04 20:16:40,352] [INFO]  history path = /home/rikka/smt-transactional-consistency-artifact/scripts/../history/ser/general-pldi
+[2024-11-04 20:16:40,352] [INFO]  checker path = /home/rikka/smt-transactional-consistency-artifact/scripts/../builddir-release-minimal/checker
+[2024-11-04 20:16:40,352] [INFO]  solver = acyclic-minisat
+[2024-11-04 20:16:40,352] [INFO]  pruning method = fast
+[2024-11-04 20:16:40,352] [INFO]  use 1 thread(s)
+[2024-11-04 20:16:40,352] [INFO]  output path = /home/rikka/smt-transactional-consistency-artifact/scripts/../results/general-10k-minimal.json
+[2024-11-04 20:16:40,353] [INFO]  thread 0 starts running task 25_400_8_5000_0.3_r_0.5_0.5_100
+[2024-11-04 20:16:40,353] [DEBUG]  thread 0 runs cmd ['timeout', '12h', '/home/rikka/smt-transactional-consistency-artifact/scripts/../builddir-release-minimal/checker', '/home/rikka/smt-transactional-consistency-artifact/scripts/../history/ser/general-pldi/25_400_8_5000_0.3_r_0.5_0.5_100/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--pruning', 'fast']
+[2024-11-04 20:21:37,452] [DEBUG]  thread finished checking 25_400_8_5000_0.3_r_0.5_0.5_100, stdout = [2024-11-04 20:16:40.363543] [0x000079d8ca4adb80] [info]    #sessions: 26
+[2024-11-04 20:16:40.363561] [0x000079d8ca4adb80] [info]    #transactions: 10001
+[2024-11-04 20:16:40.363594] [0x000079d8ca4adb80] [info]    #events: 85000
+[2024-11-04 20:16:43.926013] [0x000079d8ca4adb80] [info]    #constraints: 731589
+[2024-11-04 20:16:44.291327] [0x000079d8ca4adb80] [info]    construct time: 3932ms
+[2024-11-04 20:16:48.937939] [0x000079d8ca4adb80] [info]    prune time: 4646ms
+[2024-11-04 20:16:49.246384] [0x000079d8ca4adb80] [info]    solver initializing time: 308ms
+[2024-11-04 20:21:35.932931] [0x000079d8ca4adb80] [info]    solve time: 286686ms
+accept: true
+, stderr = #vars: 25786
+[Monitor]
+find_cycle_times: 4694
+avg cycle length = 3.40222
+width = 12, count = 1
+width = 11, count = 5
+width = 10, count = 7
+width = 8, count = 49
+width = 9, count = 21
+width = 7, count = 113
+width = 4, count = 783
+width = 6, count = 243
+width = 5, count = 491
+width = 3, count = 1454
+width = 2, count = 1527
+
+[Minimal]
+width = 6, count = 16
+width = 5, count = 45
+width = 4, count = 183
+width = 3, count = 1032
+width = 2, count = 3418
+
+
+[Suffix Sum]
+4694
+4694
+3167
+1713
+930
+439
+196
+83
+34
+13
+6
+1
+
+find cycle times/add edge times = 0.000385528
+
+(ICD graph)
+#call PK algo times: 18445455
+#dfs times: 8895
+#find cycle times: 4694
+#dfs iter on edge times: 13817893
+
+[2024-11-04 20:21:37,452] [DEBUG]  thread 0 starts parsing logs of task 25_400_8_5000_0.3_r_0.5_0.5_100, max memory = 2490368, logs = ['[2024-11-04 20:16:40.363543] [0x000079d8ca4adb80] [info]    #sessions: 26', '[2024-11-04 20:16:40.363561] [0x000079d8ca4adb80] [info]    #transactions: 10001', '[2024-11-04 20:16:40.363594] [0x000079d8ca4adb80] [info]    #events: 85000', '[2024-11-04 20:16:43.926013] [0x000079d8ca4adb80] [info]    #constraints: 731589', '[2024-11-04 20:16:44.291327] [0x000079d8ca4adb80] [info]    construct time: 3932ms', '[2024-11-04 20:16:48.937939] [0x000079d8ca4adb80] [info]    prune time: 4646ms', '[2024-11-04 20:16:49.246384] [0x000079d8ca4adb80] [info]    solver initializing time: 308ms', '[2024-11-04 20:21:35.932931] [0x000079d8ca4adb80] [info]    solve time: 286686ms', 'accept: true', '']
+[2024-11-04 20:21:37,452] [DEBUG]  thread 0 updates results['25_400_8_5000_0.3_r_0.5_0.5_100']['max memory'] to '2490368'
+[2024-11-04 20:21:37,453] [DEBUG]  thread 0 updates results['25_400_8_5000_0.3_r_0.5_0.5_100']['#sessions'] to '26'
+[2024-11-04 20:21:37,453] [DEBUG]  thread 0 updates results['25_400_8_5000_0.3_r_0.5_0.5_100']['#transactions'] to '10001'
+[2024-11-04 20:21:37,453] [DEBUG]  thread 0 updates results['25_400_8_5000_0.3_r_0.5_0.5_100']['#events'] to '85000'
+[2024-11-04 20:21:37,453] [DEBUG]  thread 0 updates results['25_400_8_5000_0.3_r_0.5_0.5_100']['#constraints'] to '731589'
+[2024-11-04 20:21:37,453] [DEBUG]  thread 0 updates results['25_400_8_5000_0.3_r_0.5_0.5_100']['construct time'] to '3932ms'
+[2024-11-04 20:21:37,453] [DEBUG]  thread 0 updates results['25_400_8_5000_0.3_r_0.5_0.5_100']['prune time'] to '4646ms'
+[2024-11-04 20:21:37,453] [DEBUG]  thread 0 updates results['25_400_8_5000_0.3_r_0.5_0.5_100']['solver initializing time'] to '308ms'
+[2024-11-04 20:21:37,453] [DEBUG]  thread 0 updates results['25_400_8_5000_0.3_r_0.5_0.5_100']['solve time'] to '286686ms'
+[2024-11-04 20:21:37,453] [DEBUG]  thread 0 updates results['25_400_8_5000_0.3_r_0.5_0.5_100']['accept'] to 'True'
+[2024-11-04 20:21:37,453] [WARNING]  thread 0 found ''(empty line) in logs, skip
+[2024-11-04 20:21:37,453] [INFO]  thread 0 finished task 25_400_8_5000_0.3_r_0.5_0.5_100
+[2024-11-04 20:21:37,454] [INFO]  thread 0 starts running task rubis-10K
+[2024-11-04 20:21:37,454] [DEBUG]  thread 0 runs cmd ['timeout', '12h', '/home/rikka/smt-transactional-consistency-artifact/scripts/../builddir-release-minimal/checker', '/home/rikka/smt-transactional-consistency-artifact/scripts/../history/ser/general-pldi/rubis-10K/', '--solver', 'acyclic-minisat', '--history-type', 'cobra', '--pruning', 'fast']
+[2024-11-04 20:21:51,895] [DEBUG]  thread finished checking rubis-10K, stdout = [2024-11-04 20:21:37.521175] [0x000071cdec0c5b80] [info]    #sessions: 9
+[2024-11-04 20:21:37.521195] [0x000071cdec0c5b80] [info]    #transactions: 10290
+[2024-11-04 20:21:37.521268] [0x000071cdec0c5b80] [info]    #events: 77086
+[2024-11-04 20:21:37.604005] [0x000071cdec0c5b80] [info]    #constraints: 70265
+[2024-11-04 20:21:37.631885] [0x000071cdec0c5b80] [info]    construct time: 161ms
+[2024-11-04 20:21:38.140070] [0x000071cdec0c5b80] [info]    prune time: 508ms
+[2024-11-04 20:21:38.181369] [0x000071cdec0c5b80] [info]    solver initializing time: 41ms
+[2024-11-04 20:21:50.819651] [0x000071cdec0c5b80] [info]    solve time: 12638ms
+accept: true
+, stderr = #vars: 2861
+[Monitor]
+find_cycle_times: 648
+avg cycle length = 2.72222
+width = 7, count = 2
+width = 9, count = 2
+width = 6, count = 9
+width = 5, count = 15
+width = 4, count = 87
+width = 3, count = 189
+width = 2, count = 344
+
+[Minimal]
+width = 6, count = 1
+width = 5, count = 1
+width = 4, count = 11
+width = 3, count = 140
+width = 2, count = 495
+
+
+[Suffix Sum]
+648
+648
+304
+115
+28
+13
+4
+2
+2
+
+find cycle times/add edge times = 0.00431919
+
+(ICD graph)
+#call PK algo times: 6613842
+#dfs times: 1703
+#find cycle times: 648
+#dfs iter on edge times: 820473
+
+[2024-11-04 20:21:51,896] [DEBUG]  thread 0 starts parsing logs of task rubis-10K, max memory = 2490368, logs = ['[2024-11-04 20:21:37.521175] [0x000071cdec0c5b80] [info]    #sessions: 9', '[2024-11-04 20:21:37.521195] [0x000071cdec0c5b80] [info]    #transactions: 10290', '[2024-11-04 20:21:37.521268] [0x000071cdec0c5b80] [info]    #events: 77086', '[2024-11-04 20:21:37.604005] [0x000071cdec0c5b80] [info]    #constraints: 70265', '[2024-11-04 20:21:37.631885] [0x000071cdec0c5b80] [info]    construct time: 161ms', '[2024-11-04 20:21:38.140070] [0x000071cdec0c5b80] [info]    prune time: 508ms', '[2024-11-04 20:21:38.181369] [0x000071cdec0c5b80] [info]    solver initializing time: 41ms', '[2024-11-04 20:21:50.819651] [0x000071cdec0c5b80] [info]    solve time: 12638ms', 'accept: true', '']
+[2024-11-04 20:21:51,896] [DEBUG]  thread 0 updates results['rubis-10K']['max memory'] to '2490368'
+[2024-11-04 20:21:51,896] [DEBUG]  thread 0 updates results['rubis-10K']['#sessions'] to '9'
+[2024-11-04 20:21:51,896] [DEBUG]  thread 0 updates results['rubis-10K']['#transactions'] to '10290'
+[2024-11-04 20:21:51,896] [DEBUG]  thread 0 updates results['rubis-10K']['#events'] to '77086'
+[2024-11-04 20:21:51,896] [DEBUG]  thread 0 updates results['rubis-10K']['#constraints'] to '70265'
+[2024-11-04 20:21:51,896] [DEBUG]  thread 0 updates results['rubis-10K']['construct time'] to '161ms'
+[2024-11-04 20:21:51,896] [DEBUG]  thread 0 updates results['rubis-10K']['prune time'] to '508ms'
+[2024-11-04 20:21:51,896] [DEBUG]  thread 0 updates results['rubis-10K']['solver initializing time'] to '41ms'
+[2024-11-04 20:21:51,896] [DEBUG]  thread 0 updates results['rubis-10K']['solve time'] to '12638ms'
+[2024-11-04 20:21:51,896] [DEBUG]  thread 0 updates results['rubis-10K']['accept'] to 'True'
+[2024-11-04 20:21:51,896] [WARNING]  thread 0 found ''(empty line) in logs, skip
+[2024-11-04 20:21:51,896] [INFO]  thread 0 finished task rubis-10K
+[2024-11-04 20:21:51,897] [INFO]  thread 0 starts running task 25_400_8_5000_0.5_r_1_1.5_100
+[2024-11-04 20:21:51,897] [DEBUG]  thread 0 runs cmd ['timeout', '12h', '/home/rikka/smt-transactional-consistency-artifact/scripts/../builddir-release-minimal/checker', '/home/rikka/smt-transactional-consistency-artifact/scripts/../history/ser/general-pldi/25_400_8_5000_0.5_r_1_1.5_100/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--pruning', 'fast']
+[2024-11-04 20:32:30,946] [DEBUG]  thread finished checking 25_400_8_5000_0.5_r_1_1.5_100, stdout = [2024-11-04 20:21:51.917608] [0x0000787a55cb0b80] [info]    #sessions: 26
+[2024-11-04 20:21:51.917627] [0x0000787a55cb0b80] [info]    #transactions: 10001
+[2024-11-04 20:21:51.917662] [0x0000787a55cb0b80] [info]    #events: 84999
+[2024-11-04 20:21:53.206062] [0x0000787a55cb0b80] [info]    #constraints: 415006
+[2024-11-04 20:21:53.425939] [0x0000787a55cb0b80] [info]    construct time: 1514ms
+[2024-11-04 20:21:56.523165] [0x0000787a55cb0b80] [info]    prune time: 3097ms
+[2024-11-04 20:21:56.728167] [0x0000787a55cb0b80] [info]    solver initializing time: 204ms
+[2024-11-04 20:32:29.597996] [0x0000787a55cb0b80] [info]    solve time: 632870ms
+accept: true
+, stderr = #vars: 25534
+[Monitor]
+find_cycle_times: 6648
+avg cycle length = 3.94194
+width = 14, count = 1
+width = 15, count = 1
+width = 2, count = 1556
+width = 3, count = 1780
+width = 16, count = 1
+width = 4, count = 1297
+width = 5, count = 861
+width = 6, count = 508
+width = 9, count = 96
+width = 7, count = 309
+width = 8, count = 154
+width = 10, count = 45
+width = 13, count = 8
+width = 11, count = 17
+width = 12, count = 14
+
+[Minimal]
+width = 8, count = 1
+width = 7, count = 6
+width = 6, count = 48
+width = 4, count = 551
+width = 5, count = 174
+width = 3, count = 1620
+width = 2, count = 4248
+
+
+[Suffix Sum]
+6648
+6648
+5092
+3312
+2015
+1154
+646
+337
+183
+87
+42
+25
+11
+3
+2
+1
+
+find cycle times/add edge times = 0.000466714
+
+(ICD graph)
+#call PK algo times: 166264521
+#dfs times: 13937
+#find cycle times: 6648
+#dfs iter on edge times: 15720880
+
+[2024-11-04 20:32:30,946] [DEBUG]  thread 0 starts parsing logs of task 25_400_8_5000_0.5_r_1_1.5_100, max memory = 2359296, logs = ['[2024-11-04 20:21:51.917608] [0x0000787a55cb0b80] [info]    #sessions: 26', '[2024-11-04 20:21:51.917627] [0x0000787a55cb0b80] [info]    #transactions: 10001', '[2024-11-04 20:21:51.917662] [0x0000787a55cb0b80] [info]    #events: 84999', '[2024-11-04 20:21:53.206062] [0x0000787a55cb0b80] [info]    #constraints: 415006', '[2024-11-04 20:21:53.425939] [0x0000787a55cb0b80] [info]    construct time: 1514ms', '[2024-11-04 20:21:56.523165] [0x0000787a55cb0b80] [info]    prune time: 3097ms', '[2024-11-04 20:21:56.728167] [0x0000787a55cb0b80] [info]    solver initializing time: 204ms', '[2024-11-04 20:32:29.597996] [0x0000787a55cb0b80] [info]    solve time: 632870ms', 'accept: true', '']
+[2024-11-04 20:32:30,947] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_1_1.5_100']['max memory'] to '2359296'
+[2024-11-04 20:32:30,947] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_1_1.5_100']['#sessions'] to '26'
+[2024-11-04 20:32:30,947] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_1_1.5_100']['#transactions'] to '10001'
+[2024-11-04 20:32:30,947] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_1_1.5_100']['#events'] to '84999'
+[2024-11-04 20:32:30,947] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_1_1.5_100']['#constraints'] to '415006'
+[2024-11-04 20:32:30,947] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_1_1.5_100']['construct time'] to '1514ms'
+[2024-11-04 20:32:30,947] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_1_1.5_100']['prune time'] to '3097ms'
+[2024-11-04 20:32:30,947] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_1_1.5_100']['solver initializing time'] to '204ms'
+[2024-11-04 20:32:30,947] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_1_1.5_100']['solve time'] to '632870ms'
+[2024-11-04 20:32:30,947] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_1_1.5_100']['accept'] to 'True'
+[2024-11-04 20:32:30,947] [WARNING]  thread 0 found ''(empty line) in logs, skip
+[2024-11-04 20:32:30,947] [INFO]  thread 0 finished task 25_400_8_5000_0.5_r_1_1.5_100
+[2024-11-04 20:32:30,948] [INFO]  thread 0 starts running task tpcc-10K
+[2024-11-04 20:32:30,948] [DEBUG]  thread 0 runs cmd ['timeout', '12h', '/home/rikka/smt-transactional-consistency-artifact/scripts/../builddir-release-minimal/checker', '/home/rikka/smt-transactional-consistency-artifact/scripts/../history/ser/general-pldi/tpcc-10K/', '--solver', 'acyclic-minisat', '--history-type', 'cobra', '--pruning', 'fast']
+[2024-11-04 20:32:32,254] [DEBUG]  thread finished checking tpcc-10K, stdout = [2024-11-04 20:32:30.967666] [0x0000781762c32b80] [info]    #sessions: 9
+[2024-11-04 20:32:30.967681] [0x0000781762c32b80] [info]    #transactions: 10365
+[2024-11-04 20:32:30.967714] [0x0000781762c32b80] [info]    #events: 14246
+[2024-11-04 20:32:30.987507] [0x0000781762c32b80] [info]    #constraints: 20820
+[2024-11-04 20:32:30.992227] [0x0000781762c32b80] [info]    construct time: 32ms
+[2024-11-04 20:32:31.150219] [0x0000781762c32b80] [info]    prune time: 157ms
+[2024-11-04 20:32:31.174820] [0x0000781762c32b80] [info]    solver initializing time: 24ms
+[2024-11-04 20:32:31.211095] [0x0000781762c32b80] [info]    solve time: 36ms
+accept: true
+, stderr = #vars: 0
+
+[2024-11-04 20:32:32,254] [DEBUG]  thread 0 starts parsing logs of task tpcc-10K, max memory = 2490368, logs = ['[2024-11-04 20:32:30.967666] [0x0000781762c32b80] [info]    #sessions: 9', '[2024-11-04 20:32:30.967681] [0x0000781762c32b80] [info]    #transactions: 10365', '[2024-11-04 20:32:30.967714] [0x0000781762c32b80] [info]    #events: 14246', '[2024-11-04 20:32:30.987507] [0x0000781762c32b80] [info]    #constraints: 20820', '[2024-11-04 20:32:30.992227] [0x0000781762c32b80] [info]    construct time: 32ms', '[2024-11-04 20:32:31.150219] [0x0000781762c32b80] [info]    prune time: 157ms', '[2024-11-04 20:32:31.174820] [0x0000781762c32b80] [info]    solver initializing time: 24ms', '[2024-11-04 20:32:31.211095] [0x0000781762c32b80] [info]    solve time: 36ms', 'accept: true', '']
+[2024-11-04 20:32:32,254] [DEBUG]  thread 0 updates results['tpcc-10K']['max memory'] to '2490368'
+[2024-11-04 20:32:32,255] [DEBUG]  thread 0 updates results['tpcc-10K']['#sessions'] to '9'
+[2024-11-04 20:32:32,255] [DEBUG]  thread 0 updates results['tpcc-10K']['#transactions'] to '10365'
+[2024-11-04 20:32:32,255] [DEBUG]  thread 0 updates results['tpcc-10K']['#events'] to '14246'
+[2024-11-04 20:32:32,255] [DEBUG]  thread 0 updates results['tpcc-10K']['#constraints'] to '20820'
+[2024-11-04 20:32:32,255] [DEBUG]  thread 0 updates results['tpcc-10K']['construct time'] to '32ms'
+[2024-11-04 20:32:32,255] [DEBUG]  thread 0 updates results['tpcc-10K']['prune time'] to '157ms'
+[2024-11-04 20:32:32,255] [DEBUG]  thread 0 updates results['tpcc-10K']['solver initializing time'] to '24ms'
+[2024-11-04 20:32:32,255] [DEBUG]  thread 0 updates results['tpcc-10K']['solve time'] to '36ms'
+[2024-11-04 20:32:32,255] [DEBUG]  thread 0 updates results['tpcc-10K']['accept'] to 'True'
+[2024-11-04 20:32:32,255] [WARNING]  thread 0 found ''(empty line) in logs, skip
+[2024-11-04 20:32:32,255] [INFO]  thread 0 finished task tpcc-10K
+[2024-11-04 20:32:32,256] [INFO]  thread 0 starts running task 25_400_8_5000_0.95_r_0.5_0.5_100
+[2024-11-04 20:32:32,256] [DEBUG]  thread 0 runs cmd ['timeout', '12h', '/home/rikka/smt-transactional-consistency-artifact/scripts/../builddir-release-minimal/checker', '/home/rikka/smt-transactional-consistency-artifact/scripts/../history/ser/general-pldi/25_400_8_5000_0.95_r_0.5_0.5_100/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--pruning', 'fast']
+[2024-11-04 20:32:34,021] [DEBUG]  thread finished checking 25_400_8_5000_0.95_r_0.5_0.5_100, stdout = [2024-11-04 20:32:32.277675] [0x000079be970b6b80] [info]    #sessions: 26
+[2024-11-04 20:32:32.277693] [0x000079be970b6b80] [info]    #transactions: 10001
+[2024-11-04 20:32:32.277724] [0x000079be970b6b80] [info]    #events: 85000
+[2024-11-04 20:32:32.314292] [0x000079be970b6b80] [info]    #constraints: 83308
+[2024-11-04 20:32:32.326436] [0x000079be970b6b80] [info]    construct time: 56ms
+[2024-11-04 20:32:32.563406] [0x000079be970b6b80] [info]    prune time: 236ms
+[2024-11-04 20:32:32.591821] [0x000079be970b6b80] [info]    solver initializing time: 28ms
+[2024-11-04 20:32:32.970168] [0x000079be970b6b80] [info]    solve time: 378ms
+accept: true
+, stderr = #vars: 162
+[Monitor]
+find_cycle_times: 1
+avg cycle length = 2
+width = 2, count = 1
+
+[Minimal]
+width = 2, count = 1
+
+
+[Suffix Sum]
+1
+1
+
+find cycle times/add edge times = 0.00980392
+
+(ICD graph)
+#call PK algo times: 259
+#dfs times: 42
+#find cycle times: 1
+#dfs iter on edge times: 26582
+
+[2024-11-04 20:32:34,021] [DEBUG]  thread 0 starts parsing logs of task 25_400_8_5000_0.95_r_0.5_0.5_100, max memory = 2490368, logs = ['[2024-11-04 20:32:32.277675] [0x000079be970b6b80] [info]    #sessions: 26', '[2024-11-04 20:32:32.277693] [0x000079be970b6b80] [info]    #transactions: 10001', '[2024-11-04 20:32:32.277724] [0x000079be970b6b80] [info]    #events: 85000', '[2024-11-04 20:32:32.314292] [0x000079be970b6b80] [info]    #constraints: 83308', '[2024-11-04 20:32:32.326436] [0x000079be970b6b80] [info]    construct time: 56ms', '[2024-11-04 20:32:32.563406] [0x000079be970b6b80] [info]    prune time: 236ms', '[2024-11-04 20:32:32.591821] [0x000079be970b6b80] [info]    solver initializing time: 28ms', '[2024-11-04 20:32:32.970168] [0x000079be970b6b80] [info]    solve time: 378ms', 'accept: true', '']
+[2024-11-04 20:32:34,022] [DEBUG]  thread 0 updates results['25_400_8_5000_0.95_r_0.5_0.5_100']['max memory'] to '2490368'
+[2024-11-04 20:32:34,022] [DEBUG]  thread 0 updates results['25_400_8_5000_0.95_r_0.5_0.5_100']['#sessions'] to '26'
+[2024-11-04 20:32:34,022] [DEBUG]  thread 0 updates results['25_400_8_5000_0.95_r_0.5_0.5_100']['#transactions'] to '10001'
+[2024-11-04 20:32:34,022] [DEBUG]  thread 0 updates results['25_400_8_5000_0.95_r_0.5_0.5_100']['#events'] to '85000'
+[2024-11-04 20:32:34,022] [DEBUG]  thread 0 updates results['25_400_8_5000_0.95_r_0.5_0.5_100']['#constraints'] to '83308'
+[2024-11-04 20:32:34,022] [DEBUG]  thread 0 updates results['25_400_8_5000_0.95_r_0.5_0.5_100']['construct time'] to '56ms'
+[2024-11-04 20:32:34,022] [DEBUG]  thread 0 updates results['25_400_8_5000_0.95_r_0.5_0.5_100']['prune time'] to '236ms'
+[2024-11-04 20:32:34,022] [DEBUG]  thread 0 updates results['25_400_8_5000_0.95_r_0.5_0.5_100']['solver initializing time'] to '28ms'
+[2024-11-04 20:32:34,022] [DEBUG]  thread 0 updates results['25_400_8_5000_0.95_r_0.5_0.5_100']['solve time'] to '378ms'
+[2024-11-04 20:32:34,022] [DEBUG]  thread 0 updates results['25_400_8_5000_0.95_r_0.5_0.5_100']['accept'] to 'True'
+[2024-11-04 20:32:34,022] [WARNING]  thread 0 found ''(empty line) in logs, skip
+[2024-11-04 20:32:34,022] [INFO]  thread 0 finished task 25_400_8_5000_0.95_r_0.5_0.5_100
+[2024-11-04 20:32:34,023] [INFO]  thread 0 starts running task twitter-10K
+[2024-11-04 20:32:34,023] [DEBUG]  thread 0 runs cmd ['timeout', '12h', '/home/rikka/smt-transactional-consistency-artifact/scripts/../builddir-release-minimal/checker', '/home/rikka/smt-transactional-consistency-artifact/scripts/../history/ser/general-pldi/twitter-10K/', '--solver', 'acyclic-minisat', '--history-type', 'cobra', '--pruning', 'fast']
+[2024-11-04 20:32:36,775] [DEBUG]  thread finished checking twitter-10K, stdout = [2024-11-04 20:32:34.077169] [0x00007c7087036b80] [info]    #sessions: 9
+[2024-11-04 20:32:34.077208] [0x00007c7087036b80] [info]    #transactions: 10445
+[2024-11-04 20:32:34.077379] [0x00007c7087036b80] [info]    #events: 58263
+[2024-11-04 20:32:34.154356] [0x00007c7087036b80] [info]    #constraints: 62338
+[2024-11-04 20:32:34.170650] [0x00007c7087036b80] [info]    construct time: 129ms
+[2024-11-04 20:32:34.445891] [0x00007c7087036b80] [info]    prune time: 275ms
+[2024-11-04 20:32:34.471508] [0x00007c7087036b80] [info]    solver initializing time: 25ms
+[2024-11-04 20:32:35.726932] [0x00007c7087036b80] [info]    solve time: 1255ms
+accept: true
+, stderr = #vars: 1333
+[Monitor]
+find_cycle_times: 249
+avg cycle length = 2.09237
+width = 3, count = 19
+width = 4, count = 2
+width = 2, count = 228
+
+[Minimal]
+width = 4, count = 1
+width = 3, count = 9
+width = 2, count = 239
+
+
+[Suffix Sum]
+249
+249
+21
+2
+
+find cycle times/add edge times = 0.00665704
+
+(ICD graph)
+#call PK algo times: 168049
+#dfs times: 496
+#find cycle times: 249
+#dfs iter on edge times: 95242
+
+[2024-11-04 20:32:36,776] [DEBUG]  thread 0 starts parsing logs of task twitter-10K, max memory = 2490368, logs = ['[2024-11-04 20:32:34.077169] [0x00007c7087036b80] [info]    #sessions: 9', '[2024-11-04 20:32:34.077208] [0x00007c7087036b80] [info]    #transactions: 10445', '[2024-11-04 20:32:34.077379] [0x00007c7087036b80] [info]    #events: 58263', '[2024-11-04 20:32:34.154356] [0x00007c7087036b80] [info]    #constraints: 62338', '[2024-11-04 20:32:34.170650] [0x00007c7087036b80] [info]    construct time: 129ms', '[2024-11-04 20:32:34.445891] [0x00007c7087036b80] [info]    prune time: 275ms', '[2024-11-04 20:32:34.471508] [0x00007c7087036b80] [info]    solver initializing time: 25ms', '[2024-11-04 20:32:35.726932] [0x00007c7087036b80] [info]    solve time: 1255ms', 'accept: true', '']
+[2024-11-04 20:32:36,776] [DEBUG]  thread 0 updates results['twitter-10K']['max memory'] to '2490368'
+[2024-11-04 20:32:36,776] [DEBUG]  thread 0 updates results['twitter-10K']['#sessions'] to '9'
+[2024-11-04 20:32:36,776] [DEBUG]  thread 0 updates results['twitter-10K']['#transactions'] to '10445'
+[2024-11-04 20:32:36,776] [DEBUG]  thread 0 updates results['twitter-10K']['#events'] to '58263'
+[2024-11-04 20:32:36,776] [DEBUG]  thread 0 updates results['twitter-10K']['#constraints'] to '62338'
+[2024-11-04 20:32:36,776] [DEBUG]  thread 0 updates results['twitter-10K']['construct time'] to '129ms'
+[2024-11-04 20:32:36,776] [DEBUG]  thread 0 updates results['twitter-10K']['prune time'] to '275ms'
+[2024-11-04 20:32:36,776] [DEBUG]  thread 0 updates results['twitter-10K']['solver initializing time'] to '25ms'
+[2024-11-04 20:32:36,776] [DEBUG]  thread 0 updates results['twitter-10K']['solve time'] to '1255ms'
+[2024-11-04 20:32:36,776] [DEBUG]  thread 0 updates results['twitter-10K']['accept'] to 'True'
+[2024-11-04 20:32:36,776] [WARNING]  thread 0 found ''(empty line) in logs, skip
+[2024-11-04 20:32:36,777] [INFO]  thread 0 finished task twitter-10K
+[2024-11-04 20:32:36,777] [INFO]  thread 0 starts running task 25_400_8_5000_0.5_r_0.5_0.5_100
+[2024-11-04 20:32:36,777] [DEBUG]  thread 0 runs cmd ['timeout', '12h', '/home/rikka/smt-transactional-consistency-artifact/scripts/../builddir-release-minimal/checker', '/home/rikka/smt-transactional-consistency-artifact/scripts/../history/ser/general-pldi/25_400_8_5000_0.5_r_0.5_0.5_100/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--pruning', 'fast']
+[2024-11-04 20:33:39,910] [DEBUG]  thread finished checking 25_400_8_5000_0.5_r_0.5_0.5_100, stdout = [2024-11-04 20:32:36.795927] [0x000075d94ac60b80] [info]    #sessions: 26
+[2024-11-04 20:32:36.795945] [0x000075d94ac60b80] [info]    #transactions: 10001
+[2024-11-04 20:32:36.795979] [0x000075d94ac60b80] [info]    #events: 85000
+[2024-11-04 20:32:38.100668] [0x000075d94ac60b80] [info]    #constraints: 419945
+[2024-11-04 20:32:38.305216] [0x000075d94ac60b80] [info]    construct time: 1515ms
+[2024-11-04 20:32:41.400434] [0x000075d94ac60b80] [info]    prune time: 3095ms
+[2024-11-04 20:32:41.633656] [0x000075d94ac60b80] [info]    solver initializing time: 233ms
+[2024-11-04 20:33:38.511264] [0x000075d94ac60b80] [info]    solve time: 56877ms
+accept: true
+, stderr = #vars: 10833
+[Monitor]
+find_cycle_times: 1448
+avg cycle length = 2.86188
+width = 9, count = 1
+width = 12, count = 1
+width = 7, count = 7
+width = 8, count = 4
+width = 6, count = 25
+width = 5, count = 66
+width = 4, count = 191
+width = 3, count = 492
+width = 2, count = 661
+
+[Minimal]
+width = 5, count = 3
+width = 4, count = 28
+width = 3, count = 313
+width = 2, count = 1104
+
+
+[Suffix Sum]
+1448
+1448
+787
+295
+104
+38
+13
+6
+2
+1
+1
+1
+
+find cycle times/add edge times = 0.000814747
+
+(ICD graph)
+#call PK algo times: 3654734
+#dfs times: 3943
+#find cycle times: 1448
+#dfs iter on edge times: 4859995
+
+[2024-11-04 20:33:39,910] [DEBUG]  thread 0 starts parsing logs of task 25_400_8_5000_0.5_r_0.5_0.5_100, max memory = 2490368, logs = ['[2024-11-04 20:32:36.795927] [0x000075d94ac60b80] [info]    #sessions: 26', '[2024-11-04 20:32:36.795945] [0x000075d94ac60b80] [info]    #transactions: 10001', '[2024-11-04 20:32:36.795979] [0x000075d94ac60b80] [info]    #events: 85000', '[2024-11-04 20:32:38.100668] [0x000075d94ac60b80] [info]    #constraints: 419945', '[2024-11-04 20:32:38.305216] [0x000075d94ac60b80] [info]    construct time: 1515ms', '[2024-11-04 20:32:41.400434] [0x000075d94ac60b80] [info]    prune time: 3095ms', '[2024-11-04 20:32:41.633656] [0x000075d94ac60b80] [info]    solver initializing time: 233ms', '[2024-11-04 20:33:38.511264] [0x000075d94ac60b80] [info]    solve time: 56877ms', 'accept: true', '']
+[2024-11-04 20:33:39,910] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_0.5_0.5_100']['max memory'] to '2490368'
+[2024-11-04 20:33:39,911] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_0.5_0.5_100']['#sessions'] to '26'
+[2024-11-04 20:33:39,911] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_0.5_0.5_100']['#transactions'] to '10001'
+[2024-11-04 20:33:39,911] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_0.5_0.5_100']['#events'] to '85000'
+[2024-11-04 20:33:39,911] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_0.5_0.5_100']['#constraints'] to '419945'
+[2024-11-04 20:33:39,911] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_0.5_0.5_100']['construct time'] to '1515ms'
+[2024-11-04 20:33:39,911] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_0.5_0.5_100']['prune time'] to '3095ms'
+[2024-11-04 20:33:39,911] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_0.5_0.5_100']['solver initializing time'] to '233ms'
+[2024-11-04 20:33:39,911] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_0.5_0.5_100']['solve time'] to '56877ms'
+[2024-11-04 20:33:39,912] [DEBUG]  thread 0 updates results['25_400_8_5000_0.5_r_0.5_0.5_100']['accept'] to 'True'
+[2024-11-04 20:33:39,912] [WARNING]  thread 0 found ''(empty line) in logs, skip
+[2024-11-04 20:33:39,912] [INFO]  thread 0 finished task 25_400_8_5000_0.5_r_0.5_0.5_100

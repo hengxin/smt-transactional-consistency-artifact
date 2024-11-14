@@ -201,6 +201,7 @@ void AcyclicSolverHelper::remove_var(int var) {
 }
 
 bool AcyclicSolverHelper::add_edges_of_var(int var) { 
+  auto start_time = std::chrono::high_resolution_clock::now();
   // return true if edge is successfully added into the graph, i.e. no cycle is detected 
   auto &added_edges = added_edges_of[var];
   assert(added_edges.empty());
@@ -290,8 +291,22 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
   if (!cycle) {
     Logger::log(fmt::format(" - {} is successfully added", var));
     // disable icd_graph's get_propagated_lits temporarily
+
+    auto prop_start_time = std::chrono::high_resolution_clock::now();
     icd_graph.get_propagated_lits(propagated_lits);
     construct_wr_cons_propagated_lits(var);
+    auto prop_end_time = std::chrono::high_resolution_clock::now();
+
+    #ifdef MONITOR_ENABLED
+      Monitor::get_monitor()->theory_propagation_time += 
+        std::chrono::duration_cast<std::chrono::milliseconds>(prop_end_time - prop_start_time);
+    #endif
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    #ifdef MONITOR_ENABLED
+      Monitor::get_monitor()->rw_derivation_and_cycle_detection_time += 
+        std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    #endif
     return true;
   } 
 
@@ -314,6 +329,12 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
     }
     Logger::log(fmt::format(" - {} is not been added", var));
     assert(added_edges.empty());
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    #ifdef MONITOR_ENABLED
+      Monitor::get_monitor()->rw_derivation_and_cycle_detection_time += 
+        std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    #endif
     return false;
 } 
 
@@ -363,6 +384,7 @@ void AcyclicSolverHelper::remove_edges_of_var(int var) {
 
 #else
 
+  auto start_time = std::chrono::high_resolution_clock::now();
   Logger::log(fmt::format("- removing {}, type = {}", var, (polygraph->is_ww_var(var) ? "WW" : "WR")));
 
   auto &added_edges = added_edges_of[var];
@@ -392,6 +414,12 @@ void AcyclicSolverHelper::remove_edges_of_var(int var) {
 #endif
 
   assert(added_edges_of[var].empty());
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+  #ifdef MONITOR_ENABLED
+    Monitor::get_monitor()->rw_derivation_and_cycle_detection_time += 
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+  #endif
 }
 
 #else // encoding RW derivation rules explicitly

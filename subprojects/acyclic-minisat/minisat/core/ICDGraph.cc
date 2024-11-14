@@ -412,11 +412,20 @@ bool ICDGraph::add_known_edge(int from, int to) { // reason default set to (-1, 
 
 bool ICDGraph::add_edge(int from, int to, std::pair<int, int> reason) { 
   // if a cycle is detected, the edge will not be added into the graph
+  auto start_time = std::chrono::high_resolution_clock::now();
+
   Logger::log(fmt::format("   - ICDGraph: adding {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
   if (reason_set.any(from, to)) {
     reason_set.add_reason_edge(from, to, reason);
     Logger::log(fmt::format("   - existing {} -> {}, adding ({}, {}) into reasons", from, to, reason.first, reason.second));
     // Logger::log(fmt::format("   - now reasons_of[{}][{}] = {}", from, to, Logger::reasons2str(reasons_of[from][to])));
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    #ifdef MONITOR_ENABLED
+      Monitor::get_monitor()->cycle_detection_time += 
+        std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    #endif
+    
     return true;
   }
   Logger::log(fmt::format("   - new edge {} -> {}, detecting cycle", from, to));
@@ -435,13 +444,29 @@ bool ICDGraph::add_edge(int from, int to, std::pair<int, int> reason) {
     out[from].insert(to);
     in[to].insert(from);
     if (++m > max_m) max_m = m;
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    #ifdef MONITOR_ENABLED
+      Monitor::get_monitor()->cycle_detection_time += 
+        std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    #endif
+
     return true;
   }
   Logger::log("   - cycle! edge is not added");
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+  #ifdef MONITOR_ENABLED
+    Monitor::get_monitor()->cycle_detection_time += 
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+  #endif
+
   return false;
 }
 
 void ICDGraph::remove_edge(int from, int to, std::pair<int, int> reason) {
+  auto start_time = std::chrono::high_resolution_clock::now();
+
   Logger::log(fmt::format("   - ICDGraph: removing {} -> {}, reason = ({}, {})", from, to, reason.first, reason.second));
   Logger::log(fmt::format("   - removing reasons ({}, {}) in reasons_of[{}][{}]", reason.first, reason.second, from, to));
   reason_set.remove_reason_edge(from, to, reason);
@@ -452,6 +477,12 @@ void ICDGraph::remove_edge(int from, int to, std::pair<int, int> reason) {
     if (in[to].contains(from)) in[to].erase(from);
     --m;
   } 
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+  #ifdef MONITOR_ENABLED
+    Monitor::get_monitor()->cycle_detection_time += 
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+  #endif
 }
 
 bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
