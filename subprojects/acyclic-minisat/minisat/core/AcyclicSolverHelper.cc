@@ -590,6 +590,8 @@ Polygraph *AcyclicSolverHelper::get_polygraph() { return polygraph; }
 
 const int AcyclicSolverHelper::get_level(int x) const { return icd_graph.get_level(x); }
 
+void AcyclicSolverHelper::calculate_contributed_swaps() { icd_graph.calculate_contributed_swaps(); }
+
 namespace Logger {
 
 // ! This is a VERY BAD implementation, see Logger.h for more details

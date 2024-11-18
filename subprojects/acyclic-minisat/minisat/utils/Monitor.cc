@@ -34,6 +34,8 @@ Monitor::Monitor() {
   theory_propagation_time = std::chrono::milliseconds::zero();
   propagate_time = std::chrono::milliseconds::zero();
   search_time = std::chrono::milliseconds::zero();
+
+  n_contributed_swaps = 0;
 }
 
 Monitor *Monitor::get_monitor() {
@@ -92,6 +94,9 @@ void Monitor::show_statistics() {
   std::cerr << "RW derivation time: " << (rw_derivation_and_cycle_detection_time - cycle_detection_time).count() << "ms\n";
   std::cerr << "cycle detection time: " << cycle_detection_time.count() << "ms\n";
   std::cerr << "theory propagation time: " << theory_propagation_time.count() << "ms\n";
+  std::cerr << std::endl;
+
+  std::cerr << "#contributed swaps: " << n_contributed_swaps << std::endl;
   std::cerr << std::endl;
 
   // std::cerr << "#construct unit-edge propagation times = " << construct_uep_count << "\n";

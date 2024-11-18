@@ -26,6 +26,8 @@ public:
   int64_t uep_b_size_sum, uep_f_size_sum;
   int64_t propagated_lit_add_times;  
 
+  int64_t n_contributed_swaps;
+
   double var_divide_known_edge_ratio_sum;
 
   std::chrono::milliseconds encode_time;

@@ -47,6 +47,8 @@ class ICDGraph {
 
   std::vector<bool> assigned;
 
+  std::vector<std::pair<int, int>> swaps_in_pk;
+
   Polygraph *polygraph; // to know reachability of known graph, bad implementation!
 
   // --- deprecated ---
@@ -86,6 +88,7 @@ public:
   bool preprocess(); // call after known edges are initialized, return false if detect cycles(conflict)
   const int get_level(int x) const;
   // * note: this is a bad implementation, for ICDGraph's original responsibility prevent itself from seeing these info.
+  void calculate_contributed_swaps();
 };
 
 } // namespace Minisat

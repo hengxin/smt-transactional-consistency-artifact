@@ -527,6 +527,10 @@ bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
     auto backward_visit = std::vector<int>{};
     dfs_backward(from, lower_bound, backward_visit);
     reorder(forward_visit, backward_visit);
+
+    #ifdef MONITOR_ENABLED
+      swaps_in_pk.emplace_back(std::pair<int, int>{from, to});
+    #endif
   }
   return false;
 }
@@ -694,7 +698,6 @@ void ICDGraph::construct_propagated_lits(std::unordered_set<int> &forward_visite
   // now pass
 }
 
-
 bool ICDGraph::construct_backward_cycle(std::vector<int> &backward_pred, int from, int to, std::pair<int, int> reason) {
   // for PK toposort algorithm, This function will never be called
   assert(0);
@@ -707,6 +710,16 @@ bool ICDGraph::construct_forward_cycle(std::vector<int> &backward_pred,
   // for PK toposort algorithm, This function will never be called
   assert(0);
   return true;
+}
+
+void ICDGraph::calculate_contributed_swaps() {
+  // TODO
+  int contributed_swap_count = 0;
+  for (const auto &[x, y] : swaps_in_pk) {
+    // reorder to make level[x] < level[y]
+    if (level[x] < level[y]) contributed_swap_count++;
+  }
+  Monitor::get_monitor()->n_contributed_swaps = contributed_swap_count;
 }
 
 #endif

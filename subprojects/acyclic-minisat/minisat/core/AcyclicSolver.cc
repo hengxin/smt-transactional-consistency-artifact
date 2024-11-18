@@ -427,6 +427,10 @@ lbool AcyclicSolver::solve_() { // same as Solver.cc
         // Extend & copy model:
         model.growTo(nVars());
         for (int i = 0; i < nVars(); i++) model[i] = value(i);
+        
+        #ifdef MONITOR_ENABLED
+          solver_helper->calculate_contributed_swaps();
+        #endif
     }else if (status == l_False && conflict.size() == 0)
         ok = false;
 
