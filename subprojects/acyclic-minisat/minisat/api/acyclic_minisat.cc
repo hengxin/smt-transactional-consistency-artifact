@@ -38,7 +38,18 @@ bool am_solve_with_suggestion(int n_vertices, const KnownGraph &known_graph, con
   auto unit_lits = std::vector<Lit>{};
   // This is a BAD Implementation, for we have to resolve the cycle dependency conflict of adding unit clauses into theory solver and initialization of SAT solver
   Polygraph *polygraph = construct(n_vertices, known_graph, constraints, S, unit_lits, suggest_distance, write_steps, read_steps, txn_distance, n_sessions, n_total_transactions);
-  if (polygraph->n_vars == 0) return true; // if pruned, this is actually true
+  if (polygraph->n_vars == 0) {
+    auto end_time = std::chrono::high_resolution_clock::now();
+    #ifdef MONITOR_ENABLED
+      Monitor::get_monitor()->encode_time += 
+        std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    #endif
+
+    #ifdef MONITOR_ENABLED
+      Monitor::get_monitor()->show_statistics();
+    #endif
+    return true; // if pruned, this is actually true
+  } 
 
   assert(polygraph->construct_known_graph_reachablity());
 

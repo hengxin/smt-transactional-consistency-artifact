@@ -18,16 +18,16 @@
 
 // #define REDUCE_KNOWN_GRAPH 1     
 
-// #define FIND_MINIMAL_CYCLE 1
+#define FIND_MINIMAL_CYCLE 1
 
-// #define HEURISTIC_TOPO_ORDER 1
+#define HEURISTIC_TOPO_ORDER 1
 
 // #define HEURISTIC_DIST_INIT_TOPO 1
 
 // use ICD algorithm default
 #define PK_TOPO_ALGORITHM 1
 
-#define INIT_PAIR_CONFLICT 1
+// #define INIT_PAIR_CONFLICT 1
 
 // #define ENCODE_MORE_CONFLICT 1
 
