@@ -375,8 +375,8 @@ bool ICDGraph::preprocess() {
     struct Node { int id, session_id, enq_order; };
     struct NodeCmp {
       bool operator() (const Node &x, const Node&y) const {
-        if (x.session_id == y.session_id) return x.enq_order < y.enq_order;
-        return x.session_id < y.session_id;
+        if (x.session_id == y.session_id) return x.enq_order > y.enq_order;
+        return x.session_id > y.session_id;
       };
     };
     std::priority_queue<Node, std::vector<Node>, NodeCmp> q;
@@ -394,10 +394,10 @@ bool ICDGraph::preprocess() {
       }
     }
     if (int(order.size()) != n) return false; // toposort failed! cycle detected in known graph!
-    for (const auto x : order) {
-      std::cout << polygraph->session_id_of.at(x) << " ";
-    }
-    std::cout << std::endl;
+    // for (const auto x : order) {
+    //   std::cout << polygraph->session_id_of.at(x) << " ";
+    // }
+    // std::cout << std::endl;
     for (unsigned i = 0; i < order.size(); i++) level[order[i]] = i; 
   };
 #endif
