@@ -98,6 +98,17 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
   for (const auto &[txn, dist] : history_meta_info.txn_distance) {
     txn_distance.emplace(node_id.at(txn), dist);
   }
+
+  auto sess_id = std::unordered_map<int64_t, int>{};
+  auto sess_id_cnt = 0;
+  auto remap_sess = [&sess_id, &sess_id_cnt](int64_t raw_session_id) -> int {
+    if (!sess_id.contains(raw_session_id)) sess_id[raw_session_id] = sess_id_cnt++;
+    return sess_id.at(raw_session_id);
+  };
+
+  for (const auto &[txn_id, session_id] : history_meta_info.session_id_of) {
+    session_id_of.emplace(node_id.at(txn_id), remap_sess(session_id));
+  }
 }
 
 /*
@@ -235,7 +246,16 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
 auto AcyclicMinisatSolver::solve() -> bool {
   bool ret = true;
   if (target_isolation_level == "ser") {
-    ret = Minisat::am_solve(n_vertices, am_known_graph, am_constraints, n_sessions, n_total_transactions, n_total_events, write_steps, read_steps, txn_distance);
+    ret = Minisat::am_solve(n_vertices, 
+                            am_known_graph, 
+                            am_constraints, 
+                            n_sessions, 
+                            n_total_transactions, 
+                            n_total_events, 
+                            write_steps, 
+                            read_steps, 
+                            txn_distance,
+                            session_id_of);
   } else if (target_isolation_level == "si") {
     // TODO: heuristic pruning in SI
     ret = MinisatSI::am_solve(n_vertices, am_known_graph, am_constraints);

@@ -22,11 +22,13 @@ Polygraph *construct(int n_vertices, const KnownGraph &known_graph, const Constr
                      const std::unordered_map<int, std::unordered_map<int64_t, int>> &write_steps, 
                      const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps,
                      const std::unordered_map<int, int> &txn_distance,
-                     const int n_sessions, const int n_total_transactions) {
+                     const int n_sessions, const int n_total_transactions,
+                     const std::unordered_map<int, int> &session_id_of) {
   Polygraph *polygraph = new Polygraph(n_vertices); // unused n_vars
   polygraph->txn_distance = txn_distance;
   polygraph->n_total_txns = n_total_transactions;
   polygraph->n_sess = n_sessions;
+  polygraph->session_id_of = session_id_of;
 
 #ifdef OUTER_RW_DERIVATION
   using WW_Edge = std::tuple<int, int, int, std::set<int64_t>>; // (from, to, var, keys)

@@ -513,11 +513,22 @@ auto compute_history_meta_info(const History &history) -> HistoryMetaInfo {
     .n_total_transactions = 0, 
     .n_total_events = 0,
     .write_steps = {},
-    .read_steps = {}};
+    .read_steps = {},
+    .txn_distance = {},
+    .session_id_of = {}
+  };
   history_meta_info.n_sessions = history.sessions.size();
   for (const auto &txn : history.transactions()) {
     ++history_meta_info.n_total_transactions;
     history_meta_info.n_total_events += txn.events.size();
+  }
+
+  for (const auto &session : history.sessions) {
+    int session_id = session.id;
+    for (const auto &txn : session.transactions) {
+      assert(txn.session_id == session_id);
+      history_meta_info.session_id_of[txn.id] = session_id;
+    }
   }
 
   for (const auto &session : history.sessions) {

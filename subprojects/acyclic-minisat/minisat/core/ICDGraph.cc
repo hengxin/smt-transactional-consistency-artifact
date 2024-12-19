@@ -332,6 +332,7 @@ bool ICDGraph::preprocess() {
   }
 
 #ifndef HEURISTIC_DIST_INIT_TOPO
+#ifndef HEURISTIC_TOPO_INIT_BY_SESS
   {
     std::vector<int> order;
     std::vector<int> deg(n, 0);
@@ -353,8 +354,53 @@ bool ICDGraph::preprocess() {
       }
     }
     if (int(order.size()) != n) return false; // toposort failed! cycle detected in known graph!
+    
+    // for (const auto x : order) {
+    //   std::cout << polygraph->session_id_of.at(x) << " ";
+    // }
+    // std::cout << std::endl;
+
     for (unsigned i = 0; i < order.size(); i++) level[order[i]] = i; 
   };
+#else
+  {
+    std::vector<int> order;
+    std::vector<int> deg(n, 0);
+    for (int x = 0; x < n; x++) {
+      for (int y : edges[x]) {
+        ++deg[y];
+      }
+    }
+
+    struct Node { int id, session_id, enq_order; };
+    struct NodeCmp {
+      bool operator() (const Node &x, const Node&y) const {
+        if (x.session_id == y.session_id) return x.enq_order < y.enq_order;
+        return x.session_id < y.session_id;
+      };
+    };
+    std::priority_queue<Node, std::vector<Node>, NodeCmp> q;
+
+    int enq_order_cnt = 0;
+    for (int x = 0; x < n; x++) {
+      if (!deg[x]) { q.push({x, polygraph->session_id_of.at(x), enq_order_cnt++}); }
+    }
+    while (!q.empty()) {
+      auto [x, _1, _2] = q.top(); q.pop();
+      order.push_back(x);
+      for (int y : edges[x]) {
+        --deg[y];
+        if (!deg[y]) q.push({y, polygraph->session_id_of.at(y), enq_order_cnt++});
+      }
+    }
+    if (int(order.size()) != n) return false; // toposort failed! cycle detected in known graph!
+    for (const auto x : order) {
+      std::cout << polygraph->session_id_of.at(x) << " ";
+    }
+    std::cout << std::endl;
+    for (unsigned i = 0; i < order.size(); i++) level[order[i]] = i; 
+  };
+#endif
 #else
   {
     std::vector<int> order;

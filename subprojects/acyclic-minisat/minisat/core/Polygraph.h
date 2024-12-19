@@ -48,6 +48,7 @@ public:
 
   std::unordered_map<int, int> txn_distance;
   int n_total_txns, n_sess;
+  std::unordered_map<int, int> session_id_of;
 
   Polygraph(int _n_vertices = 0) { n_vertices = _n_vertices, n_vars = 0; }
 
