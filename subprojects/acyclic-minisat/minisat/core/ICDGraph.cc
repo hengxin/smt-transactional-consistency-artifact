@@ -475,6 +475,8 @@ bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
     dfs_forward(to, upper_bound, forward_visit, pre, cycle);
     if (cycle) {
       construct_dfs_cycle(from, to, pre, reason);
+
+      for (const auto &x : forward_visit) vis[x] = false;
       return true;
     }
     auto backward_visit = std::vector<int>{};
