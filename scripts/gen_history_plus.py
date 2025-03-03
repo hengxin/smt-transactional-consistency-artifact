@@ -9,21 +9,45 @@ from rich.progress import track
 
 n_hist = '3'
 histories_to_be_added = [
-  '20_250_10_2000_0.5_r_0.5_100',
-  '20_500_10_2000_0.5_r_0.5_100',
-  '20_750_10_2000_0.5_r_0.5_100',
-  '20_800_10_2000_0.5_r_0.5_100',
-  '20_900_10_2000_0.5_r_0.5_100',
-  '20_1000_10_2000_0.5_r_0.5_100',
+  # 1
+  # "100_100_8_5000_0.5_r_0_1.5_20",
+  # "100_100_8_5000_0.5_r_0.25_1.5_20",
+  # "100_100_8_5000_0.5_r_0.5_1.5_20",
+  # "100_100_8_5000_0.5_r_0.75_1.5_20",
+  # "100_100_8_5000_0.5_r_1_1.5_20",
+
+  # 2
+  # "100_100_8_5000_0.5_r_0_1.5_50",
+  # "100_100_8_5000_0.5_r_0.25_1.5_50",
+  # "100_100_8_5000_0.5_r_0.5_1.5_50",
+  # "100_100_8_5000_0.5_r_0.75_1.5_50",
+  # "100_100_8_5000_0.5_r_1_1.5_50",
+
+  # 3
+  # "100_100_8_5000_0.5_r_0_0.5_50",
+  # "100_100_8_5000_0.5_r_0.25_0.5_50",
+  # "100_100_8_5000_0.5_r_0.5_0.5_50",
+  # "100_100_8_5000_0.5_r_0.75_0.5_50",
+  # "100_100_8_5000_0.5_r_1_0.5_50",
+
+  # 4, use this config
+  "100_100_8_5000_0.5_r_0_1.5_100",
+  "100_100_8_5000_0.5_r_0.25_1.5_100",
+  "100_100_8_5000_0.5_r_0.5_1.5_100",
+  "100_100_8_5000_0.5_r_0.75_1.5_100",
+  "100_100_8_5000_0.5_r_1_1.5_100",
 ]
 
 dbcop = '/home/rikka/dbcop-plus/target/release/dbcop'
 
 # under history/${specific-logs}/${history_name}/hist-00000/history.bincode
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
-specific_path = 'general-list-append/same-listappend-rw2'
+specific_path = 'general-list-append/list-rw'
 history_dir = os.path.join(root_path, 'history', 'ser', specific_path)
 # history_dir = os.path.join(root_path, 'history', 'si', specific_path)
+
+if not os.path.exists(history_dir):
+  os.mkdir(history_dir)
 
 # === main thread ===
 gen_dir = '/tmp/gen'
@@ -46,10 +70,10 @@ for history in histories_to_be_added:
     continue
 
   configs = [_.strip() for _ in history.split('_')]
-  if len(configs) != 8:
+  if len(configs) != 9:
     print(f'can NOT parse invalid history config {history}, skip')
     continue
-  n_sess, n_txns, n_evts, n_keys, read_p, r, zipf_s, zipf_N = configs
+  n_sess, n_txns, n_evts, n_keys, read_p, r, dup_key_p, zipf_s, zipf_N = configs
   print(f'gen {history}')
   if r == 'r': # repeat value
     cmd = [dbcop, 'generate', '-d', '/tmp/gen', 
@@ -60,10 +84,12 @@ for history in histories_to_be_added:
                   '--readp', read_p,
                   '--key_distrib', 'zipf',
                   '--repeat_value',
+                  '-r', dup_key_p, 
                   '-s', zipf_s,
                   '-N', zipf_N,
                   '--nhist', n_hist]
   else: # unique value
+    print("warning: generator is in the unique value branch.")
     cmd = [dbcop, 'generate', '-d', '/tmp/gen', 
                   '-n', n_sess,
                   '-t', n_txns,
