@@ -18,11 +18,14 @@
 
 // #define REDUCE_KNOWN_GRAPH 1     
 
-// #define FIND_MINIMAL_CYCLE 1
+#define FIND_MINIMAL_CYCLE 1
 
-#define HEURISTIC_TOPO_ORDER 1
+// #define HEURISTIC_TOPO_ORDER 1
 
+// * note: INIT_BY_SESS would be overwritten by INIT_BY_RANDOM
 // #define HEURISTIC_TOPO_INIT_BY_SESS 1
+
+// #define HEURISTIC_TOPO_INIT_RANDOM 1
 
 // #define HEURISTIC_DIST_INIT_TOPO 1
 

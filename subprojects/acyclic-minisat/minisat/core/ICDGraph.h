@@ -72,7 +72,7 @@ class ICDGraph {
   void dfs_forward(int x, int upper_bound, std::vector<int> &forward_visit, std::vector<int> &pre, bool &cycle);
   void dfs_backward(int x, int lower_bound, std::vector<int> &backward_visit);
   void reorder(std::vector<int> &forward_visit, std::vector<int> &backward_visit);
-  void find_minimal_cycle(int from, int to, std::pair<int, int> &reason);
+  void find_minimal_cycle(int from, int to, std::pair<int, int> &reason, std::vector<int> &pre);
 
 public:
   ICDGraph();

@@ -526,7 +526,7 @@ auto compute_history_meta_info(const History &history) -> HistoryMetaInfo {
   for (const auto &session : history.sessions) {
     int session_id = session.id;
     for (const auto &txn : session.transactions) {
-      assert(txn.session_id == session_id);
+      // assert(txn.session_id == session_id); // fail on Cobra Histories
       history_meta_info.session_id_of[txn.id] = session_id;
     }
   }

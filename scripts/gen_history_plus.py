@@ -7,8 +7,26 @@ from rich.progress import track
 
 # === config ===
 
-n_hist = '20'
+n_hist = '1'
 histories_to_be_added = [
+  # Single
+  # '10_1_2_5_0.5_r_0.75_0.5_5',
+  # '20_1_2_5_0.5_r_0.75_0.5_5',
+  # '50_1_2_5_0.5_r_0.75_0.5_5',
+  # '100_1_2_5_0.5_r_0.75_0.5_5',
+  # '500_1_2_5_0.5_r_0.75_0.5_5',
+  # '1000_1_2_5_0.5_r_0.75_0.5_5',
+  # '10_1_2_3_0.5_r_0.75_0.5_5',
+  # '20_1_2_3_0.5_r_0.75_0.5_5',
+  # '50_1_2_3_0.5_r_0.75_0.5_5',
+  # '100_1_2_3_0.5_r_0.75_0.5_5',
+  # '500_1_2_3_0.5_r_0.75_0.5_5',
+  # '10_1_1_3_0.5_r_0.75_0.5_5',
+  # '20_1_1_3_0.5_r_0.75_0.5_5',
+  # '50_1_1_3_0.5_r_0.75_0.5_5',
+  # '100_1_1_3_0.5_r_0.75_0.5_5',
+  # '500_1_1_3_0.5_r_0.75_0.5_5',
+  
   # General
   # '30_500_8_5000_0.3_r_0.75_0.5_100',
   # '30_500_8_5000_0.5_r_0.75_0.5_100',
@@ -26,10 +44,13 @@ histories_to_be_added = [
   # '25_200_8_2500_0.3_r_0.5_0.5_100',
   # '25_200_8_2500_0.5_r_0.5_0.5_100',
   # '25_200_8_2500_0.5_r_1_1.5_100',
-  '20_50_8_500_0.5_r_0.5_0.5_100',
   # '20_50_8_500_0.5_r_1_1.5_100',
+  '20_50_8_500_0.5_r_0.5_0.5_100',
   '20_50_8_500_0.95_r_0.5_0.5_100',
   '20_50_8_500_0.3_r_0.5_0.5_100',
+  # '20_50_8_500_0.5_r_0_0.5_100', # unique value
+  # '20_50_8_500_0.95_r_0_0.5_100',
+  # '20_50_8_500_0.3_r_0_0.5_100',
   # '50_2000_20_50000_0.8_r_0.5_0.5_1000',
   # '50_2000_20_50000_0.5_r_0.5_0.5_1000',
   # '50_2000_20_50000_0.2_r_0.5_0.5_1000',
@@ -137,13 +158,13 @@ root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 # specific_path = 'dbcop-logs/various'
 # specific_path = 'dbcop-logs/tmp3'
 # specific_path = 'general-pldi'
-# specific_path = 'tmp'
+specific_path = 'tmp'
 # specific_path = 'scalability-rate'
 # specific_path = 'scalability-dup2'
-specific_path = 'general-1k'
+# specific_path = 'single'
 # history_dir = os.path.join(root_path, 'history', 'ser', specific_path)
-# history_dir = os.path.join(root_path, 'history', 'si', specific_path)
-history_dir = os.path.join(root_path, 'history', 'rc', specific_path)
+history_dir = os.path.join(root_path, 'history', 'si', specific_path)
+# history_dir = os.path.join(root_path, 'history', 'rc', specific_path)
 
 # === main thread ===
 gen_dir = '/tmp/gen'

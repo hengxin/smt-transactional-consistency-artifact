@@ -51,8 +51,9 @@ logging.info(f'root path = {root_path}')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general-pldi')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general-1k')
-history_path = os.path.join(root_path, 'history', 'ser', 'general-width')
+# history_path = os.path.join(root_path, 'history', 'ser', 'general-width2')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general-5k')
+history_path = os.path.join(root_path, 'history', 'ser', 'general-5k-2')
 # history_path = os.path.join(root_path, 'history', 'ser', 'tmp')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'scalability4')
 logging.info(f'history path = {history_path}')
@@ -74,7 +75,10 @@ logging.info(f'pruning method = {pruning_method}')
 
 # timeout = '30m'
 # timeout = '10m'
-timeout = '15m'
+timeout = '100d'
+logging.info(f'timeout = {timeout}')
+
+logging.info(f'Session order initialization: default')
 
 def set_memory_limit(max_memory):
   soft_limit = max_memory

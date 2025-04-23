@@ -84,6 +84,7 @@ bool init_pair_conflict(AcyclicSolver &solver) {
     return graph.reachable(to, from);
   };
 
+  auto start_time = std::chrono::high_resolution_clock::now();
   for (int v1 = 0; v1 < polygraph->n_vars; v1++) {
     #ifdef OUTER_RW_DERIVATION
       if (self_conflict(v1)) { // checking of v2 will also be included
@@ -102,6 +103,9 @@ bool init_pair_conflict(AcyclicSolver &solver) {
       }
     }
   }
+  auto end_time = std::chrono::high_resolution_clock::now();
+  auto encode_2_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+  std::cerr << "Encode 2-width cycles: " << encode_2_duration << std::endl;
 
   #ifdef ENCODE_MORE_CONFLICT
     if (CONFLICT_WIDTH >= 3) {
@@ -120,6 +124,7 @@ bool init_pair_conflict(AcyclicSolver &solver) {
         return false;
       };
 
+      start_time = std::chrono::high_resolution_clock::now();
       for (int v1 = 0; v1 < polygraph->n_vars; v1++) {
         for (int v2 = v1 + 1; v2 < polygraph->n_vars; v2++) {
           for (int v3 = v2 + 1; v3 < polygraph->n_vars; v3++) {
@@ -132,6 +137,9 @@ bool init_pair_conflict(AcyclicSolver &solver) {
           }
         }
       }
+      end_time = std::chrono::high_resolution_clock::now();
+      auto encode_3_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+      std::cerr << "Encode 3-width cycles: " << encode_3_duration << std::endl;
     }
 
     if (CONFLICT_WIDTH >= 4) {
@@ -163,6 +171,7 @@ bool init_pair_conflict(AcyclicSolver &solver) {
         return false;
       };
 
+      start_time = std::chrono::high_resolution_clock::now();
       for (int v1 = 0; v1 < polygraph->n_vars; v1++) {
         for (int v2 = v1 + 1; v2 < polygraph->n_vars; v2++) {
           for (int v3 = v2 + 1; v3 < polygraph->n_vars; v3++) {
@@ -177,6 +186,9 @@ bool init_pair_conflict(AcyclicSolver &solver) {
           }
         }
       }
+      end_time = std::chrono::high_resolution_clock::now();
+      auto encode_4_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+      std::cerr << "Encode 4-width cycles: " << encode_4_duration << std::endl;
     }
   #endif
 

@@ -500,11 +500,20 @@ Lit AcyclicSolver::pickBranchLit() {
       };
 
       auto [from, to] = edge(next);
+      // correct form
       if (solver_helper->get_level(from) < solver_helper->get_level(to)) {
-        return mkLit(next);
+        return mkLit(next); 
       } else {
         return ~mkLit(next);
       }
+      // --------------------
+
+      // wrong(reversed) form
+      // if (solver_helper->get_level(from) > solver_helper->get_level(to)) {
+      //   return mkLit(next); 
+      // } else {
+      //   return ~mkLit(next);
+      // }
     }
 #endif
 }

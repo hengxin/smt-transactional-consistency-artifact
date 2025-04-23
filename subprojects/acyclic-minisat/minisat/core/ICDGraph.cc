@@ -363,6 +363,7 @@ bool ICDGraph::preprocess() {
     for (unsigned i = 0; i < order.size(); i++) level[order[i]] = i; 
   };
 #else
+#ifndef HEURISTIC_TOPO_INIT_RANDOM
   {
     std::vector<int> order;
     std::vector<int> deg(n, 0);
@@ -400,6 +401,51 @@ bool ICDGraph::preprocess() {
     // std::cout << std::endl;
     for (unsigned i = 0; i < order.size(); i++) level[order[i]] = i; 
   };
+#else // init by random
+  {
+    std::vector<int> order;
+    std::vector<int> deg(n, 0);
+    for (int x = 0; x < n; x++) {
+      for (int y : edges[x]) {
+        ++deg[y];
+      }
+    }
+
+    struct Node { int id, order; };
+    struct NodeCmp {
+      bool operator() (const Node &x, const Node&y) const {
+        return x.order >= y.order;
+      };
+    };
+    std::priority_queue<Node, std::vector<Node>, NodeCmp> q;
+
+    // Random
+    auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::mt19937 engine(seed); // Mersenne Twister 随机数引擎
+    std::uniform_int_distribution<int> distribution(1, 23333); // 定义范围为 1 到 100
+    auto random_number = [&]() -> int { return distribution(engine); };
+
+    for (int x = 0; x < n; x++) {
+      if (!deg[x]) { q.push({x, random_number()}); }
+    }
+    auto rnd_order_of = std::map<int, int>{};
+    while (!q.empty()) {
+      auto [x, rnd_order] = q.top(); q.pop();
+      rnd_order_of[x] = rnd_order;
+      order.push_back(x);
+      for (int y : edges[x]) {
+        --deg[y];
+        if (!deg[y]) q.push({y, random_number()});
+      }
+    }
+    if (int(order.size()) != n) return false; // toposort failed! cycle detected in known graph!
+    // for (const auto &x : order) {
+    //   std::cout << rnd_order_of[x] << " ";
+    // }
+    // std::cout << std::endl;
+    for (unsigned i = 0; i < order.size(); i++) level[order[i]] = i; 
+  };
+#endif
 #endif
 #else
   {
@@ -564,7 +610,7 @@ bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
       construct_dfs_cycle(from, to, pre, reason);
 
       #ifdef FIND_MINIMAL_CYCLE
-        find_minimal_cycle(from, to, reason);
+        find_minimal_cycle(from, to, reason, pre);
       #endif
 
       for (const auto &x : forward_visit) vis[x] = false;
@@ -581,36 +627,80 @@ bool ICDGraph::detect_cycle(int from, int to, std::pair<int, int> reason) {
   return false;
 }
 
-void ICDGraph::find_minimal_cycle(int from, int to, std::pair<int, int> &reason) {
-  auto q = std::priority_queue<std::pair<int, int>>{};
-  auto dis = std::vector<int>(n, 0x3fffffff);
-  auto extended = std::vector<bool>(n, false);
-  q.push({dis[to] = 0, to});
-  while (!q.empty()) {
-    int x = q.top().second;
-    q.pop();
-    if (extended[x]) continue;
-    extended[x] = true;
-    for (const auto &y : out[x]) {
-      auto cur_reason = reason_set.get_minimal_reason(x, y);
-      int reason_width = 0;
-      if (cur_reason.first != -1) ++reason_width;
-      if (cur_reason.second != -1) ++reason_width;
-      if (dis[y] > dis[x] + reason_width) {
-        dis[y] = dis[x] + reason_width;
-        q.push({-dis[y], y});
+void ICDGraph::find_minimal_cycle(int from, int to, std::pair<int, int> &reason, std::vector<int> &pre) {
+  {
+    auto q = std::priority_queue<std::pair<int, int>>{};
+    auto dis = std::vector<int>(n, 0x3fffffff);
+    auto extended = std::vector<bool>(n, false);
+    q.push({dis[to] = 0, to});
+    while (!q.empty()) {
+      int x = q.top().second;
+      q.pop();
+      if (extended[x]) continue;
+      extended[x] = true;
+      for (const auto &y : out[x]) {
+        auto cur_reason = reason_set.get_minimal_reason(x, y);
+        int reason_width = 0;
+        if (cur_reason.first != -1) ++reason_width;
+        if (cur_reason.second != -1) ++reason_width;
+        if (dis[y] > dis[x] + reason_width) {
+          dis[y] = dis[x] + reason_width;
+          q.push({-dis[y], y});
+        }
       }
     }
-  }
-  int width = dis[from];
-  if (reason.first != -1) ++width;
-  if (reason.second != -1) ++width;
-  // note that reason cannot be directly modeled as shortest path, 
-  // for var 1 may be added into reason twice
+    int width = dis[from];
+    if (reason.first != -1) ++width;
+    if (reason.second != -1) ++width;
+    // note that reason cannot be directly modeled as shortest path, 
+    // for var 1 may be added into reason twice
 
   #ifdef MONITOR_ENABLED
     Monitor::get_monitor()->minimal_cycle_width_count[width]++;
   #endif
+  }
+
+  // {
+  //   auto path_nodes = std::vector<int>{};
+  //   auto dis = std::unordered_map<int, int>{};
+  //   const int inf = 0x3f3f3f3f;
+
+  //   for (int x = from; x != to; ) {
+  //     assert(x != -1);
+  //     int pred = pre[x];
+  //     assert(pred != -1);
+  //     path_nodes.emplace_back(x);
+  //     x = pred;
+  //   }
+  //   path_nodes.emplace_back(to);
+
+  //   for (const int x : path_nodes) dis[x] = inf;
+  //   dis[to] = 0;
+
+  //   std::reverse(path_nodes.begin(), path_nodes.end());
+
+  //   for (size_t i = 0; i < path_nodes.size(); i++) {
+  //     int x = path_nodes[i];
+  //     for (size_t j = i + 1; j < path_nodes.size(); j++) {
+  //       int y = path_nodes[j];
+  //       if (reason_set.any(x, y)) {
+  //         auto reason = reason_set.get_minimal_reason(x, y);
+  //         int reason_width = 0;
+  //         if (reason.first != -1) ++reason_width;
+  //         if (reason.second != -1) ++reason_width;
+  //         dis[y] = std::min(dis[y], dis[x] + reason_width);
+  //       }
+  //     }
+  //   }
+
+  //   int width = dis[from];
+  //   if (reason.first != -1) ++width;
+  //   if (reason.second != -1) ++width;
+
+  //   #ifdef MONITOR_ENABLED
+  //     Monitor::get_monitor()->minimal_cycle_width_count[width]++;
+  //   #endif
+  // }
 }
 
 void ICDGraph::construct_dfs_cycle(int from, int to, std::vector<int> &pre, std::pair<int, int> &reason) {

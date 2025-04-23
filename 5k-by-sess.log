@@ -1,0 +1,495 @@
+[2025-01-02 20:09:59,935] [INFO]  root path = /home/rikka/smt-transactional-consistency-artifact/scripts/..
+[2025-01-02 20:09:59,935] [INFO]  history path = /home/rikka/smt-transactional-consistency-artifact/scripts/../history/ser/general-5k-2
+[2025-01-02 20:09:59,935] [INFO]  checker path = /home/rikka/smt-transactional-consistency-artifact/scripts/../builddir-release/checker
+[2025-01-02 20:09:59,935] [INFO]  solver = acyclic-minisat
+[2025-01-02 20:09:59,935] [INFO]  pruning method = none
+[2025-01-02 20:09:59,935] [INFO]  timeout = 100d
+[2025-01-02 20:09:59,935] [INFO]  Session order initialization: by session_order
+[2025-01-02 20:09:59,935] [INFO]  use 1 thread(s)
+[2025-01-02 20:09:59,935] [INFO]  output path = /home/rikka/smt-transactional-consistency-artifact/scripts/../results/new-general.json
+[2025-01-02 20:09:59,936] [INFO]  thread 0 starts running task tpcc-5k
+[2025-01-02 20:09:59,936] [DEBUG]  thread 0 runs cmd ['timeout', '100d', '/home/rikka/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/home/rikka/smt-transactional-consistency-artifact/scripts/../history/ser/general-5k-2/tpcc-5k/', '--solver', 'acyclic-minisat', '--history-type', 'cobra']
+[2025-01-03 12:54:02,026] [DEBUG]  thread finished checking tpcc-5k, stdout = [2025-01-02 20:10:00.002564] [0x0000771b7344db80] [info]    #sessions: 9
+[2025-01-02 20:10:00.002581] [0x0000771b7344db80] [info]    #transactions: 7621
+[2025-01-02 20:10:00.002694] [0x0000771b7344db80] [info]    #events: 219256
+[2025-01-02 20:10:00.753838] [0x0000771b7344db80] [info]    #constraints: 348671
+[2025-01-02 20:10:00.930639] [0x0000771b7344db80] [info]    construct time: 986ms
+[2025-01-02 20:10:00.973592] [0x0000771b7344db80] [info]    solver initializing time: 42ms
+[2025-01-03 12:54:00.884423] [0x0000771b7344db80] [info]    solve time: 60239910ms
+accept: true
+, stderr = #vars: 563158
+[Monitor]
+find_cycle_times: 108668
+avg cycle length = 5.16063
+width = 21, count = 1
+width = 22, count = 1
+width = 20, count = 4
+width = 24, count = 2
+width = 2, count = 7568
+width = 17, count = 36
+width = 19, count = 9
+width = 15, count = 100
+width = 1, count = 2116
+width = 4, count = 19670
+width = 14, count = 213
+width = 9, count = 4271
+width = 12, count = 832
+width = 6, count = 14362
+width = 11, count = 1473
+width = 13, count = 413
+width = 10, count = 2525
+width = 16, count = 49
+width = 3, count = 19444
+width = 18, count = 15
+width = 5, count = 18583
+width = 8, count = 6842
+width = 7, count = 10139
+
+[Minimal]
+
+
+[Suffix Sum]
+108668
+106552
+98984
+79540
+59870
+41287
+26925
+16786
+9944
+5673
+3148
+1675
+843
+430
+217
+117
+68
+32
+17
+8
+4
+3
+2
+2
+
+find cycle times/add edge times = 3.46911e-05
+
+(ICD graph)
+#call PK algo times: 7255150807
+#dfs times: 114634
+#find cycle times: 108668
+#dfs iter on edge times: 27031855
+
+[Time]
+encode time: 1317ms
+propagate time: 316475ms
+search time: 60235439ms
+RW derivation time: 453374ms
+cycle detection time: 76828ms
+theory propagation time: 0ms
+
+#contributed swaps: 5966
+
+
+[2025-01-03 12:54:02,027] [DEBUG]  thread 0 starts parsing logs of task tpcc-5k, max memory = 2359296, logs = ['[2025-01-02 20:10:00.002564] [0x0000771b7344db80] [info]    #sessions: 9', '[2025-01-02 20:10:00.002581] [0x0000771b7344db80] [info]    #transactions: 7621', '[2025-01-02 20:10:00.002694] [0x0000771b7344db80] [info]    #events: 219256', '[2025-01-02 20:10:00.753838] [0x0000771b7344db80] [info]    #constraints: 348671', '[2025-01-02 20:10:00.930639] [0x0000771b7344db80] [info]    construct time: 986ms', '[2025-01-02 20:10:00.973592] [0x0000771b7344db80] [info]    solver initializing time: 42ms', '[2025-01-03 12:54:00.884423] [0x0000771b7344db80] [info]    solve time: 60239910ms', 'accept: true', '']
+[2025-01-03 12:54:02,027] [DEBUG]  thread 0 updates results['tpcc-5k']['max memory'] to '2359296'
+[2025-01-03 12:54:02,027] [DEBUG]  thread 0 updates results['tpcc-5k']['#sessions'] to '9'
+[2025-01-03 12:54:02,027] [DEBUG]  thread 0 updates results['tpcc-5k']['#transactions'] to '7621'
+[2025-01-03 12:54:02,027] [DEBUG]  thread 0 updates results['tpcc-5k']['#events'] to '219256'
+[2025-01-03 12:54:02,027] [DEBUG]  thread 0 updates results['tpcc-5k']['#constraints'] to '348671'
+[2025-01-03 12:54:02,027] [DEBUG]  thread 0 updates results['tpcc-5k']['construct time'] to '986ms'
+[2025-01-03 12:54:02,027] [DEBUG]  thread 0 updates results['tpcc-5k']['solver initializing time'] to '42ms'
+[2025-01-03 12:54:02,027] [DEBUG]  thread 0 updates results['tpcc-5k']['solve time'] to '60239910ms'
+[2025-01-03 12:54:02,027] [DEBUG]  thread 0 updates results['tpcc-5k']['accept'] to 'True'
+[2025-01-03 12:54:02,028] [WARNING]  thread 0 found ''(empty line) in logs, skip
+[2025-01-03 12:54:02,028] [INFO]  thread 0 finished task tpcc-5k
+[2025-01-03 12:54:02,028] [INFO]  thread 0 starts running task rubis-5k
+[2025-01-03 12:54:02,028] [DEBUG]  thread 0 runs cmd ['timeout', '100d', '/home/rikka/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/home/rikka/smt-transactional-consistency-artifact/scripts/../history/ser/general-5k-2/rubis-5k/', '--solver', 'acyclic-minisat', '--history-type', 'cobra']
+[2025-01-03 12:58:21,143] [DEBUG]  thread finished checking rubis-5k, stdout = [2025-01-03 12:54:02.057238] [0x00007284c46b3b80] [info]    #sessions: 9
+[2025-01-03 12:54:02.057254] [0x00007284c46b3b80] [info]    #transactions: 5157
+[2025-01-03 12:54:02.057292] [0x00007284c46b3b80] [info]    #events: 39795
+[2025-01-03 12:54:02.083572] [0x00007284c46b3b80] [info]    #constraints: 26902
+[2025-01-03 12:54:02.089893] [0x00007284c46b3b80] [info]    construct time: 47ms
+[2025-01-03 12:54:02.094021] [0x00007284c46b3b80] [info]    solver initializing time: 4ms
+[2025-01-03 12:58:20.125563] [0x00007284c46b3b80] [info]    solve time: 258031ms
+accept: true
+, stderr = #vars: 44910
+[Monitor]
+find_cycle_times: 50261
+avg cycle length = 6.77772
+width = 21, count = 8
+width = 20, count = 10
+width = 19, count = 28
+width = 17, count = 78
+width = 18, count = 40
+width = 22, count = 3
+width = 15, count = 295
+width = 16, count = 151
+width = 14, count = 529
+width = 2, count = 1376
+width = 4, count = 5826
+width = 3, count = 4536
+width = 6, count = 7053
+width = 7, count = 6301
+width = 11, count = 2151
+width = 5, count = 6814
+width = 8, count = 5354
+width = 1, count = 183
+width = 9, count = 4201
+width = 13, count = 878
+width = 10, count = 3007
+width = 12, count = 1439
+
+[Minimal]
+
+
+[Suffix Sum]
+50261
+50078
+48702
+44166
+38340
+31526
+24473
+18172
+12818
+8617
+5610
+3459
+2020
+1142
+613
+318
+167
+89
+49
+21
+11
+3
+
+find cycle times/add edge times = 0.00199899
+
+(ICD graph)
+#call PK algo times: 112358706
+#dfs times: 69435
+#find cycle times: 50261
+#dfs iter on edge times: 7420638
+
+[Time]
+encode time: 125ms
+propagate time: 47ms
+search time: 257818ms
+RW derivation time: 7ms
+cycle detection time: 22ms
+theory propagation time: 0ms
+
+#contributed swaps: 10081
+
+
+[2025-01-03 12:58:21,144] [DEBUG]  thread 0 starts parsing logs of task rubis-5k, max memory = 2359296, logs = ['[2025-01-03 12:54:02.057238] [0x00007284c46b3b80] [info]    #sessions: 9', '[2025-01-03 12:54:02.057254] [0x00007284c46b3b80] [info]    #transactions: 5157', '[2025-01-03 12:54:02.057292] [0x00007284c46b3b80] [info]    #events: 39795', '[2025-01-03 12:54:02.083572] [0x00007284c46b3b80] [info]    #constraints: 26902', '[2025-01-03 12:54:02.089893] [0x00007284c46b3b80] [info]    construct time: 47ms', '[2025-01-03 12:54:02.094021] [0x00007284c46b3b80] [info]    solver initializing time: 4ms', '[2025-01-03 12:58:20.125563] [0x00007284c46b3b80] [info]    solve time: 258031ms', 'accept: true', '']
+[2025-01-03 12:58:21,144] [DEBUG]  thread 0 updates results['rubis-5k']['max memory'] to '2359296'
+[2025-01-03 12:58:21,144] [DEBUG]  thread 0 updates results['rubis-5k']['#sessions'] to '9'
+[2025-01-03 12:58:21,144] [DEBUG]  thread 0 updates results['rubis-5k']['#transactions'] to '5157'
+[2025-01-03 12:58:21,144] [DEBUG]  thread 0 updates results['rubis-5k']['#events'] to '39795'
+[2025-01-03 12:58:21,144] [DEBUG]  thread 0 updates results['rubis-5k']['#constraints'] to '26902'
+[2025-01-03 12:58:21,144] [DEBUG]  thread 0 updates results['rubis-5k']['construct time'] to '47ms'
+[2025-01-03 12:58:21,144] [DEBUG]  thread 0 updates results['rubis-5k']['solver initializing time'] to '4ms'
+[2025-01-03 12:58:21,144] [DEBUG]  thread 0 updates results['rubis-5k']['solve time'] to '258031ms'
+[2025-01-03 12:58:21,144] [DEBUG]  thread 0 updates results['rubis-5k']['accept'] to 'True'
+[2025-01-03 12:58:21,144] [WARNING]  thread 0 found ''(empty line) in logs, skip
+[2025-01-03 12:58:21,144] [INFO]  thread 0 finished task rubis-5k
+[2025-01-03 12:58:21,145] [INFO]  thread 0 starts running task 25_200_8_2500_0.5_r_0.5_0.5_100
+[2025-01-03 12:58:21,145] [DEBUG]  thread 0 runs cmd ['timeout', '100d', '/home/rikka/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/home/rikka/smt-transactional-consistency-artifact/scripts/../history/ser/general-5k-2/25_200_8_2500_0.5_r_0.5_0.5_100/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop']
+[2025-01-03 17:36:44,225] [DEBUG]  thread finished checking 25_200_8_2500_0.5_r_0.5_0.5_100, stdout = [2025-01-03 12:58:21.163832] [0x000072dd818b3b80] [info]    #sessions: 26
+[2025-01-03 12:58:21.163848] [0x000072dd818b3b80] [info]    #transactions: 5001
+[2025-01-03 12:58:21.163866] [0x000072dd818b3b80] [info]    #events: 42500
+[2025-01-03 12:58:21.697714] [0x000072dd818b3b80] [info]    #constraints: 198011
+[2025-01-03 12:58:21.786764] [0x000072dd818b3b80] [info]    construct time: 627ms
+[2025-01-03 12:58:21.806881] [0x000072dd818b3b80] [info]    solver initializing time: 20ms
+[2025-01-03 17:36:43.142074] [0x000072dd818b3b80] [info]    solve time: 16701335ms
+accept: true
+, stderr = #vars: 378556
+[Monitor]
+find_cycle_times: 97443
+avg cycle length = 7.95459
+width = 34, count = 2
+width = 37, count = 1
+width = 36, count = 2
+width = 33, count = 2
+width = 31, count = 4
+width = 27, count = 13
+width = 38, count = 1
+width = 6, count = 10284
+width = 16, count = 1007
+width = 3, count = 7414
+width = 2, count = 1528
+width = 4, count = 8012
+width = 10, count = 8132
+width = 12, count = 4772
+width = 13, count = 3343
+width = 9, count = 9606
+width = 8, count = 10812
+width = 7, count = 10972
+width = 1, count = 174
+width = 30, count = 7
+width = 5, count = 9181
+width = 14, count = 2300
+width = 11, count = 6494
+width = 15, count = 1556
+width = 17, count = 670
+width = 18, count = 436
+width = 22, count = 54
+width = 19, count = 262
+width = 21, count = 92
+width = 20, count = 175
+width = 23, count = 49
+width = 24, count = 32
+width = 25, count = 24
+width = 26, count = 16
+width = 28, count = 12
+width = 29, count = 2
+
+[Minimal]
+
+
+[Suffix Sum]
+97443
+97269
+95741
+88327
+80315
+71134
+60850
+49878
+39066
+29460
+21328
+14834
+10062
+6719
+4419
+2863
+1856
+1186
+750
+488
+313
+221
+167
+118
+86
+62
+46
+33
+21
+19
+12
+8
+8
+6
+4
+4
+2
+1
+
+find cycle times/add edge times = 5.83489e-05
+
+(ICD graph)
+#call PK algo times: 3171103423
+#dfs times: 111492
+#find cycle times: 97443
+#dfs iter on edge times: 41104734
+
+[Time]
+encode time: 697ms
+propagate time: 136304ms
+search time: 16699101ms
+RW derivation time: 39957ms
+cycle detection time: 97488ms
+theory propagation time: 4ms
+
+#contributed swaps: 11504
+
+
+[2025-01-03 17:36:44,225] [DEBUG]  thread 0 starts parsing logs of task 25_200_8_2500_0.5_r_0.5_0.5_100, max memory = 2359296, logs = ['[2025-01-03 12:58:21.163832] [0x000072dd818b3b80] [info]    #sessions: 26', '[2025-01-03 12:58:21.163848] [0x000072dd818b3b80] [info]    #transactions: 5001', '[2025-01-03 12:58:21.163866] [0x000072dd818b3b80] [info]    #events: 42500', '[2025-01-03 12:58:21.697714] [0x000072dd818b3b80] [info]    #constraints: 198011', '[2025-01-03 12:58:21.786764] [0x000072dd818b3b80] [info]    construct time: 627ms', '[2025-01-03 12:58:21.806881] [0x000072dd818b3b80] [info]    solver initializing time: 20ms', '[2025-01-03 17:36:43.142074] [0x000072dd818b3b80] [info]    solve time: 16701335ms', 'accept: true', '']
+[2025-01-03 17:36:44,225] [DEBUG]  thread 0 updates results['25_200_8_2500_0.5_r_0.5_0.5_100']['max memory'] to '2359296'
+[2025-01-03 17:36:44,225] [DEBUG]  thread 0 updates results['25_200_8_2500_0.5_r_0.5_0.5_100']['#sessions'] to '26'
+[2025-01-03 17:36:44,225] [DEBUG]  thread 0 updates results['25_200_8_2500_0.5_r_0.5_0.5_100']['#transactions'] to '5001'
+[2025-01-03 17:36:44,225] [DEBUG]  thread 0 updates results['25_200_8_2500_0.5_r_0.5_0.5_100']['#events'] to '42500'
+[2025-01-03 17:36:44,225] [DEBUG]  thread 0 updates results['25_200_8_2500_0.5_r_0.5_0.5_100']['#constraints'] to '198011'
+[2025-01-03 17:36:44,226] [DEBUG]  thread 0 updates results['25_200_8_2500_0.5_r_0.5_0.5_100']['construct time'] to '627ms'
+[2025-01-03 17:36:44,226] [DEBUG]  thread 0 updates results['25_200_8_2500_0.5_r_0.5_0.5_100']['solver initializing time'] to '20ms'
+[2025-01-03 17:36:44,226] [DEBUG]  thread 0 updates results['25_200_8_2500_0.5_r_0.5_0.5_100']['solve time'] to '16701335ms'
+[2025-01-03 17:36:44,226] [DEBUG]  thread 0 updates results['25_200_8_2500_0.5_r_0.5_0.5_100']['accept'] to 'True'
+[2025-01-03 17:36:44,226] [WARNING]  thread 0 found ''(empty line) in logs, skip
+[2025-01-03 17:36:44,226] [INFO]  thread 0 finished task 25_200_8_2500_0.5_r_0.5_0.5_100
+[2025-01-03 17:36:44,226] [INFO]  thread 0 starts running task 25_200_8_2500_0.95_r_0.5_0.5_100
+[2025-01-03 17:36:44,226] [DEBUG]  thread 0 runs cmd ['timeout', '100d', '/home/rikka/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/home/rikka/smt-transactional-consistency-artifact/scripts/../history/ser/general-5k-2/25_200_8_2500_0.95_r_0.5_0.5_100/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop']
+[2025-01-03 17:37:02,931] [DEBUG]  thread finished checking 25_200_8_2500_0.95_r_0.5_0.5_100, stdout = [2025-01-03 17:36:44.245052] [0x0000784198632b80] [info]    #sessions: 26
+[2025-01-03 17:36:44.245070] [0x0000784198632b80] [info]    #transactions: 5001
+[2025-01-03 17:36:44.245086] [0x0000784198632b80] [info]    #events: 42500
+[2025-01-03 17:36:44.260818] [0x0000784198632b80] [info]    #constraints: 41303
+[2025-01-03 17:36:44.267114] [0x0000784198632b80] [info]    construct time: 27ms
+[2025-01-03 17:36:44.270398] [0x0000784198632b80] [info]    solver initializing time: 3ms
+[2025-01-03 17:37:01.915542] [0x0000784198632b80] [info]    solve time: 17645ms
+accept: true
+, stderr = #vars: 44959
+[Monitor]
+find_cycle_times: 1684
+avg cycle length = 5.80701
+width = 17, count = 1
+width = 15, count = 2
+width = 18, count = 1
+width = 13, count = 14
+width = 14, count = 6
+width = 2, count = 70
+width = 4, count = 267
+width = 3, count = 269
+width = 16, count = 5
+width = 6, count = 220
+width = 7, count = 193
+width = 9, count = 102
+width = 5, count = 268
+width = 8, count = 130
+width = 10, count = 74
+width = 12, count = 22
+width = 11, count = 34
+width = 1, count = 6
+
+[Minimal]
+
+
+[Suffix Sum]
+1684
+1678
+1608
+1339
+1072
+804
+584
+391
+261
+159
+85
+51
+29
+15
+9
+7
+2
+1
+
+find cycle times/add edge times = 0.00151522
+
+(ICD graph)
+#call PK algo times: 11153432
+#dfs times: 6250
+#find cycle times: 1684
+#dfs iter on edge times: 2115457
+
+[Time]
+encode time: 178ms
+propagate time: 19ms
+search time: 17395ms
+RW derivation time: 2ms
+cycle detection time: 16ms
+theory propagation time: 0ms
+
+#contributed swaps: 4470
+
+
+[2025-01-03 17:37:02,931] [DEBUG]  thread 0 starts parsing logs of task 25_200_8_2500_0.95_r_0.5_0.5_100, max memory = 2359296, logs = ['[2025-01-03 17:36:44.245052] [0x0000784198632b80] [info]    #sessions: 26', '[2025-01-03 17:36:44.245070] [0x0000784198632b80] [info]    #transactions: 5001', '[2025-01-03 17:36:44.245086] [0x0000784198632b80] [info]    #events: 42500', '[2025-01-03 17:36:44.260818] [0x0000784198632b80] [info]    #constraints: 41303', '[2025-01-03 17:36:44.267114] [0x0000784198632b80] [info]    construct time: 27ms', '[2025-01-03 17:36:44.270398] [0x0000784198632b80] [info]    solver initializing time: 3ms', '[2025-01-03 17:37:01.915542] [0x0000784198632b80] [info]    solve time: 17645ms', 'accept: true', '']
+[2025-01-03 17:37:02,932] [DEBUG]  thread 0 updates results['25_200_8_2500_0.95_r_0.5_0.5_100']['max memory'] to '2359296'
+[2025-01-03 17:37:02,932] [DEBUG]  thread 0 updates results['25_200_8_2500_0.95_r_0.5_0.5_100']['#sessions'] to '26'
+[2025-01-03 17:37:02,932] [DEBUG]  thread 0 updates results['25_200_8_2500_0.95_r_0.5_0.5_100']['#transactions'] to '5001'
+[2025-01-03 17:37:02,932] [DEBUG]  thread 0 updates results['25_200_8_2500_0.95_r_0.5_0.5_100']['#events'] to '42500'
+[2025-01-03 17:37:02,932] [DEBUG]  thread 0 updates results['25_200_8_2500_0.95_r_0.5_0.5_100']['#constraints'] to '41303'
+[2025-01-03 17:37:02,932] [DEBUG]  thread 0 updates results['25_200_8_2500_0.95_r_0.5_0.5_100']['construct time'] to '27ms'
+[2025-01-03 17:37:02,932] [DEBUG]  thread 0 updates results['25_200_8_2500_0.95_r_0.5_0.5_100']['solver initializing time'] to '3ms'
+[2025-01-03 17:37:02,932] [DEBUG]  thread 0 updates results['25_200_8_2500_0.95_r_0.5_0.5_100']['solve time'] to '17645ms'
+[2025-01-03 17:37:02,932] [DEBUG]  thread 0 updates results['25_200_8_2500_0.95_r_0.5_0.5_100']['accept'] to 'True'
+[2025-01-03 17:37:02,932] [WARNING]  thread 0 found ''(empty line) in logs, skip
+[2025-01-03 17:37:02,932] [INFO]  thread 0 finished task 25_200_8_2500_0.95_r_0.5_0.5_100
+[2025-01-03 17:37:02,933] [INFO]  thread 0 starts running task twitter-5k
+[2025-01-03 17:37:02,933] [DEBUG]  thread 0 runs cmd ['timeout', '100d', '/home/rikka/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/home/rikka/smt-transactional-consistency-artifact/scripts/../history/ser/general-5k-2/twitter-5k/', '--solver', 'acyclic-minisat', '--history-type', 'cobra']
+[2025-01-03 17:37:47,327] [DEBUG]  thread finished checking twitter-5k, stdout = [2025-01-03 17:37:02.957456] [0x00007a4c502b0b80] [info]    #sessions: 9
+[2025-01-03 17:37:02.957468] [0x00007a4c502b0b80] [info]    #transactions: 5218
+[2025-01-03 17:37:02.957504] [0x00007a4c502b0b80] [info]    #events: 30641
+[2025-01-03 17:37:02.977370] [0x00007a4c502b0b80] [info]    #constraints: 24933
+[2025-01-03 17:37:02.982842] [0x00007a4c502b0b80] [info]    construct time: 33ms
+[2025-01-03 17:37:02.985883] [0x00007a4c502b0b80] [info]    solver initializing time: 3ms
+[2025-01-03 17:37:46.311576] [0x00007a4c502b0b80] [info]    solve time: 43325ms
+accept: true
+, stderr = #vars: 34809
+[Monitor]
+find_cycle_times: 5146
+avg cycle length = 4.26059
+width = 14, count = 6
+width = 12, count = 22
+width = 3, count = 1360
+width = 4, count = 767
+width = 2, count = 985
+width = 15, count = 2
+width = 5, count = 587
+width = 6, count = 430
+width = 7, count = 314
+width = 1, count = 165
+width = 10, count = 86
+width = 8, count = 237
+width = 9, count = 128
+width = 11, count = 49
+width = 13, count = 8
+
+[Minimal]
+
+
+[Suffix Sum]
+5146
+4981
+3996
+2636
+1869
+1282
+852
+538
+301
+173
+87
+38
+16
+8
+2
+
+find cycle times/add edge times = 0.000670729
+
+(ICD graph)
+#call PK algo times: 13587228
+#dfs times: 6486
+#find cycle times: 5146
+#dfs iter on edge times: 1165193
+
+[Time]
+encode time: 120ms
+propagate time: 0ms
+search time: 43152ms
+RW derivation time: 0ms
+cycle detection time: 0ms
+theory propagation time: 0ms
+
+#contributed swaps: 1255
+
+
+[2025-01-03 17:37:47,328] [DEBUG]  thread 0 starts parsing logs of task twitter-5k, max memory = 2359296, logs = ['[2025-01-03 17:37:02.957456] [0x00007a4c502b0b80] [info]    #sessions: 9', '[2025-01-03 17:37:02.957468] [0x00007a4c502b0b80] [info]    #transactions: 5218', '[2025-01-03 17:37:02.957504] [0x00007a4c502b0b80] [info]    #events: 30641', '[2025-01-03 17:37:02.977370] [0x00007a4c502b0b80] [info]    #constraints: 24933', '[2025-01-03 17:37:02.982842] [0x00007a4c502b0b80] [info]    construct time: 33ms', '[2025-01-03 17:37:02.985883] [0x00007a4c502b0b80] [info]    solver initializing time: 3ms', '[2025-01-03 17:37:46.311576] [0x00007a4c502b0b80] [info]    solve time: 43325ms', 'accept: true', '']
+[2025-01-03 17:37:47,328] [DEBUG]  thread 0 updates results['twitter-5k']['max memory'] to '2359296'
+[2025-01-03 17:37:47,328] [DEBUG]  thread 0 updates results['twitter-5k']['#sessions'] to '9'
+[2025-01-03 17:37:47,328] [DEBUG]  thread 0 updates results['twitter-5k']['#transactions'] to '5218'
+[2025-01-03 17:37:47,328] [DEBUG]  thread 0 updates results['twitter-5k']['#events'] to '30641'
+[2025-01-03 17:37:47,328] [DEBUG]  thread 0 updates results['twitter-5k']['#constraints'] to '24933'
+[2025-01-03 17:37:47,328] [DEBUG]  thread 0 updates results['twitter-5k']['construct time'] to '33ms'
+[2025-01-03 17:37:47,328] [DEBUG]  thread 0 updates results['twitter-5k']['solver initializing time'] to '3ms'
+[2025-01-03 17:37:47,328] [DEBUG]  thread 0 updates results['twitter-5k']['solve time'] to '43325ms'
+[2025-01-03 17:37:47,328] [DEBUG]  thread 0 updates results['twitter-5k']['accept'] to 'True'
+[2025-01-03 17:37:47,328] [WARNING]  thread 0 found ''(empty line) in logs, skip
+[2025-01-03 17:37:47,328] [INFO]  thread 0 finished task twitter-5k
