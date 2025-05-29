@@ -1,0 +1,933 @@
+[2025-05-28 15:32:05,219] [INFO]  root path = /smt-transactional-consistency-artifact/scripts/..
+[2025-05-28 15:32:05,219] [INFO]  history path = /smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small
+[2025-05-28 15:32:05,219] [INFO]  checker path = /smt-transactional-consistency-artifact/scripts/../builddir-release/checker
+[2025-05-28 15:32:05,219] [INFO]  solver = acyclic-minisat
+[2025-05-28 15:32:05,219] [INFO]  pruning method = fast
+[2025-05-28 15:32:05,219] [INFO]  use 2 thread(s)
+[2025-05-28 15:32:05,219] [INFO]  output path = /smt-transactional-consistency-artifact/scripts/../results/scala-txns-si-small-tcmalloc.json
+[2025-05-28 15:32:05,220] [INFO]  thread 0 starts running task 50_600_20_50000_0.5_r_0.5_0.5_1000
+[2025-05-28 15:32:05,220] [INFO]  thread 1 starts running task 50_1000_20_50000_0.5_r_0.5_0.5_1000
+[2025-05-28 15:32:05,221] [DEBUG]  thread 0 runs cmd ['/usr/bin/time', '-v', 'timeout', '24h', '/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_600_20_50000_0.5_r_0.5_0.5_1000/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--log-level', 'debug', '--measuring-repeat-values', '--isolation-level', 'si', '--pruning', 'fast']
+[2025-05-28 15:32:05,221] [DEBUG]  thread 1 runs cmd ['/usr/bin/time', '-v', 'timeout', '24h', '/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_1000_20_50000_0.5_r_0.5_0.5_1000/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--log-level', 'debug', '--measuring-repeat-values', '--isolation-level', 'si', '--pruning', 'fast']
+[2025-05-28 16:02:39,593] [DEBUG]  thread finished checking 50_600_20_50000_0.5_r_0.5_0.5_1000, stdout = [2025-05-28 15:32:05.246511] [0x00007f7efed01000] [debug]   use acyclic-minisat as backend solver
+[2025-05-28 15:32:05.246548] [0x00007f7efed01000] [debug]   target isolation level: si
+[2025-05-28 15:32:05.246555] [0x00007f7efed01000] [debug]   history type: dbcop
+[2025-05-28 15:32:05.313906] [0x00007f7efed01000] [info]    #sessions: 51
+[2025-05-28 15:32:05.313940] [0x00007f7efed01000] [info]    #transactions: 30001
+[2025-05-28 15:32:05.314414] [0x00007f7efed01000] [info]    #events: 649968
+[2025-05-28 15:32:39.103173] [0x00007f7efed01000] [debug]   #ww constraints: 2569057
+[2025-05-28 15:32:39.103234] [0x00007f7efed01000] [debug]   #wr constraints: 299562
+[2025-05-28 15:32:39.103237] [0x00007f7efed01000] [info]    #constraints: 2868619
+[2025-05-28 15:32:40.044560] [0x00007f7efed01000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2025-05-28 15:32:40.078605] [0x00007f7efed01000] [debug]   #unit wr constraints = 295966
+[2025-05-28 15:32:40.078702] [0x00007f7efed01000] [debug]   unit wr ratio = 0.987996
+[2025-05-28 15:32:40.078705] [0x00007f7efed01000] [debug]   max wr length = 9
+[2025-05-28 15:32:40.078707] [0x00007f7efed01000] [debug]   average wr length = 1.01478
+[2025-05-28 15:32:40.078715] [0x00007f7efed01000] [debug]   average wr length(w/o unit cons) = 2.23137
+[2025-05-28 15:32:40.079809] [0x00007f7efed01000] [debug]   #some constraint: 2868619
+[2025-05-28 15:32:40.079829] [0x00007f7efed01000] [debug]   #unique constraint: 2574912
+[2025-05-28 15:32:40.131684] [0x00007f7efed01000] [info]    construct time: 34885ms
+[2025-05-28 15:32:40.131714] [0x00007f7efed01000] [debug]   pruning method: fast
+[2025-05-28 15:40:35.376208] [0x00007f7efed01000] [debug]   constructing reachability time: 431282ms
+[2025-05-28 15:40:35.376248] [0x00007f7efed01000] [debug]   checking time: 19ms
+[2025-05-28 15:40:35.376251] [0x00007f7efed01000] [debug]   adding edge time: 696ms
+[2025-05-28 15:40:38.131066] [0x00007f7efed01000] [debug]   after pruning, remeasuring repeat values...
+[2025-05-28 15:40:38.131106] [0x00007f7efed01000] [debug]   #unit wr constraints = 0
+[2025-05-28 15:40:38.131122] [0x00007f7efed01000] [debug]   unit wr ratio = 0
+[2025-05-28 15:40:38.131125] [0x00007f7efed01000] [debug]   max wr length = 2
+[2025-05-28 15:40:38.131127] [0x00007f7efed01000] [debug]   average wr length = 2
+[2025-05-28 15:40:38.131131] [0x00007f7efed01000] [debug]   average wr length(w/o unit cons) = 2
+[2025-05-28 15:40:38.131134] [0x00007f7efed01000] [debug]   #some constraint: 22203
+[2025-05-28 15:40:38.131135] [0x00007f7efed01000] [debug]   #unique constraint: 22203
+[2025-05-28 15:40:38.131145] [0x00007f7efed01000] [info]    prune time: 477999ms
+[2025-05-28 15:40:40.002594] [0x00007f7efed01000] [info]    solver initializing time: 1871ms
+[2025-05-28 16:02:35.582456] [0x00007f7efed01000] [info]    solve time: 1315579ms
+accept: true
+, stderr =      Command being timed: "timeout 24h /smt-transactional-consistency-artifact/scripts/../builddir-release/checker /smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_600_20_50000_0.5_r_0.5_0.5_1000/hist-00000/history.bincode --solver acyclic-minisat --history-type dbcop --log-level debug --measuring-repeat-values --isolation-level si --pruning fast"
+        User time (seconds): 1792.95
+        System time (seconds): 38.76
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 30:33.35
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 37022136
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 0
+        Minor (reclaiming a frame) page faults: 10003630
+        Voluntary context switches: 3
+        Involuntary context switches: 179701
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+[2025-05-28 16:02:39,593] [DEBUG]  thread 0 starts parsing logs of task 50_600_20_50000_0.5_r_0.5_0.5_1000, max memory = 7106560, logs = ['[2025-05-28 15:32:05.246511] [0x00007f7efed01000] [debug]   use acyclic-minisat as backend solver', '[2025-05-28 15:32:05.246548] [0x00007f7efed01000] [debug]   target isolation level: si', '[2025-05-28 15:32:05.246555] [0x00007f7efed01000] [debug]   history type: dbcop', '[2025-05-28 15:32:05.313906] [0x00007f7efed01000] [info]    #sessions: 51', '[2025-05-28 15:32:05.313940] [0x00007f7efed01000] [info]    #transactions: 30001', '[2025-05-28 15:32:05.314414] [0x00007f7efed01000] [info]    #events: 649968', '[2025-05-28 15:32:39.103173] [0x00007f7efed01000] [debug]   #ww constraints: 2569057', '[2025-05-28 15:32:39.103234] [0x00007f7efed01000] [debug]   #wr constraints: 299562', '[2025-05-28 15:32:39.103237] [0x00007f7efed01000] [info]    #constraints: 2868619', '[2025-05-28 15:32:40.044560] [0x00007f7efed01000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue', '[2025-05-28 15:32:40.078605] [0x00007f7efed01000] [debug]   #unit wr constraints = 295966', '[2025-05-28 15:32:40.078702] [0x00007f7efed01000] [debug]   unit wr ratio = 0.987996', '[2025-05-28 15:32:40.078705] [0x00007f7efed01000] [debug]   max wr length = 9', '[2025-05-28 15:32:40.078707] [0x00007f7efed01000] [debug]   average wr length = 1.01478', '[2025-05-28 15:32:40.078715] [0x00007f7efed01000] [debug]   average wr length(w/o unit cons) = 2.23137', '[2025-05-28 15:32:40.079809] [0x00007f7efed01000] [debug]   #some constraint: 2868619', '[2025-05-28 15:32:40.079829] [0x00007f7efed01000] [debug]   #unique constraint: 2574912', '[2025-05-28 15:32:40.131684] [0x00007f7efed01000] [info]    construct time: 34885ms', '[2025-05-28 15:32:40.131714] [0x00007f7efed01000] [debug]   pruning method: fast', '[2025-05-28 15:40:35.376208] [0x00007f7efed01000] [debug]   constructing reachability time: 431282ms', '[2025-05-28 15:40:35.376248] [0x00007f7efed01000] [debug]   checking time: 19ms', '[2025-05-28 15:40:35.376251] [0x00007f7efed01000] [debug]   adding edge time: 696ms', '[2025-05-28 15:40:38.131066] [0x00007f7efed01000] [debug]   after pruning, remeasuring repeat values...', '[2025-05-28 15:40:38.131106] [0x00007f7efed01000] [debug]   #unit wr constraints = 0', '[2025-05-28 15:40:38.131122] [0x00007f7efed01000] [debug]   unit wr ratio = 0', '[2025-05-28 15:40:38.131125] [0x00007f7efed01000] [debug]   max wr length = 2', '[2025-05-28 15:40:38.131127] [0x00007f7efed01000] [debug]   average wr length = 2', '[2025-05-28 15:40:38.131131] [0x00007f7efed01000] [debug]   average wr length(w/o unit cons) = 2', '[2025-05-28 15:40:38.131134] [0x00007f7efed01000] [debug]   #some constraint: 22203', '[2025-05-28 15:40:38.131135] [0x00007f7efed01000] [debug]   #unique constraint: 22203', '[2025-05-28 15:40:38.131145] [0x00007f7efed01000] [info]    prune time: 477999ms', '[2025-05-28 15:40:40.002594] [0x00007f7efed01000] [info]    solver initializing time: 1871ms', '[2025-05-28 16:02:35.582456] [0x00007f7efed01000] [info]    solve time: 1315579ms', 'accept: true', '']
+[2025-05-28 16:02:39,594] [INFO]  thread 0 finished task 50_600_20_50000_0.5_r_0.5_0.5_1000
+[2025-05-28 16:02:39,594] [INFO]  thread 0 starts running task 50_800_20_50000_0.95_r_0.5_0.5_1000
+[2025-05-28 16:02:39,594] [DEBUG]  thread 0 runs cmd ['/usr/bin/time', '-v', 'timeout', '24h', '/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_800_20_50000_0.95_r_0.5_0.5_1000/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--log-level', 'debug', '--measuring-repeat-values', '--isolation-level', 'si', '--pruning', 'fast']
+[2025-05-28 16:03:34,388] [DEBUG]  thread finished checking 50_800_20_50000_0.95_r_0.5_0.5_1000, stdout = [2025-05-28 16:02:39.618581] [0x00007f23ced6a000] [debug]   use acyclic-minisat as backend solver
+[2025-05-28 16:02:39.618615] [0x00007f23ced6a000] [debug]   target isolation level: si
+[2025-05-28 16:02:39.618622] [0x00007f23ced6a000] [debug]   history type: dbcop
+[2025-05-28 16:02:39.705805] [0x00007f23ced6a000] [info]    #sessions: 51
+[2025-05-28 16:02:39.705843] [0x00007f23ced6a000] [info]    #transactions: 40001
+[2025-05-28 16:02:39.706460] [0x00007f23ced6a000] [info]    #events: 849996
+[2025-05-28 16:02:40.214020] [0x00007f23ced6a000] [debug]   #ww constraints: 69310
+[2025-05-28 16:02:40.214044] [0x00007f23ced6a000] [debug]   #wr constraints: 759496
+[2025-05-28 16:02:40.214047] [0x00007f23ced6a000] [info]    #constraints: 828806
+[2025-05-28 16:02:40.333810] [0x00007f23ced6a000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2025-05-28 16:02:40.341716] [0x00007f23ced6a000] [debug]   #unit wr constraints = 758826
+[2025-05-28 16:02:40.341754] [0x00007f23ced6a000] [debug]   unit wr ratio = 0.999118
+[2025-05-28 16:02:40.341756] [0x00007f23ced6a000] [debug]   max wr length = 2
+[2025-05-28 16:02:40.341758] [0x00007f23ced6a000] [debug]   average wr length = 1.00088
+[2025-05-28 16:02:40.341764] [0x00007f23ced6a000] [debug]   average wr length(w/o unit cons) = 2
+[2025-05-28 16:02:40.344671] [0x00007f23ced6a000] [debug]   #some constraint: 828806
+[2025-05-28 16:02:40.344687] [0x00007f23ced6a000] [debug]   #unique constraint: 69980
+[2025-05-28 16:02:40.402969] [0x00007f23ced6a000] [info]    construct time: 784ms
+[2025-05-28 16:02:40.402990] [0x00007f23ced6a000] [debug]   pruning method: fast
+[2025-05-28 16:03:03.194625] [0x00007f23ced6a000] [debug]   constructing reachability time: 15455ms
+[2025-05-28 16:03:03.194659] [0x00007f23ced6a000] [debug]   checking time: 28ms
+[2025-05-28 16:03:03.194662] [0x00007f23ced6a000] [debug]   adding edge time: 140ms
+[2025-05-28 16:03:04.005229] [0x00007f23ced6a000] [debug]   after pruning, remeasuring repeat values...
+[2025-05-28 16:03:04.005267] [0x00007f23ced6a000] [debug]   #unit wr constraints = 0
+[2025-05-28 16:03:04.005281] [0x00007f23ced6a000] [debug]   unit wr ratio = 0
+[2025-05-28 16:03:04.005283] [0x00007f23ced6a000] [debug]   max wr length = 2
+[2025-05-28 16:03:04.005285] [0x00007f23ced6a000] [debug]   average wr length = 2
+[2025-05-28 16:03:04.005289] [0x00007f23ced6a000] [debug]   average wr length(w/o unit cons) = 2
+[2025-05-28 16:03:04.005292] [0x00007f23ced6a000] [debug]   #some constraint: 157
+[2025-05-28 16:03:04.005294] [0x00007f23ced6a000] [debug]   #unique constraint: 157
+[2025-05-28 16:03:04.005303] [0x00007f23ced6a000] [info]    prune time: 23602ms
+[2025-05-28 16:03:04.482124] [0x00007f23ced6a000] [info]    solver initializing time: 476ms
+[2025-05-28 16:03:32.733111] [0x00007f23ced6a000] [info]    solve time: 28250ms
+accept: true
+, stderr =      Command being timed: "timeout 24h /smt-transactional-consistency-artifact/scripts/../builddir-release/checker /smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_800_20_50000_0.95_r_0.5_0.5_1000/hist-00000/history.bincode --solver acyclic-minisat --history-type dbcop --log-level debug --measuring-repeat-values --isolation-level si --pruning fast"
+        User time (seconds): 50.48
+        System time (seconds): 3.24
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 0:53.78
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 3780448
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 0
+        Minor (reclaiming a frame) page faults: 1346480
+        Voluntary context switches: 3
+        Involuntary context switches: 5318
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+[2025-05-28 16:03:34,388] [DEBUG]  thread 0 starts parsing logs of task 50_800_20_50000_0.95_r_0.5_0.5_1000, max memory = 7127040, logs = ['[2025-05-28 16:02:39.618581] [0x00007f23ced6a000] [debug]   use acyclic-minisat as backend solver', '[2025-05-28 16:02:39.618615] [0x00007f23ced6a000] [debug]   target isolation level: si', '[2025-05-28 16:02:39.618622] [0x00007f23ced6a000] [debug]   history type: dbcop', '[2025-05-28 16:02:39.705805] [0x00007f23ced6a000] [info]    #sessions: 51', '[2025-05-28 16:02:39.705843] [0x00007f23ced6a000] [info]    #transactions: 40001', '[2025-05-28 16:02:39.706460] [0x00007f23ced6a000] [info]    #events: 849996', '[2025-05-28 16:02:40.214020] [0x00007f23ced6a000] [debug]   #ww constraints: 69310', '[2025-05-28 16:02:40.214044] [0x00007f23ced6a000] [debug]   #wr constraints: 759496', '[2025-05-28 16:02:40.214047] [0x00007f23ced6a000] [info]    #constraints: 828806', '[2025-05-28 16:02:40.333810] [0x00007f23ced6a000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue', '[2025-05-28 16:02:40.341716] [0x00007f23ced6a000] [debug]   #unit wr constraints = 758826', '[2025-05-28 16:02:40.341754] [0x00007f23ced6a000] [debug]   unit wr ratio = 0.999118', '[2025-05-28 16:02:40.341756] [0x00007f23ced6a000] [debug]   max wr length = 2', '[2025-05-28 16:02:40.341758] [0x00007f23ced6a000] [debug]   average wr length = 1.00088', '[2025-05-28 16:02:40.341764] [0x00007f23ced6a000] [debug]   average wr length(w/o unit cons) = 2', '[2025-05-28 16:02:40.344671] [0x00007f23ced6a000] [debug]   #some constraint: 828806', '[2025-05-28 16:02:40.344687] [0x00007f23ced6a000] [debug]   #unique constraint: 69980', '[2025-05-28 16:02:40.402969] [0x00007f23ced6a000] [info]    construct time: 784ms', '[2025-05-28 16:02:40.402990] [0x00007f23ced6a000] [debug]   pruning method: fast', '[2025-05-28 16:03:03.194625] [0x00007f23ced6a000] [debug]   constructing reachability time: 15455ms', '[2025-05-28 16:03:03.194659] [0x00007f23ced6a000] [debug]   checking time: 28ms', '[2025-05-28 16:03:03.194662] [0x00007f23ced6a000] [debug]   adding edge time: 140ms', '[2025-05-28 16:03:04.005229] [0x00007f23ced6a000] [debug]   after pruning, remeasuring repeat values...', '[2025-05-28 16:03:04.005267] [0x00007f23ced6a000] [debug]   #unit wr constraints = 0', '[2025-05-28 16:03:04.005281] [0x00007f23ced6a000] [debug]   unit wr ratio = 0', '[2025-05-28 16:03:04.005283] [0x00007f23ced6a000] [debug]   max wr length = 2', '[2025-05-28 16:03:04.005285] [0x00007f23ced6a000] [debug]   average wr length = 2', '[2025-05-28 16:03:04.005289] [0x00007f23ced6a000] [debug]   average wr length(w/o unit cons) = 2', '[2025-05-28 16:03:04.005292] [0x00007f23ced6a000] [debug]   #some constraint: 157', '[2025-05-28 16:03:04.005294] [0x00007f23ced6a000] [debug]   #unique constraint: 157', '[2025-05-28 16:03:04.005303] [0x00007f23ced6a000] [info]    prune time: 23602ms', '[2025-05-28 16:03:04.482124] [0x00007f23ced6a000] [info]    solver initializing time: 476ms', '[2025-05-28 16:03:32.733111] [0x00007f23ced6a000] [info]    solve time: 28250ms', 'accept: true', '']
+[2025-05-28 16:03:34,389] [INFO]  thread 0 finished task 50_800_20_50000_0.95_r_0.5_0.5_1000
+[2025-05-28 16:03:34,389] [INFO]  thread 0 starts running task 50_1000_20_50000_0.3_r_0.5_0.5_1000
+[2025-05-28 16:03:34,389] [DEBUG]  thread 0 runs cmd ['/usr/bin/time', '-v', 'timeout', '24h', '/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_1000_20_50000_0.3_r_0.5_0.5_1000/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--log-level', 'debug', '--measuring-repeat-values', '--isolation-level', 'si', '--pruning', 'fast']
+[2025-05-28 17:44:05,614] [DEBUG]  thread finished checking 50_1000_20_50000_0.5_r_0.5_0.5_1000, stdout = [2025-05-28 15:32:05.246125] [0x00007f4387c4b000] [debug]   use acyclic-minisat as backend solver
+[2025-05-28 15:32:05.246171] [0x00007f4387c4b000] [debug]   target isolation level: si
+[2025-05-28 15:32:05.246178] [0x00007f4387c4b000] [debug]   history type: dbcop
+[2025-05-28 15:32:05.367391] [0x00007f4387c4b000] [info]    #sessions: 51
+[2025-05-28 15:32:05.367435] [0x00007f4387c4b000] [info]    #transactions: 50001
+[2025-05-28 15:32:05.368205] [0x00007f4387c4b000] [info]    #events: 1049999
+[2025-05-28 15:34:22.227765] [0x00007f4387c4b000] [debug]   #ww constraints: 7162429
+[2025-05-28 15:34:22.227822] [0x00007f4387c4b000] [debug]   #wr constraints: 500388
+[2025-05-28 15:34:22.227825] [0x00007f4387c4b000] [info]    #constraints: 7662817
+[2025-05-28 15:34:25.496763] [0x00007f4387c4b000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2025-05-28 15:34:25.590981] [0x00007f4387c4b000] [debug]   #unit wr constraints = 490823
+[2025-05-28 15:34:25.591045] [0x00007f4387c4b000] [debug]   unit wr ratio = 0.980885
+[2025-05-28 15:34:25.591047] [0x00007f4387c4b000] [debug]   max wr length = 16
+[2025-05-28 15:34:25.591050] [0x00007f4387c4b000] [debug]   average wr length = 1.02563
+[2025-05-28 15:34:25.591057] [0x00007f4387c4b000] [debug]   average wr length(w/o unit cons) = 2.34093
+[2025-05-28 15:34:25.592977] [0x00007f4387c4b000] [debug]   #some constraint: 7662817
+[2025-05-28 15:34:25.593002] [0x00007f4387c4b000] [debug]   #unique constraint: 7183764
+[2025-05-28 15:34:25.680995] [0x00007f4387c4b000] [info]    construct time: 140434ms
+[2025-05-28 15:34:25.681028] [0x00007f4387c4b000] [debug]   pruning method: fast
+[2025-05-28 16:30:11.837216] [0x00007f4387c4b000] [debug]   constructing reachability time: 3186889ms
+[2025-05-28 16:30:11.837254] [0x00007f4387c4b000] [debug]   checking time: 387ms
+[2025-05-28 16:30:11.837257] [0x00007f4387c4b000] [debug]   adding edge time: 3223ms
+[2025-05-28 16:30:20.804295] [0x00007f4387c4b000] [debug]   after pruning, remeasuring repeat values...
+[2025-05-28 16:30:20.804332] [0x00007f4387c4b000] [debug]   #unit wr constraints = 0
+[2025-05-28 16:30:20.804348] [0x00007f4387c4b000] [debug]   unit wr ratio = 0
+[2025-05-28 16:30:20.804350] [0x00007f4387c4b000] [debug]   max wr length = 2
+[2025-05-28 16:30:20.804352] [0x00007f4387c4b000] [debug]   average wr length = 2
+[2025-05-28 16:30:20.804356] [0x00007f4387c4b000] [debug]   average wr length(w/o unit cons) = 2
+[2025-05-28 16:30:20.804359] [0x00007f4387c4b000] [debug]   #some constraint: 33993
+[2025-05-28 16:30:20.804361] [0x00007f4387c4b000] [debug]   #unique constraint: 33993
+[2025-05-28 16:30:20.804370] [0x00007f4387c4b000] [info]    prune time: 3355123ms
+[2025-05-28 16:30:25.978630] [0x00007f4387c4b000] [info]    solver initializing time: 5174ms
+[2025-05-28 17:43:55.128119] [0x00007f4387c4b000] [info]    solve time: 4409149ms
+accept: true
+, stderr =      Command being timed: "timeout 24h /smt-transactional-consistency-artifact/scripts/../builddir-release/checker /smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_1000_20_50000_0.5_r_0.5_0.5_1000/hist-00000/history.bincode --solver acyclic-minisat --history-type dbcop --log-level debug --measuring-repeat-values --isolation-level si --pruning fast"
+        User time (seconds): 7723.27
+        System time (seconds): 185.54
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 2:11:59
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 131911220
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 0
+        Minor (reclaiming a frame) page faults: 43510671
+        Voluntary context switches: 4
+        Involuntary context switches: 778058
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+[2025-05-28 17:44:05,615] [DEBUG]  thread 1 starts parsing logs of task 50_1000_20_50000_0.5_r_0.5_0.5_1000, max memory = 6946816, logs = ['[2025-05-28 15:32:05.246125] [0x00007f4387c4b000] [debug]   use acyclic-minisat as backend solver', '[2025-05-28 15:32:05.246171] [0x00007f4387c4b000] [debug]   target isolation level: si', '[2025-05-28 15:32:05.246178] [0x00007f4387c4b000] [debug]   history type: dbcop', '[2025-05-28 15:32:05.367391] [0x00007f4387c4b000] [info]    #sessions: 51', '[2025-05-28 15:32:05.367435] [0x00007f4387c4b000] [info]    #transactions: 50001', '[2025-05-28 15:32:05.368205] [0x00007f4387c4b000] [info]    #events: 1049999', '[2025-05-28 15:34:22.227765] [0x00007f4387c4b000] [debug]   #ww constraints: 7162429', '[2025-05-28 15:34:22.227822] [0x00007f4387c4b000] [debug]   #wr constraints: 500388', '[2025-05-28 15:34:22.227825] [0x00007f4387c4b000] [info]    #constraints: 7662817', '[2025-05-28 15:34:25.496763] [0x00007f4387c4b000] [debug]   Find multiple writes on same (key, value). This history does NOTsatisfy UniqueValue', '[2025-05-28 15:34:25.590981] [0x00007f4387c4b000] [debug]   #unit wr constraints = 490823', '[2025-05-28 15:34:25.591045] [0x00007f4387c4b000] [debug]   unit wr ratio = 0.980885', '[2025-05-28 15:34:25.591047] [0x00007f4387c4b000] [debug]   max wr length = 16', '[2025-05-28 15:34:25.591050] [0x00007f4387c4b000] [debug]   average wr length = 1.02563', '[2025-05-28 15:34:25.591057] [0x00007f4387c4b000] [debug]   average wr length(w/o unit cons) = 2.34093', '[2025-05-28 15:34:25.592977] [0x00007f4387c4b000] [debug]   #some constraint: 7662817', '[2025-05-28 15:34:25.593002] [0x00007f4387c4b000] [debug]   #unique constraint: 7183764', '[2025-05-28 15:34:25.680995] [0x00007f4387c4b000] [info]    construct time: 140434ms', '[2025-05-28 15:34:25.681028] [0x00007f4387c4b000] [debug]   pruning method: fast', '[2025-05-28 16:30:11.837216] [0x00007f4387c4b000] [debug]   constructing reachability time: 3186889ms', '[2025-05-28 16:30:11.837254] [0x00007f4387c4b000] [debug]   checking time: 387ms', '[2025-05-28 16:30:11.837257] [0x00007f4387c4b000] [debug]   adding edge time: 3223ms', '[2025-05-28 16:30:20.804295] [0x00007f4387c4b000] [debug]   after pruning, remeasuring repeat values...', '[2025-05-28 16:30:20.804332] [0x00007f4387c4b000] [debug]   #unit wr constraints = 0', '[2025-05-28 16:30:20.804348] [0x00007f4387c4b000] [debug]   unit wr ratio = 0', '[2025-05-28 16:30:20.804350] [0x00007f4387c4b000] [debug]   max wr length = 2', '[2025-05-28 16:30:20.804352] [0x00007f4387c4b000] [debug]   average wr length = 2', '[2025-05-28 16:30:20.804356] [0x00007f4387c4b000] [debug]   average wr length(w/o unit cons) = 2', '[2025-05-28 16:30:20.804359] [0x00007f4387c4b000] [debug]   #some constraint: 33993', '[2025-05-28 16:30:20.804361] [0x00007f4387c4b000] [debug]   #unique constraint: 33993', '[2025-05-28 16:30:20.804370] [0x00007f4387c4b000] [info]    prune time: 3355123ms', '[2025-05-28 16:30:25.978630] [0x00007f4387c4b000] [info]    solver initializing time: 5174ms', '[2025-05-28 17:43:55.128119] [0x00007f4387c4b000] [info]    solve time: 4409149ms', 'accept: true', '']
+[2025-05-28 17:44:05,615] [INFO]  thread 1 finished task 50_1000_20_50000_0.5_r_0.5_0.5_1000
+[2025-05-28 17:44:05,615] [INFO]  thread 1 starts running task 50_400_20_50000_0.5_r_0.5_0.5_1000
+[2025-05-28 17:44:05,616] [DEBUG]  thread 1 runs cmd ['/usr/bin/time', '-v', 'timeout', '24h', '/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_400_20_50000_0.5_r_0.5_0.5_1000/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--log-level', 'debug', '--measuring-repeat-values', '--isolation-level', 'si', '--pruning', 'fast']
+[2025-05-28 17:52:47,102] [DEBUG]  thread finished checking 50_400_20_50000_0.5_r_0.5_0.5_1000, stdout = [2025-05-28 17:44:05.641339] [0x00007fe0620e4000] [debug]   use acyclic-minisat as backend solver
+[2025-05-28 17:44:05.641376] [0x00007fe0620e4000] [debug]   target isolation level: si
+[2025-05-28 17:44:05.641383] [0x00007fe0620e4000] [debug]   history type: dbcop
+[2025-05-28 17:44:05.690527] [0x00007fe0620e4000] [info]    #sessions: 51
+[2025-05-28 17:44:05.690556] [0x00007fe0620e4000] [info]    #transactions: 20001
+[2025-05-28 17:44:05.690892] [0x00007fe0620e4000] [info]    #events: 449725
+[2025-05-28 17:44:16.741424] [0x00007fe0620e4000] [debug]   #ww constraints: 1191443
+[2025-05-28 17:44:16.741482] [0x00007fe0620e4000] [debug]   #wr constraints: 199655
+[2025-05-28 17:44:16.741485] [0x00007fe0620e4000] [info]    #constraints: 1391098
+[2025-05-28 17:44:17.186373] [0x00007fe0620e4000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2025-05-28 17:44:17.207950] [0x00007fe0620e4000] [debug]   #unit wr constraints = 197977
+[2025-05-28 17:44:17.208031] [0x00007fe0620e4000] [debug]   unit wr ratio = 0.991596
+[2025-05-28 17:44:17.208034] [0x00007fe0620e4000] [debug]   max wr length = 15
+[2025-05-28 17:44:17.208036] [0x00007fe0620e4000] [debug]   average wr length = 1.01127
+[2025-05-28 17:44:17.208043] [0x00007fe0620e4000] [debug]   average wr length(w/o unit cons) = 2.34088
+[2025-05-28 17:44:17.208651] [0x00007fe0620e4000] [debug]   #some constraint: 1391098
+[2025-05-28 17:44:17.208663] [0x00007fe0620e4000] [debug]   #unique constraint: 1195017
+[2025-05-28 17:44:17.243159] [0x00007fe0620e4000] [info]    construct time: 11601ms
+[2025-05-28 17:44:17.243187] [0x00007fe0620e4000] [debug]   pruning method: fast
+[2025-05-28 17:46:02.809694] [0x00007fe0620e4000] [debug]   constructing reachability time: 88936ms
+[2025-05-28 17:46:02.809731] [0x00007fe0620e4000] [debug]   checking time: 4ms
+[2025-05-28 17:46:02.809734] [0x00007fe0620e4000] [debug]   adding edge time: 318ms
+[2025-05-28 17:46:03.847856] [0x00007fe0620e4000] [debug]   after pruning, remeasuring repeat values...
+[2025-05-28 17:46:03.847894] [0x00007fe0620e4000] [debug]   #unit wr constraints = 0
+[2025-05-28 17:46:03.847909] [0x00007fe0620e4000] [debug]   unit wr ratio = 0
+[2025-05-28 17:46:03.847911] [0x00007fe0620e4000] [debug]   max wr length = 2
+[2025-05-28 17:46:03.847914] [0x00007fe0620e4000] [debug]   average wr length = 2
+[2025-05-28 17:46:03.847917] [0x00007fe0620e4000] [debug]   average wr length(w/o unit cons) = 2
+[2025-05-28 17:46:03.847920] [0x00007fe0620e4000] [debug]   #some constraint: 13578
+[2025-05-28 17:46:03.847921] [0x00007fe0620e4000] [debug]   #unique constraint: 13578
+[2025-05-28 17:46:03.847930] [0x00007fe0620e4000] [info]    prune time: 106604ms
+[2025-05-28 17:46:04.868018] [0x00007fe0620e4000] [info]    solver initializing time: 1020ms
+[2025-05-28 17:52:44.730266] [0x00007fe0620e4000] [info]    solve time: 399862ms
+accept: true
+, stderr =      Command being timed: "timeout 24h /smt-transactional-consistency-artifact/scripts/../builddir-release/checker /smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_400_20_50000_0.5_r_0.5_0.5_1000/hist-00000/history.bincode --solver acyclic-minisat --history-type dbcop --log-level debug --measuring-repeat-values --isolation-level si --pruning fast"
+        User time (seconds): 510.07
+        System time (seconds): 10.08
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 8:40.47
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 13622020
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 0
+        Minor (reclaiming a frame) page faults: 4135393
+        Voluntary context switches: 2
+        Involuntary context switches: 51112
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+[2025-05-28 17:52:47,103] [DEBUG]  thread 1 starts parsing logs of task 50_400_20_50000_0.5_r_0.5_0.5_1000, max memory = 6950912, logs = ['[2025-05-28 17:44:05.641339] [0x00007fe0620e4000] [debug]   use acyclic-minisat as backend solver', '[2025-05-28 17:44:05.641376] [0x00007fe0620e4000] [debug]   target isolation level: si', '[2025-05-28 17:44:05.641383] [0x00007fe0620e4000] [debug]   history type: dbcop', '[2025-05-28 17:44:05.690527] [0x00007fe0620e4000] [info]    #sessions: 51', '[2025-05-28 17:44:05.690556] [0x00007fe0620e4000] [info]    #transactions: 20001', '[2025-05-28 17:44:05.690892] [0x00007fe0620e4000] [info]    #events: 449725', '[2025-05-28 17:44:16.741424] [0x00007fe0620e4000] [debug]   #ww constraints: 1191443', '[2025-05-28 17:44:16.741482] [0x00007fe0620e4000] [debug]   #wr constraints: 199655', '[2025-05-28 17:44:16.741485] [0x00007fe0620e4000] [info]    #constraints: 1391098', '[2025-05-28 17:44:17.186373] [0x00007fe0620e4000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue', '[2025-05-28 17:44:17.207950] [0x00007fe0620e4000] [debug]   #unit wr constraints = 197977', '[2025-05-28 17:44:17.208031] [0x00007fe0620e4000] [debug]   unit wr ratio = 0.991596', '[2025-05-28 17:44:17.208034] [0x00007fe0620e4000] [debug]   max wr length = 15', '[2025-05-28 17:44:17.208036] [0x00007fe0620e4000] [debug]   average wr length = 1.01127', '[2025-05-28 17:44:17.208043] [0x00007fe0620e4000] [debug]   average wr length(w/o unit cons) = 2.34088', '[2025-05-28 17:44:17.208651] [0x00007fe0620e4000] [debug]   #some constraint: 1391098', '[2025-05-28 17:44:17.208663] [0x00007fe0620e4000] [debug]   #unique constraint: 1195017', '[2025-05-28 17:44:17.243159] [0x00007fe0620e4000] [info]    construct time: 11601ms', '[2025-05-28 17:44:17.243187] [0x00007fe0620e4000] [debug]   pruning method: fast', '[2025-05-28 17:46:02.809694] [0x00007fe0620e4000] [debug]   constructing reachability time: 88936ms', '[2025-05-28 17:46:02.809731] [0x00007fe0620e4000] [debug]   checking time: 4ms', '[2025-05-28 17:46:02.809734] [0x00007fe0620e4000] [debug]   adding edge time: 318ms', '[2025-05-28 17:46:03.847856] [0x00007fe0620e4000] [debug]   after pruning, remeasuring repeat values...', '[2025-05-28 17:46:03.847894] [0x00007fe0620e4000] [debug]   #unit wr constraints = 0', '[2025-05-28 17:46:03.847909] [0x00007fe0620e4000] [debug]   unit wr ratio = 0', '[2025-05-28 17:46:03.847911] [0x00007fe0620e4000] [debug]   max wr length = 2', '[2025-05-28 17:46:03.847914] [0x00007fe0620e4000] [debug]   average wr length = 2', '[2025-05-28 17:46:03.847917] [0x00007fe0620e4000] [debug]   average wr length(w/o unit cons) = 2', '[2025-05-28 17:46:03.847920] [0x00007fe0620e4000] [debug]   #some constraint: 13578', '[2025-05-28 17:46:03.847921] [0x00007fe0620e4000] [debug]   #unique constraint: 13578', '[2025-05-28 17:46:03.847930] [0x00007fe0620e4000] [info]    prune time: 106604ms', '[2025-05-28 17:46:04.868018] [0x00007fe0620e4000] [info]    solver initializing time: 1020ms', '[2025-05-28 17:52:44.730266] [0x00007fe0620e4000] [info]    solve time: 399862ms', 'accept: true', '']
+[2025-05-28 17:52:47,103] [INFO]  thread 1 finished task 50_400_20_50000_0.5_r_0.5_0.5_1000
+[2025-05-28 17:52:47,103] [INFO]  thread 1 starts running task 50_1000_20_50000_0.95_r_0.5_0.5_1000
+[2025-05-28 17:52:47,103] [DEBUG]  thread 1 runs cmd ['/usr/bin/time', '-v', 'timeout', '24h', '/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_1000_20_50000_0.95_r_0.5_0.5_1000/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--log-level', 'debug', '--measuring-repeat-values', '--isolation-level', 'si', '--pruning', 'fast']
+[2025-05-28 17:54:11,468] [DEBUG]  thread finished checking 50_1000_20_50000_0.95_r_0.5_0.5_1000, stdout = [2025-05-28 17:52:47.126838] [0x00007fcc13aed000] [debug]   use acyclic-minisat as backend solver
+[2025-05-28 17:52:47.126879] [0x00007fcc13aed000] [debug]   target isolation level: si
+[2025-05-28 17:52:47.126886] [0x00007fcc13aed000] [debug]   history type: dbcop
+[2025-05-28 17:52:47.234521] [0x00007fcc13aed000] [info]    #sessions: 51
+[2025-05-28 17:52:47.234563] [0x00007fcc13aed000] [info]    #transactions: 50001
+[2025-05-28 17:52:47.235329] [0x00007fcc13aed000] [info]    #events: 1050000
+[2025-05-28 17:52:47.970444] [0x00007fcc13aed000] [debug]   #ww constraints: 104854
+[2025-05-28 17:52:47.970466] [0x00007fcc13aed000] [debug]   #wr constraints: 949536
+[2025-05-28 17:52:47.970469] [0x00007fcc13aed000] [info]    #constraints: 1054390
+[2025-05-28 17:52:48.125153] [0x00007fcc13aed000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2025-05-28 17:52:48.135043] [0x00007fcc13aed000] [debug]   #unit wr constraints = 947910
+[2025-05-28 17:52:48.135080] [0x00007fcc13aed000] [debug]   unit wr ratio = 0.998288
+[2025-05-28 17:52:48.135082] [0x00007fcc13aed000] [debug]   max wr length = 2
+[2025-05-28 17:52:48.135085] [0x00007fcc13aed000] [debug]   average wr length = 1.00171
+[2025-05-28 17:52:48.135090] [0x00007fcc13aed000] [debug]   average wr length(w/o unit cons) = 2
+[2025-05-28 17:52:48.138681] [0x00007fcc13aed000] [debug]   #some constraint: 1054390
+[2025-05-28 17:52:48.138696] [0x00007fcc13aed000] [debug]   #unique constraint: 106480
+[2025-05-28 17:52:48.214564] [0x00007fcc13aed000] [info]    construct time: 1087ms
+[2025-05-28 17:52:48.214585] [0x00007fcc13aed000] [debug]   pruning method: fast
+[2025-05-28 17:53:19.808103] [0x00007fcc13aed000] [debug]   constructing reachability time: 19727ms
+[2025-05-28 17:53:19.808159] [0x00007fcc13aed000] [debug]   checking time: 3ms
+[2025-05-28 17:53:19.808162] [0x00007fcc13aed000] [debug]   adding edge time: 157ms
+[2025-05-28 17:53:20.537476] [0x00007fcc13aed000] [debug]   after pruning, remeasuring repeat values...
+[2025-05-28 17:53:20.537518] [0x00007fcc13aed000] [debug]   #unit wr constraints = 0
+[2025-05-28 17:53:20.537533] [0x00007fcc13aed000] [debug]   unit wr ratio = 0
+[2025-05-28 17:53:20.537535] [0x00007fcc13aed000] [debug]   max wr length = 2
+[2025-05-28 17:53:20.537537] [0x00007fcc13aed000] [debug]   average wr length = 2
+[2025-05-28 17:53:20.537540] [0x00007fcc13aed000] [debug]   average wr length(w/o unit cons) = 2
+[2025-05-28 17:53:20.537543] [0x00007fcc13aed000] [debug]   #some constraint: 214
+[2025-05-28 17:53:20.537545] [0x00007fcc13aed000] [debug]   #unique constraint: 214
+[2025-05-28 17:53:20.537553] [0x00007fcc13aed000] [info]    prune time: 32323ms
+[2025-05-28 17:53:21.015004] [0x00007fcc13aed000] [info]    solver initializing time: 477ms
+[2025-05-28 17:54:09.669263] [0x00007fcc13aed000] [info]    solve time: 48654ms
+accept: true
+, stderr =      Command being timed: "timeout 24h /smt-transactional-consistency-artifact/scripts/../builddir-release/checker /smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_1000_20_50000_0.95_r_0.5_0.5_1000/hist-00000/history.bincode --solver acyclic-minisat --history-type dbcop --log-level debug --measuring-repeat-values --isolation-level si --pruning fast"
+        User time (seconds): 80.49
+        System time (seconds): 2.76
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 1:23.35
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 5843072
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 0
+        Minor (reclaiming a frame) page faults: 1597275
+        Voluntary context switches: 2
+        Involuntary context switches: 8222
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+[2025-05-28 17:54:11,468] [DEBUG]  thread 1 starts parsing logs of task 50_1000_20_50000_0.95_r_0.5_0.5_1000, max memory = 6938624, logs = ['[2025-05-28 17:52:47.126838] [0x00007fcc13aed000] [debug]   use acyclic-minisat as backend solver', '[2025-05-28 17:52:47.126879] [0x00007fcc13aed000] [debug]   target isolation level: si', '[2025-05-28 17:52:47.126886] [0x00007fcc13aed000] [debug]   history type: dbcop', '[2025-05-28 17:52:47.234521] [0x00007fcc13aed000] [info]    #sessions: 51', '[2025-05-28 17:52:47.234563] [0x00007fcc13aed000] [info]    #transactions: 50001', '[2025-05-28 17:52:47.235329] [0x00007fcc13aed000] [info]    #events: 1050000', '[2025-05-28 17:52:47.970444] [0x00007fcc13aed000] [debug]   #ww constraints: 104854', '[2025-05-28 17:52:47.970466] [0x00007fcc13aed000] [debug]   #wr constraints: 949536', '[2025-05-28 17:52:47.970469] [0x00007fcc13aed000] [info]    #constraints: 1054390', '[2025-05-28 17:52:48.125153] [0x00007fcc13aed000] [debug]   Find multiple writes on same (key, value). This history does NOTsatisfy UniqueValue', '[2025-05-28 17:52:48.135043] [0x00007fcc13aed000] [debug]   #unit wr constraints = 947910', '[2025-05-28 17:52:48.135080] [0x00007fcc13aed000] [debug]   unit wr ratio = 0.998288', '[2025-05-28 17:52:48.135082] [0x00007fcc13aed000] [debug]   max wr length = 2', '[2025-05-28 17:52:48.135085] [0x00007fcc13aed000] [debug]   average wr length = 1.00171', '[2025-05-28 17:52:48.135090] [0x00007fcc13aed000] [debug]   average wr length(w/o unit cons) = 2', '[2025-05-28 17:52:48.138681] [0x00007fcc13aed000] [debug]   #some constraint: 1054390', '[2025-05-28 17:52:48.138696] [0x00007fcc13aed000] [debug]   #unique constraint: 106480', '[2025-05-28 17:52:48.214564] [0x00007fcc13aed000] [info]    construct time: 1087ms', '[2025-05-28 17:52:48.214585] [0x00007fcc13aed000] [debug]   pruning method: fast', '[2025-05-28 17:53:19.808103] [0x00007fcc13aed000] [debug]   constructing reachability time: 19727ms', '[2025-05-28 17:53:19.808159] [0x00007fcc13aed000] [debug]   checking time: 3ms', '[2025-05-28 17:53:19.808162] [0x00007fcc13aed000] [debug]   adding edge time: 157ms', '[2025-05-28 17:53:20.537476] [0x00007fcc13aed000] [debug]   after pruning, remeasuring repeat values...', '[2025-05-28 17:53:20.537518] [0x00007fcc13aed000] [debug]   #unit wr constraints = 0', '[2025-05-28 17:53:20.537533] [0x00007fcc13aed000] [debug]   unit wr ratio = 0', '[2025-05-28 17:53:20.537535] [0x00007fcc13aed000] [debug]   max wr length = 2', '[2025-05-28 17:53:20.537537] [0x00007fcc13aed000] [debug]   average wr length = 2', '[2025-05-28 17:53:20.537540] [0x00007fcc13aed000] [debug]   average wr length(w/o unit cons) = 2', '[2025-05-28 17:53:20.537543] [0x00007fcc13aed000] [debug]   #some constraint: 214', '[2025-05-28 17:53:20.537545] [0x00007fcc13aed000] [debug]   #unique constraint: 214', '[2025-05-28 17:53:20.537553] [0x00007fcc13aed000] [info]    prune time: 32323ms', '[2025-05-28 17:53:21.015004] [0x00007fcc13aed000] [info]    solver initializing time: 477ms', '[2025-05-28 17:54:09.669263] [0x00007fcc13aed000] [info]    solve time: 48654ms', 'accept:true', '']
+[2025-05-28 17:54:11,468] [INFO]  thread 1 finished task 50_1000_20_50000_0.95_r_0.5_0.5_1000
+[2025-05-28 17:54:11,469] [INFO]  thread 1 starts running task 50_800_20_50000_0.5_r_0.5_0.5_1000
+[2025-05-28 17:54:11,469] [DEBUG]  thread 1 runs cmd ['/usr/bin/time', '-v', 'timeout', '24h', '/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_800_20_50000_0.5_r_0.5_0.5_1000/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--log-level', 'debug', '--measuring-repeat-values', '--isolation-level', 'si', '--pruning', 'fast']
+[2025-05-28 19:07:23,386] [DEBUG]  thread finished checking 50_800_20_50000_0.5_r_0.5_0.5_1000, stdout = [2025-05-28 17:54:11.493318] [0x00007f4e19daa000] [debug]   use acyclic-minisat as backend solver
+[2025-05-28 17:54:11.493356] [0x00007f4e19daa000] [debug]   target isolation level: si
+[2025-05-28 17:54:11.493363] [0x00007f4e19daa000] [debug]   history type: dbcop
+[2025-05-28 17:54:11.581555] [0x00007f4e19daa000] [info]    #sessions: 51
+[2025-05-28 17:54:11.581592] [0x00007f4e19daa000] [info]    #transactions: 40001
+[2025-05-28 17:54:11.582175] [0x00007f4e19daa000] [info]    #events: 849997
+[2025-05-28 17:55:18.307530] [0x00007f4e19daa000] [debug]   #ww constraints: 4603337
+[2025-05-28 17:55:18.307590] [0x00007f4e19daa000] [debug]   #wr constraints: 399799
+[2025-05-28 17:55:18.307593] [0x00007f4e19daa000] [info]    #constraints: 5003136
+[2025-05-28 17:55:19.995208] [0x00007f4e19daa000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2025-05-28 17:55:20.044345] [0x00007f4e19daa000] [debug]   #unit wr constraints = 394218
+[2025-05-28 17:55:20.044409] [0x00007f4e19daa000] [debug]   unit wr ratio = 0.98604
+[2025-05-28 17:55:20.044411] [0x00007f4e19daa000] [debug]   max wr length = 11
+[2025-05-28 17:55:20.044414] [0x00007f4e19daa000] [debug]   average wr length = 1.01687
+[2025-05-28 17:55:20.044422] [0x00007f4e19daa000] [debug]   average wr length(w/o unit cons) = 2.20821
+[2025-05-28 17:55:20.045941] [0x00007f4e19daa000] [debug]   #some constraint: 5003136
+[2025-05-28 17:55:20.045966] [0x00007f4e19daa000] [debug]   #unique constraint: 4612230
+[2025-05-28 17:55:20.111558] [0x00007f4e19daa000] [info]    construct time: 68618ms
+[2025-05-28 17:55:20.111591] [0x00007f4e19daa000] [debug]   pruning method: fast
+[2025-05-28 18:20:15.507466] [0x00007f4e19daa000] [debug]   constructing reachability time: 1405838ms
+[2025-05-28 18:20:15.507525] [0x00007f4e19daa000] [debug]   checking time: 123ms
+[2025-05-28 18:20:15.507528] [0x00007f4e19daa000] [debug]   adding edge time: 1470ms
+[2025-05-28 18:20:20.946977] [0x00007f4e19daa000] [debug]   after pruning, remeasuring repeat values...
+[2025-05-28 18:20:20.947018] [0x00007f4e19daa000] [debug]   #unit wr constraints = 0
+[2025-05-28 18:20:20.947034] [0x00007f4e19daa000] [debug]   unit wr ratio = 0
+[2025-05-28 18:20:20.947036] [0x00007f4e19daa000] [debug]   max wr length = 2
+[2025-05-28 18:20:20.947038] [0x00007f4e19daa000] [debug]   average wr length = 2
+[2025-05-28 18:20:20.947042] [0x00007f4e19daa000] [debug]   average wr length(w/o unit cons) = 2
+[2025-05-28 18:20:20.947045] [0x00007f4e19daa000] [debug]   #some constraint: 29159
+[2025-05-28 18:20:20.947047] [0x00007f4e19daa000] [debug]   #unique constraint: 29159
+[2025-05-28 18:20:20.947056] [0x00007f4e19daa000] [info]    prune time: 1500835ms
+[2025-05-28 18:20:24.317101] [0x00007f4e19daa000] [info]    solver initializing time: 3370ms
+[2025-05-28 19:07:16.937582] [0x00007f4e19daa000] [info]    solve time: 2812620ms
+accept: true
+, stderr =      Command being timed: "timeout 24h /smt-transactional-consistency-artifact/scripts/../builddir-release/checker /smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_800_20_50000_0.5_r_0.5_0.5_1000/hist-00000/history.bincode --solver acyclic-minisat --history-type dbcop --log-level debug --measuring-repeat-values --isolation-level si --pruning fast"
+        User time (seconds): 4297.41
+        System time (seconds): 88.45
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 1:13:10
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 76519672
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 0
+        Minor (reclaiming a frame) page faults: 20745380
+        Voluntary context switches: 3
+        Involuntary context switches: 430836
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+[2025-05-28 19:07:23,386] [DEBUG]  thread 1 starts parsing logs of task 50_800_20_50000_0.5_r_0.5_0.5_1000, max memory = 7012352, logs = ['[2025-05-28 17:54:11.493318] [0x00007f4e19daa000] [debug]   use acyclic-minisat as backend solver', '[2025-05-28 17:54:11.493356] [0x00007f4e19daa000] [debug]   target isolation level: si', '[2025-05-28 17:54:11.493363] [0x00007f4e19daa000] [debug]   history type: dbcop', '[2025-05-28 17:54:11.581555] [0x00007f4e19daa000] [info]    #sessions: 51', '[2025-05-28 17:54:11.581592] [0x00007f4e19daa000] [info]    #transactions: 40001', '[2025-05-28 17:54:11.582175] [0x00007f4e19daa000] [info]    #events: 849997', '[2025-05-28 17:55:18.307530] [0x00007f4e19daa000] [debug]   #ww constraints: 4603337', '[2025-05-28 17:55:18.307590] [0x00007f4e19daa000] [debug]   #wr constraints: 399799', '[2025-05-28 17:55:18.307593] [0x00007f4e19daa000] [info]    #constraints: 5003136', '[2025-05-28 17:55:19.995208] [0x00007f4e19daa000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue', '[2025-05-28 17:55:20.044345] [0x00007f4e19daa000] [debug]   #unit wr constraints = 394218', '[2025-05-28 17:55:20.044409] [0x00007f4e19daa000] [debug]   unit wr ratio = 0.98604', '[2025-05-28 17:55:20.044411] [0x00007f4e19daa000] [debug]   max wr length = 11', '[2025-05-28 17:55:20.044414] [0x00007f4e19daa000] [debug]   average wr length = 1.01687', '[2025-05-28 17:55:20.044422] [0x00007f4e19daa000] [debug]   average wr length(w/o unit cons) = 2.20821', '[2025-05-28 17:55:20.045941] [0x00007f4e19daa000] [debug]   #some constraint: 5003136', '[2025-05-28 17:55:20.045966] [0x00007f4e19daa000] [debug]   #unique constraint: 4612230', '[2025-05-28 17:55:20.111558] [0x00007f4e19daa000] [info]    construct time: 68618ms', '[2025-05-28 17:55:20.111591] [0x00007f4e19daa000] [debug]   pruning method: fast', '[2025-05-28 18:20:15.507466] [0x00007f4e19daa000] [debug]   constructing reachability time: 1405838ms', '[2025-05-28 18:20:15.507525] [0x00007f4e19daa000] [debug]   checking time: 123ms', '[2025-05-28 18:20:15.507528] [0x00007f4e19daa000] [debug]   adding edge time: 1470ms', '[2025-05-28 18:20:20.946977] [0x00007f4e19daa000] [debug]   after pruning, remeasuring repeat values...', '[2025-05-28 18:20:20.947018] [0x00007f4e19daa000] [debug]   #unit wr constraints = 0', '[2025-05-28 18:20:20.947034] [0x00007f4e19daa000] [debug]   unit wr ratio = 0', '[2025-05-28 18:20:20.947036] [0x00007f4e19daa000] [debug]   max wr length = 2', '[2025-05-28 18:20:20.947038] [0x00007f4e19daa000] [debug]   average wr length = 2', '[2025-05-28 18:20:20.947042] [0x00007f4e19daa000] [debug]   average wr length(w/o unit cons) = 2', '[2025-05-28 18:20:20.947045] [0x00007f4e19daa000] [debug]   #some constraint: 29159', '[2025-05-28 18:20:20.947047] [0x00007f4e19daa000] [debug]   #unique constraint: 29159', '[2025-05-28 18:20:20.947056] [0x00007f4e19daa000] [info]    prune time: 1500835ms', '[2025-05-28 18:20:24.317101] [0x00007f4e19daa000] [info]    solver initializing time: 3370ms', '[2025-05-28 19:07:16.937582] [0x00007f4e19daa000] [info]    solve time: 2812620ms', 'accept: true', '']
+[2025-05-28 19:07:23,386] [INFO]  thread 1 finished task 50_800_20_50000_0.5_r_0.5_0.5_1000
+[2025-05-28 19:07:23,387] [INFO]  thread 1 starts running task 50_600_20_50000_0.95_r_0.5_0.5_1000
+[2025-05-28 19:07:23,387] [DEBUG]  thread 1 runs cmd ['/usr/bin/time', '-v', 'timeout', '24h', '/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_600_20_50000_0.95_r_0.5_0.5_1000/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--log-level', 'debug', '--measuring-repeat-values', '--isolation-level', 'si', '--pruning', 'fast']
+[2025-05-28 19:07:49,112] [DEBUG]  thread finished checking 50_600_20_50000_0.95_r_0.5_0.5_1000, stdout = [2025-05-28 19:07:23.411140] [0x00007f44e4804000] [debug]   use acyclic-minisat as backend solver
+[2025-05-28 19:07:23.411177] [0x00007f44e4804000] [debug]   target isolation level: si
+[2025-05-28 19:07:23.411184] [0x00007f44e4804000] [debug]   history type: dbcop
+[2025-05-28 19:07:23.478177] [0x00007f44e4804000] [info]    #sessions: 51
+[2025-05-28 19:07:23.478208] [0x00007f44e4804000] [info]    #transactions: 30001
+[2025-05-28 19:07:23.478669] [0x00007f44e4804000] [info]    #events: 649981
+[2025-05-28 19:07:23.862103] [0x00007f44e4804000] [debug]   #ww constraints: 45942
+[2025-05-28 19:07:23.862125] [0x00007f44e4804000] [debug]   #wr constraints: 569440
+[2025-05-28 19:07:23.862128] [0x00007f44e4804000] [info]    #constraints: 615382
+[2025-05-28 19:07:23.945693] [0x00007f44e4804000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2025-05-28 19:07:23.952561] [0x00007f44e4804000] [debug]   #unit wr constraints = 568483
+[2025-05-28 19:07:23.952612] [0x00007f44e4804000] [debug]   unit wr ratio = 0.998319
+[2025-05-28 19:07:23.952614] [0x00007f44e4804000] [debug]   max wr length = 2
+[2025-05-28 19:07:23.952616] [0x00007f44e4804000] [debug]   average wr length = 1.00168
+[2025-05-28 19:07:23.952621] [0x00007f44e4804000] [debug]   average wr length(w/o unit cons) = 2
+[2025-05-28 19:07:23.954719] [0x00007f44e4804000] [debug]   #some constraint: 615382
+[2025-05-28 19:07:23.954736] [0x00007f44e4804000] [debug]   #unique constraint: 46899
+[2025-05-28 19:07:24.000028] [0x00007f44e4804000] [info]    construct time: 588ms
+[2025-05-28 19:07:24.000046] [0x00007f44e4804000] [debug]   pruning method: fast
+[2025-05-28 19:07:33.378339] [0x00007f44e4804000] [debug]   constructing reachability time: 4998ms
+[2025-05-28 19:07:33.378394] [0x00007f44e4804000] [debug]   checking time: 12ms
+[2025-05-28 19:07:33.378397] [0x00007f44e4804000] [debug]   adding edge time: 57ms
+[2025-05-28 19:07:33.685576] [0x00007f44e4804000] [debug]   after pruning, remeasuring repeat values...
+[2025-05-28 19:07:33.685617] [0x00007f44e4804000] [debug]   #unit wr constraints = 0
+[2025-05-28 19:07:33.685631] [0x00007f44e4804000] [debug]   unit wr ratio = 0
+[2025-05-28 19:07:33.685634] [0x00007f44e4804000] [debug]   max wr length = 2
+[2025-05-28 19:07:33.685636] [0x00007f44e4804000] [debug]   average wr length = 2
+[2025-05-28 19:07:33.685640] [0x00007f44e4804000] [debug]   average wr length(w/o unit cons) = 2
+[2025-05-28 19:07:33.685643] [0x00007f44e4804000] [debug]   #some constraint: 189
+[2025-05-28 19:07:33.685645] [0x00007f44e4804000] [debug]   #unique constraint: 189
+[2025-05-28 19:07:33.685655] [0x00007f44e4804000] [info]    prune time: 9685ms
+[2025-05-28 19:07:33.882267] [0x00007f44e4804000] [info]    solver initializing time: 196ms
+[2025-05-28 19:07:47.732485] [0x00007f44e4804000] [info]    solve time: 13850ms
+accept: true
+, stderr =      Command being timed: "timeout 24h /smt-transactional-consistency-artifact/scripts/../builddir-release/checker /smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_600_20_50000_0.95_r_0.5_0.5_1000/hist-00000/history.bincode --solver acyclic-minisat --history-type dbcop --log-level debug --measuring-repeat-values --isolation-level si --pruning fast"
+        User time (seconds): 23.45
+        System time (seconds): 1.23
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 0:24.71
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 2354904
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 0
+        Minor (reclaiming a frame) page faults: 672877
+        Voluntary context switches: 1
+        Involuntary context switches: 2438
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+[2025-05-28 19:07:49,112] [DEBUG]  thread 1 starts parsing logs of task 50_600_20_50000_0.95_r_0.5_0.5_1000, max memory = 6975488, logs = ['[2025-05-28 19:07:23.411140] [0x00007f44e4804000] [debug]   use acyclic-minisat as backend solver', '[2025-05-28 19:07:23.411177] [0x00007f44e4804000] [debug]   target isolation level: si', '[2025-05-28 19:07:23.411184] [0x00007f44e4804000] [debug]   history type: dbcop', '[2025-05-28 19:07:23.478177] [0x00007f44e4804000] [info]    #sessions: 51', '[2025-05-28 19:07:23.478208] [0x00007f44e4804000] [info]    #transactions: 30001', '[2025-05-28 19:07:23.478669] [0x00007f44e4804000] [info]    #events: 649981', '[2025-05-28 19:07:23.862103] [0x00007f44e4804000] [debug]   #ww constraints: 45942', '[2025-05-28 19:07:23.862125] [0x00007f44e4804000] [debug]   #wr constraints: 569440', '[2025-05-28 19:07:23.862128] [0x00007f44e4804000] [info]    #constraints: 615382', '[2025-05-28 19:07:23.945693] [0x00007f44e4804000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue', '[2025-05-28 19:07:23.952561] [0x00007f44e4804000] [debug]   #unit wr constraints = 568483', '[2025-05-28 19:07:23.952612] [0x00007f44e4804000] [debug]   unit wr ratio = 0.998319', '[2025-05-28 19:07:23.952614] [0x00007f44e4804000] [debug]   max wr length = 2', '[2025-05-28 19:07:23.952616] [0x00007f44e4804000] [debug]   average wr length = 1.00168', '[2025-05-28 19:07:23.952621] [0x00007f44e4804000] [debug]   average wr length(w/o unit cons) = 2', '[2025-05-28 19:07:23.954719] [0x00007f44e4804000] [debug]   #some constraint: 615382', '[2025-05-28 19:07:23.954736] [0x00007f44e4804000] [debug]   #unique constraint: 46899', '[2025-05-28 19:07:24.000028] [0x00007f44e4804000] [info]    construct time: 588ms', '[2025-05-28 19:07:24.000046] [0x00007f44e4804000] [debug]   pruning method: fast', '[2025-05-28 19:07:33.378339] [0x00007f44e4804000] [debug]   constructing reachability time: 4998ms', '[2025-05-28 19:07:33.378394] [0x00007f44e4804000] [debug]   checking time: 12ms', '[2025-05-28 19:07:33.378397] [0x00007f44e4804000] [debug]   adding edge time: 57ms', '[2025-05-28 19:07:33.685576] [0x00007f44e4804000] [debug]   after pruning, remeasuring repeat values...', '[2025-05-28 19:07:33.685617] [0x00007f44e4804000] [debug]   #unit wr constraints = 0', '[2025-05-28 19:07:33.685631] [0x00007f44e4804000] [debug]   unit wr ratio = 0', '[2025-05-28 19:07:33.685634] [0x00007f44e4804000] [debug]   max wr length = 2', '[2025-05-28 19:07:33.685636] [0x00007f44e4804000] [debug]   average wr length = 2', '[2025-05-28 19:07:33.685640] [0x00007f44e4804000] [debug]   average wr length(w/o unit cons) = 2', '[2025-05-28 19:07:33.685643] [0x00007f44e4804000] [debug]   #some constraint: 189', '[2025-05-28 19:07:33.685645] [0x00007f44e4804000] [debug]   #unique constraint: 189', '[2025-05-28 19:07:33.685655] [0x00007f44e4804000] [info]    prune time: 9685ms', '[2025-05-28 19:07:33.882267] [0x00007f44e4804000] [info]    solver initializing time: 196ms', '[2025-05-28 19:07:47.732485] [0x00007f44e4804000] [info]    solve time: 13850ms', 'accept: true', '']
+[2025-05-28 19:07:49,113] [INFO]  thread 1 finished task 50_600_20_50000_0.95_r_0.5_0.5_1000
+[2025-05-28 19:07:49,113] [INFO]  thread 1 starts running task 50_200_20_50000_0.95_r_0.5_0.5_1000
+[2025-05-28 19:07:49,113] [DEBUG]  thread 1 runs cmd ['/usr/bin/time', '-v', 'timeout', '24h', '/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_200_20_50000_0.95_r_0.5_0.5_1000/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--log-level', 'debug', '--measuring-repeat-values', '--isolation-level', 'si', '--pruning', 'fast']
+[2025-05-28 19:07:52,183] [DEBUG]  thread finished checking 50_200_20_50000_0.95_r_0.5_0.5_1000, stdout = [2025-05-28 19:07:49.137083] [0x00007ff3ae048000] [debug]   use acyclic-minisat as backend solver
+[2025-05-28 19:07:49.137118] [0x00007ff3ae048000] [debug]   target isolation level: si
+[2025-05-28 19:07:49.137125] [0x00007ff3ae048000] [debug]   history type: dbcop
+[2025-05-28 19:07:49.163828] [0x00007ff3ae048000] [info]    #sessions: 51
+[2025-05-28 19:07:49.163848] [0x00007ff3ae048000] [info]    #transactions: 10001
+[2025-05-28 19:07:49.164018] [0x00007ff3ae048000] [info]    #events: 247011
+[2025-05-28 19:07:49.284257] [0x00007ff3ae048000] [debug]   #ww constraints: 9370
+[2025-05-28 19:07:49.284279] [0x00007ff3ae048000] [debug]   #wr constraints: 189796
+[2025-05-28 19:07:49.284282] [0x00007ff3ae048000] [info]    #constraints: 199166
+[2025-05-28 19:07:49.316275] [0x00007ff3ae048000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2025-05-28 19:07:49.320934] [0x00007ff3ae048000] [debug]   #unit wr constraints = 189765
+[2025-05-28 19:07:49.320969] [0x00007ff3ae048000] [debug]   unit wr ratio = 0.999837
+[2025-05-28 19:07:49.320971] [0x00007ff3ae048000] [debug]   max wr length = 2
+[2025-05-28 19:07:49.320974] [0x00007ff3ae048000] [debug]   average wr length = 1.00016
+[2025-05-28 19:07:49.320979] [0x00007ff3ae048000] [debug]   average wr length(w/o unit cons) = 2
+[2025-05-28 19:07:49.321535] [0x00007ff3ae048000] [debug]   #some constraint: 199166
+[2025-05-28 19:07:49.321541] [0x00007ff3ae048000] [debug]   #unique constraint: 9401
+[2025-05-28 19:07:49.339338] [0x00007ff3ae048000] [info]    construct time: 202ms
+[2025-05-28 19:07:49.339353] [0x00007ff3ae048000] [debug]   pruning method: fast
+[2025-05-28 19:07:50.079964] [0x00007ff3ae048000] [debug]   constructing reachability time: 235ms
+[2025-05-28 19:07:50.079984] [0x00007ff3ae048000] [debug]   checking time: 0ms
+[2025-05-28 19:07:50.079987] [0x00007ff3ae048000] [debug]   adding edge time: 2ms
+[2025-05-28 19:07:50.111265] [0x00007ff3ae048000] [debug]   after pruning, remeasuring repeat values...
+[2025-05-28 19:07:50.111282] [0x00007ff3ae048000] [debug]   #unit wr constraints = 0
+[2025-05-28 19:07:50.111294] [0x00007ff3ae048000] [debug]   unit wr ratio = 0
+[2025-05-28 19:07:50.111296] [0x00007ff3ae048000] [debug]   max wr length = 2
+[2025-05-28 19:07:50.111298] [0x00007ff3ae048000] [debug]   average wr length = 2
+[2025-05-28 19:07:50.111301] [0x00007ff3ae048000] [debug]   average wr length(w/o unit cons) = 2
+[2025-05-28 19:07:50.111303] [0x00007ff3ae048000] [debug]   #some constraint: 74
+[2025-05-28 19:07:50.111305] [0x00007ff3ae048000] [debug]   #unique constraint: 74
+[2025-05-28 19:07:50.111310] [0x00007ff3ae048000] [info]    prune time: 771ms
+[2025-05-28 19:07:50.139590] [0x00007ff3ae048000] [info]    solver initializing time: 28ms
+[2025-05-28 19:07:51.101622] [0x00007ff3ae048000] [info]    solve time: 962ms
+accept: true
+, stderr =      Command being timed: "timeout 24h /smt-transactional-consistency-artifact/scripts/../builddir-release/checker /smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_200_20_50000_0.95_r_0.5_0.5_1000/hist-00000/history.bincode --solver acyclic-minisat --history-type dbcop --log-level debug --measuring-repeat-values --isolation-level si --pruning fast"
+        User time (seconds): 1.88
+        System time (seconds): 0.17
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 0:02.05
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 478068
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 0
+        Minor (reclaiming a frame) page faults: 118746
+        Voluntary context switches: 2
+        Involuntary context switches: 209
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+[2025-05-28 19:07:52,184] [DEBUG]  thread 1 starts parsing logs of task 50_200_20_50000_0.95_r_0.5_0.5_1000, max memory = 7012352, logs = ['[2025-05-28 19:07:49.137083] [0x00007ff3ae048000] [debug]   use acyclic-minisat as backend solver', '[2025-05-28 19:07:49.137118] [0x00007ff3ae048000] [debug]   target isolation level: si', '[2025-05-28 19:07:49.137125] [0x00007ff3ae048000] [debug]   history type: dbcop', '[2025-05-28 19:07:49.163828] [0x00007ff3ae048000] [info]    #sessions: 51', '[2025-05-28 19:07:49.163848] [0x00007ff3ae048000] [info]    #transactions: 10001', '[2025-05-28 19:07:49.164018] [0x00007ff3ae048000] [info]    #events: 247011', '[2025-05-28 19:07:49.284257] [0x00007ff3ae048000] [debug]   #ww constraints: 9370', '[2025-05-28 19:07:49.284279] [0x00007ff3ae048000] [debug]   #wr constraints: 189796', '[2025-05-28 19:07:49.284282] [0x00007ff3ae048000] [info]    #constraints: 199166', '[2025-05-28 19:07:49.316275] [0x00007ff3ae048000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue', '[2025-05-28 19:07:49.320934] [0x00007ff3ae048000] [debug]   #unit wr constraints = 189765', '[2025-05-28 19:07:49.320969] [0x00007ff3ae048000] [debug]   unit wr ratio = 0.999837', '[2025-05-28 19:07:49.320971] [0x00007ff3ae048000] [debug]   max wr length = 2', '[2025-05-28 19:07:49.320974] [0x00007ff3ae048000] [debug]   average wr length = 1.00016', '[2025-05-28 19:07:49.320979] [0x00007ff3ae048000] [debug]   average wr length(w/o unit cons) = 2', '[2025-05-28 19:07:49.321535] [0x00007ff3ae048000] [debug]   #some constraint: 199166', '[2025-05-28 19:07:49.321541] [0x00007ff3ae048000] [debug]   #unique constraint: 9401', '[2025-05-28 19:07:49.339338] [0x00007ff3ae048000] [info]    construct time: 202ms', '[2025-05-28 19:07:49.339353] [0x00007ff3ae048000] [debug]   pruning method: fast', '[2025-05-28 19:07:50.079964] [0x00007ff3ae048000] [debug]   constructing reachability time: 235ms', '[2025-05-28 19:07:50.079984] [0x00007ff3ae048000] [debug]   checking time: 0ms', '[2025-05-28 19:07:50.079987] [0x00007ff3ae048000] [debug]   adding edge time: 2ms', '[2025-05-28 19:07:50.111265] [0x00007ff3ae048000] [debug]   after pruning, remeasuring repeat values...', '[2025-05-28 19:07:50.111282] [0x00007ff3ae048000] [debug]   #unit wr constraints = 0', '[2025-05-28 19:07:50.111294] [0x00007ff3ae048000] [debug]   unit wr ratio = 0', '[2025-05-28 19:07:50.111296] [0x00007ff3ae048000] [debug]   max wr length = 2', '[2025-05-28 19:07:50.111298] [0x00007ff3ae048000] [debug]   average wr length = 2', '[2025-05-28 19:07:50.111301] [0x00007ff3ae048000] [debug]   average wr length(w/o unit cons) = 2', '[2025-05-28 19:07:50.111303] [0x00007ff3ae048000] [debug]   #some constraint: 74', '[2025-05-28 19:07:50.111305] [0x00007ff3ae048000] [debug]   #unique constraint: 74', '[2025-05-28 19:07:50.111310] [0x00007ff3ae048000] [info]    prune time: 771ms', '[2025-05-28 19:07:50.139590] [0x00007ff3ae048000] [info]    solver initializing time: 28ms', '[2025-05-28 19:07:51.101622] [0x00007ff3ae048000] [info]    solve time: 962ms', 'accept: true', '']
+[2025-05-28 19:07:52,184] [INFO]  thread 1 finished task 50_200_20_50000_0.95_r_0.5_0.5_1000
+[2025-05-28 19:07:52,184] [INFO]  thread 1 starts running task 50_400_20_50000_0.95_r_0.5_0.5_1000
+[2025-05-28 19:07:52,184] [DEBUG]  thread 1 runs cmd ['/usr/bin/time', '-v', 'timeout', '24h', '/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_400_20_50000_0.95_r_0.5_0.5_1000/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--log-level', 'debug', '--measuring-repeat-values', '--isolation-level', 'si', '--pruning', 'fast']
+[2025-05-28 19:08:01,686] [DEBUG]  thread finished checking 50_400_20_50000_0.95_r_0.5_0.5_1000, stdout = [2025-05-28 19:07:52.208187] [0x00007ff741f7f000] [debug]   use acyclic-minisat as backend solver
+[2025-05-28 19:07:52.208228] [0x00007ff741f7f000] [debug]   target isolation level: si
+[2025-05-28 19:07:52.208234] [0x00007ff741f7f000] [debug]   history type: dbcop
+[2025-05-28 19:07:52.256095] [0x00007ff741f7f000] [info]    #sessions: 51
+[2025-05-28 19:07:52.256121] [0x00007ff741f7f000] [info]    #transactions: 20001
+[2025-05-28 19:07:52.256451] [0x00007ff741f7f000] [info]    #events: 449714
+[2025-05-28 19:07:52.488692] [0x00007ff741f7f000] [debug]   #ww constraints: 24092
+[2025-05-28 19:07:52.488713] [0x00007ff741f7f000] [debug]   #wr constraints: 379760
+[2025-05-28 19:07:52.488716] [0x00007ff741f7f000] [info]    #constraints: 403852
+[2025-05-28 19:07:52.561956] [0x00007ff741f7f000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2025-05-28 19:07:52.568764] [0x00007ff741f7f000] [debug]   #unit wr constraints = 379377
+[2025-05-28 19:07:52.568837] [0x00007ff741f7f000] [debug]   unit wr ratio = 0.998991
+[2025-05-28 19:07:52.568840] [0x00007ff741f7f000] [debug]   max wr length = 2
+[2025-05-28 19:07:52.568842] [0x00007ff741f7f000] [debug]   average wr length = 1.00101
+[2025-05-28 19:07:52.568849] [0x00007ff741f7f000] [debug]   average wr length(w/o unit cons) = 2
+[2025-05-28 19:07:52.570970] [0x00007ff741f7f000] [debug]   #some constraint: 403852
+[2025-05-28 19:07:52.570991] [0x00007ff741f7f000] [debug]   #unique constraint: 24475
+[2025-05-28 19:07:52.604455] [0x00007ff741f7f000] [info]    construct time: 396ms
+[2025-05-28 19:07:52.604479] [0x00007ff741f7f000] [debug]   pruning method: fast
+[2025-05-28 19:07:55.492056] [0x00007ff741f7f000] [debug]   constructing reachability time: 971ms
+[2025-05-28 19:07:55.492128] [0x00007ff741f7f000] [debug]   checking time: 2ms
+[2025-05-28 19:07:55.492131] [0x00007ff741f7f000] [debug]   adding edge time: 31ms
+[2025-05-28 19:07:55.661620] [0x00007ff741f7f000] [debug]   after pruning, remeasuring repeat values...
+[2025-05-28 19:07:55.661656] [0x00007ff741f7f000] [debug]   This history may not satisfy UniqueValue. But there's no WR constraint.
+[2025-05-28 19:07:55.661661] [0x00007ff741f7f000] [debug]   #some constraint: 82
+[2025-05-28 19:07:55.661663] [0x00007ff741f7f000] [debug]   #unique constraint: 82
+[2025-05-28 19:07:55.661672] [0x00007ff741f7f000] [info]    prune time: 3057ms
+[2025-05-28 19:07:55.766291] [0x00007ff741f7f000] [info]    solver initializing time: 104ms
+[2025-05-28 19:08:00.478170] [0x00007ff741f7f000] [info]    solve time: 4711ms
+accept: true
+, stderr =      Command being timed: "timeout 24h /smt-transactional-consistency-artifact/scripts/../builddir-release/checker /smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_400_20_50000_0.95_r_0.5_0.5_1000/hist-00000/history.bincode --solver acyclic-minisat --history-type dbcop --log-level debug --measuring-repeat-values --isolation-level si --pruning fast"
+        User time (seconds): 7.83
+        System time (seconds): 0.64
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 0:08.49
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 1199400
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 0
+        Minor (reclaiming a frame) page faults: 349749
+        Voluntary context switches: 2
+        Involuntary context switches: 844
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+[2025-05-28 19:08:01,687] [DEBUG]  thread 1 starts parsing logs of task 50_400_20_50000_0.95_r_0.5_0.5_1000, max memory = 6983680, logs = ['[2025-05-28 19:07:52.208187] [0x00007ff741f7f000] [debug]   use acyclic-minisat as backend solver', '[2025-05-28 19:07:52.208228] [0x00007ff741f7f000] [debug]   target isolation level: si', '[2025-05-28 19:07:52.208234] [0x00007ff741f7f000] [debug]   history type: dbcop', '[2025-05-28 19:07:52.256095] [0x00007ff741f7f000] [info]    #sessions: 51', '[2025-05-28 19:07:52.256121] [0x00007ff741f7f000] [info]    #transactions: 20001', '[2025-05-28 19:07:52.256451] [0x00007ff741f7f000] [info]    #events: 449714', '[2025-05-28 19:07:52.488692] [0x00007ff741f7f000] [debug]   #ww constraints: 24092', '[2025-05-28 19:07:52.488713] [0x00007ff741f7f000] [debug]   #wr constraints: 379760', '[2025-05-28 19:07:52.488716] [0x00007ff741f7f000] [info]    #constraints: 403852', '[2025-05-28 19:07:52.561956] [0x00007ff741f7f000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue', '[2025-05-28 19:07:52.568764] [0x00007ff741f7f000] [debug]   #unit wr constraints = 379377', '[2025-05-28 19:07:52.568837] [0x00007ff741f7f000] [debug]   unit wr ratio = 0.998991', '[2025-05-28 19:07:52.568840] [0x00007ff741f7f000] [debug]   max wr length = 2', '[2025-05-28 19:07:52.568842] [0x00007ff741f7f000] [debug]   average wr length = 1.00101', '[2025-05-28 19:07:52.568849] [0x00007ff741f7f000] [debug]   average wr length(w/o unit cons) = 2', '[2025-05-28 19:07:52.570970] [0x00007ff741f7f000] [debug]   #some constraint: 403852', '[2025-05-28 19:07:52.570991] [0x00007ff741f7f000] [debug]   #unique constraint: 24475', '[2025-05-28 19:07:52.604455] [0x00007ff741f7f000] [info]    construct time: 396ms', '[2025-05-28 19:07:52.604479] [0x00007ff741f7f000] [debug]   pruning method: fast', '[2025-05-28 19:07:55.492056] [0x00007ff741f7f000] [debug]   constructing reachability time: 971ms', '[2025-05-28 19:07:55.492128] [0x00007ff741f7f000] [debug]   checking time: 2ms', '[2025-05-28 19:07:55.492131] [0x00007ff741f7f000] [debug]   adding edge time: 31ms', '[2025-05-28 19:07:55.661620] [0x00007ff741f7f000] [debug]   after pruning, remeasuring repeat values...', "[2025-05-28 19:07:55.661656] [0x00007ff741f7f000] [debug]   This history may not satisfy UniqueValue. But there's no WR constraint.", '[2025-05-28 19:07:55.661661] [0x00007ff741f7f000] [debug]   #some constraint: 82', '[2025-05-28 19:07:55.661663] [0x00007ff741f7f000] [debug]   #unique constraint: 82', '[2025-05-28 19:07:55.661672] [0x00007ff741f7f000] [info]    prune time: 3057ms', '[2025-05-28 19:07:55.766291] [0x00007ff741f7f000] [info]    solver initializing time: 104ms', '[2025-05-28 19:08:00.478170] [0x00007ff741f7f000] [info]    solve time: 4711ms', 'accept: true', '']
+[2025-05-28 19:08:01,687] [INFO]  thread 1 finished task 50_400_20_50000_0.95_r_0.5_0.5_1000
+[2025-05-28 19:08:01,687] [INFO]  thread 1 starts running task 50_600_20_50000_0.3_r_0.5_0.5_1000
+[2025-05-28 19:08:01,688] [DEBUG]  thread 1 runs cmd ['/usr/bin/time', '-v', 'timeout', '24h', '/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_600_20_50000_0.3_r_0.5_0.5_1000/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--log-level', 'debug', '--measuring-repeat-values', '--isolation-level', 'si', '--pruning', 'fast']
+[2025-05-28 20:24:36,432] [DEBUG]  thread finished checking 50_600_20_50000_0.3_r_0.5_0.5_1000, stdout = [2025-05-28 19:08:01.711652] [0x00007f1e35ea7000] [debug]   use acyclic-minisat as backend solver
+[2025-05-28 19:08:01.711683] [0x00007f1e35ea7000] [debug]   target isolation level: si
+[2025-05-28 19:08:01.711689] [0x00007f1e35ea7000] [debug]   history type: dbcop
+[2025-05-28 19:08:01.778488] [0x00007f1e35ea7000] [info]    #sessions: 51
+[2025-05-28 19:08:01.778518] [0x00007f1e35ea7000] [info]    #transactions: 30001
+[2025-05-28 19:08:01.778965] [0x00007f1e35ea7000] [info]    #events: 649973
+[2025-05-28 19:10:08.420426] [0x00007f1e35ea7000] [debug]   #ww constraints: 5052740
+[2025-05-28 19:10:08.420478] [0x00007f1e35ea7000] [debug]   #wr constraints: 179661
+[2025-05-28 19:10:08.420482] [0x00007f1e35ea7000] [info]    #constraints: 5232401
+[2025-05-28 19:10:10.867623] [0x00007f1e35ea7000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2025-05-28 19:10:10.943154] [0x00007f1e35ea7000] [debug]   #unit wr constraints = 176737
+[2025-05-28 19:10:10.943222] [0x00007f1e35ea7000] [debug]   unit wr ratio = 0.983725
+[2025-05-28 19:10:10.943225] [0x00007f1e35ea7000] [debug]   max wr length = 13
+[2025-05-28 19:10:10.943228] [0x00007f1e35ea7000] [debug]   average wr length = 1.02071
+[2025-05-28 19:10:10.943235] [0x00007f1e35ea7000] [debug]   average wr length(w/o unit cons) = 2.27257
+[2025-05-28 19:10:10.943852] [0x00007f1e35ea7000] [debug]   #some constraint: 5232401
+[2025-05-28 19:10:10.943864] [0x00007f1e35ea7000] [debug]   #unique constraint: 5058078
+[2025-05-28 19:10:11.008745] [0x00007f1e35ea7000] [info]    construct time: 129297ms
+[2025-05-28 19:10:11.008779] [0x00007f1e35ea7000] [debug]   pruning method: fast
+[2025-05-28 19:22:07.973874] [0x00007f1e35ea7000] [debug]   constructing reachability time: 650748ms
+[2025-05-28 19:22:07.973935] [0x00007f1e35ea7000] [debug]   checking time: 9ms
+[2025-05-28 19:22:07.973938] [0x00007f1e35ea7000] [debug]   adding edge time: 1098ms
+[2025-05-28 19:22:11.687242] [0x00007f1e35ea7000] [debug]   after pruning, remeasuring repeat values...
+[2025-05-28 19:22:11.687280] [0x00007f1e35ea7000] [debug]   #unit wr constraints = 0
+[2025-05-28 19:22:11.687297] [0x00007f1e35ea7000] [debug]   unit wr ratio = 0
+[2025-05-28 19:22:11.687299] [0x00007f1e35ea7000] [debug]   max wr length = 3
+[2025-05-28 19:22:11.687301] [0x00007f1e35ea7000] [debug]   average wr length = 2.03774
+[2025-05-28 19:22:11.687306] [0x00007f1e35ea7000] [debug]   average wr length(w/o unit cons) = 2.03774
+[2025-05-28 19:22:11.687309] [0x00007f1e35ea7000] [debug]   #some constraint: 51426
+[2025-05-28 19:22:11.687311] [0x00007f1e35ea7000] [debug]   #unique constraint: 51430
+[2025-05-28 19:22:11.687321] [0x00007f1e35ea7000] [info]    prune time: 720678ms
+[2025-05-28 19:22:14.223272] [0x00007f1e35ea7000] [info]    solver initializing time: 2535ms
+[2025-05-28 20:24:31.387043] [0x00007f1e35ea7000] [info]    solve time: 3737163ms
+accept: true
+, stderr =      Command being timed: "timeout 24h /smt-transactional-consistency-artifact/scripts/../builddir-release/checker /smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_600_20_50000_0.3_r_0.5_0.5_1000/hist-00000/history.bincode --solver acyclic-minisat --history-type dbcop --log-level debug --measuring-repeat-values --isolation-level si --pruning fast"
+        User time (seconds): 4503.85
+        System time (seconds): 86.32
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 1:16:33
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 50303788
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 0
+        Minor (reclaiming a frame) page faults: 14614498
+        Voluntary context switches: 3
+        Involuntary context switches: 451969
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+[2025-05-28 20:24:36,432] [DEBUG]  thread 1 starts parsing logs of task 50_600_20_50000_0.3_r_0.5_0.5_1000, max memory = 7098368, logs = ['[2025-05-28 19:08:01.711652] [0x00007f1e35ea7000] [debug]   use acyclic-minisat as backend solver', '[2025-05-28 19:08:01.711683] [0x00007f1e35ea7000] [debug]   target isolation level: si', '[2025-05-28 19:08:01.711689] [0x00007f1e35ea7000] [debug]   history type: dbcop', '[2025-05-28 19:08:01.778488] [0x00007f1e35ea7000] [info]    #sessions: 51', '[2025-05-28 19:08:01.778518] [0x00007f1e35ea7000] [info]    #transactions: 30001', '[2025-05-28 19:08:01.778965] [0x00007f1e35ea7000] [info]    #events: 649973', '[2025-05-28 19:10:08.420426] [0x00007f1e35ea7000] [debug]   #ww constraints: 5052740', '[2025-05-28 19:10:08.420478] [0x00007f1e35ea7000] [debug]   #wr constraints: 179661', '[2025-05-28 19:10:08.420482] [0x00007f1e35ea7000] [info]    #constraints: 5232401', '[2025-05-28 19:10:10.867623] [0x00007f1e35ea7000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue', '[2025-05-28 19:10:10.943154] [0x00007f1e35ea7000] [debug]   #unit wr constraints = 176737', '[2025-05-28 19:10:10.943222] [0x00007f1e35ea7000] [debug]   unit wr ratio = 0.983725', '[2025-05-28 19:10:10.943225] [0x00007f1e35ea7000] [debug]   max wr length = 13', '[2025-05-28 19:10:10.943228] [0x00007f1e35ea7000] [debug]   average wr length = 1.02071', '[2025-05-28 19:10:10.943235] [0x00007f1e35ea7000] [debug]   average wr length(w/o unit cons) = 2.27257', '[2025-05-28 19:10:10.943852] [0x00007f1e35ea7000] [debug]   #some constraint: 5232401', '[2025-05-28 19:10:10.943864] [0x00007f1e35ea7000] [debug]   #unique constraint: 5058078', '[2025-05-28 19:10:11.008745] [0x00007f1e35ea7000] [info]    construct time: 129297ms', '[2025-05-28 19:10:11.008779] [0x00007f1e35ea7000] [debug]   pruning method: fast', '[2025-05-28 19:22:07.973874] [0x00007f1e35ea7000] [debug]   constructing reachability time: 650748ms', '[2025-05-28 19:22:07.973935] [0x00007f1e35ea7000] [debug]   checking time: 9ms', '[2025-05-28 19:22:07.973938] [0x00007f1e35ea7000] [debug]   adding edge time: 1098ms', '[2025-05-28 19:22:11.687242] [0x00007f1e35ea7000] [debug]   after pruning, remeasuring repeat values...', '[2025-05-28 19:22:11.687280] [0x00007f1e35ea7000] [debug]   #unit wr constraints = 0', '[2025-05-28 19:22:11.687297] [0x00007f1e35ea7000] [debug]   unit wr ratio = 0', '[2025-05-28 19:22:11.687299] [0x00007f1e35ea7000] [debug]   max wr length = 3', '[2025-05-28 19:22:11.687301] [0x00007f1e35ea7000] [debug]   average wr length = 2.03774', '[2025-05-28 19:22:11.687306] [0x00007f1e35ea7000] [debug]   average wr length(w/o unit cons) = 2.03774', '[2025-05-28 19:22:11.687309] [0x00007f1e35ea7000] [debug]   #some constraint: 51426', '[2025-05-28 19:22:11.687311] [0x00007f1e35ea7000] [debug]   #unique constraint: 51430', '[2025-05-28 19:22:11.687321] [0x00007f1e35ea7000] [info]    prune time: 720678ms', '[2025-05-28 19:22:14.223272] [0x00007f1e35ea7000] [info]    solver initializing time: 2535ms', '[2025-05-28 20:24:31.387043] [0x00007f1e35ea7000] [info]    solve time: 3737163ms', 'accept: true', '']
+[2025-05-28 20:24:36,432] [INFO]  thread 1 finished task 50_600_20_50000_0.3_r_0.5_0.5_1000
+[2025-05-28 20:24:36,433] [INFO]  thread 1 starts running task 50_200_20_50000_0.3_r_0.5_0.5_1000
+[2025-05-28 20:24:36,433] [DEBUG]  thread 1 runs cmd ['/usr/bin/time', '-v', 'timeout', '24h', '/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_200_20_50000_0.3_r_0.5_0.5_1000/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--log-level', 'debug', '--measuring-repeat-values', '--isolation-level', 'si', '--pruning', 'fast']
+[2025-05-28 20:27:22,969] [DEBUG]  thread finished checking 50_200_20_50000_0.3_r_0.5_0.5_1000, stdout = [2025-05-28 20:24:36.456412] [0x00007f6f1c5b9000] [debug]   use acyclic-minisat as backend solver
+[2025-05-28 20:24:36.456459] [0x00007f6f1c5b9000] [debug]   target isolation level: si
+[2025-05-28 20:24:36.456466] [0x00007f6f1c5b9000] [debug]   history type: dbcop
+[2025-05-28 20:24:36.483734] [0x00007f6f1c5b9000] [info]    #sessions: 51
+[2025-05-28 20:24:36.483753] [0x00007f6f1c5b9000] [info]    #transactions: 10001
+[2025-05-28 20:24:36.483929] [0x00007f6f1c5b9000] [info]    #events: 246975
+[2025-05-28 20:24:39.990796] [0x00007f6f1c5b9000] [debug]   #ww constraints: 569386
+[2025-05-28 20:24:39.990829] [0x00007f6f1c5b9000] [debug]   #wr constraints: 59847
+[2025-05-28 20:24:39.990832] [0x00007f6f1c5b9000] [info]    #constraints: 629233
+[2025-05-28 20:24:40.272946] [0x00007f6f1c5b9000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2025-05-28 20:24:40.295481] [0x00007f6f1c5b9000] [debug]   #unit wr constraints = 59464
+[2025-05-28 20:24:40.295537] [0x00007f6f1c5b9000] [debug]   unit wr ratio = 0.9936
+[2025-05-28 20:24:40.295540] [0x00007f6f1c5b9000] [debug]   max wr length = 7
+[2025-05-28 20:24:40.295543] [0x00007f6f1c5b9000] [debug]   average wr length = 1.00812
+[2025-05-28 20:24:40.295549] [0x00007f6f1c5b9000] [debug]   average wr length(w/o unit cons) = 2.26893
+[2025-05-28 20:24:40.295640] [0x00007f6f1c5b9000] [debug]   #some constraint: 629233
+[2025-05-28 20:24:40.295642] [0x00007f6f1c5b9000] [debug]   #unique constraint: 570057
+[2025-05-28 20:24:40.328587] [0x00007f6f1c5b9000] [info]    construct time: 3872ms
+[2025-05-28 20:24:40.328616] [0x00007f6f1c5b9000] [debug]   pruning method: fast
+[2025-05-28 20:24:51.273456] [0x00007f6f1c5b9000] [debug]   constructing reachability time: 5926ms
+[2025-05-28 20:24:51.273544] [0x00007f6f1c5b9000] [debug]   checking time: 11ms
+[2025-05-28 20:24:51.273548] [0x00007f6f1c5b9000] [debug]   adding edge time: 101ms
+[2025-05-28 20:24:51.612497] [0x00007f6f1c5b9000] [debug]   after pruning, remeasuring repeat values...
+[2025-05-28 20:24:51.612540] [0x00007f6f1c5b9000] [debug]   #unit wr constraints = 0
+[2025-05-28 20:24:51.612556] [0x00007f6f1c5b9000] [debug]   unit wr ratio = 0
+[2025-05-28 20:24:51.612558] [0x00007f6f1c5b9000] [debug]   max wr length = 3
+[2025-05-28 20:24:51.612561] [0x00007f6f1c5b9000] [debug]   average wr length = 2.10345
+[2025-05-28 20:24:51.612564] [0x00007f6f1c5b9000] [debug]   average wr length(w/o unit cons) = 2.10345
+[2025-05-28 20:24:51.612566] [0x00007f6f1c5b9000] [debug]   #some constraint: 15062
+[2025-05-28 20:24:51.612568] [0x00007f6f1c5b9000] [debug]   #unique constraint: 15068
+[2025-05-28 20:24:51.612575] [0x00007f6f1c5b9000] [info]    prune time: 11284ms
+[2025-05-28 20:24:51.892248] [0x00007f6f1c5b9000] [info]    solver initializing time: 279ms
+[2025-05-28 20:27:21.516017] [0x00007f6f1c5b9000] [info]    solve time: 149623ms
+accept: true
+, stderr =      Command being timed: "timeout 24h /smt-transactional-consistency-artifact/scripts/../builddir-release/checker /smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_200_20_50000_0.3_r_0.5_0.5_1000/hist-00000/history.bincode --solver acyclic-minisat --history-type dbcop --log-level debug --measuring-repeat-values --isolation-level si --pruning fast"
+        User time (seconds): 162.95
+        System time (seconds): 2.42
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 2:45.52
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 3335664
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 0
+        Minor (reclaiming a frame) page faults: 961549
+        Voluntary context switches: 3
+        Involuntary context switches: 16339
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+[2025-05-28 20:27:22,969] [DEBUG]  thread 1 starts parsing logs of task 50_200_20_50000_0.3_r_0.5_0.5_1000, max memory = 6946816, logs = ['[2025-05-28 20:24:36.456412] [0x00007f6f1c5b9000] [debug]   use acyclic-minisat as backend solver', '[2025-05-28 20:24:36.456459] [0x00007f6f1c5b9000] [debug]   target isolation level: si', '[2025-05-28 20:24:36.456466] [0x00007f6f1c5b9000] [debug]   history type: dbcop', '[2025-05-28 20:24:36.483734] [0x00007f6f1c5b9000] [info]    #sessions: 51', '[2025-05-28 20:24:36.483753] [0x00007f6f1c5b9000] [info]    #transactions: 10001', '[2025-05-28 20:24:36.483929] [0x00007f6f1c5b9000] [info]    #events: 246975', '[2025-05-28 20:24:39.990796] [0x00007f6f1c5b9000] [debug]   #ww constraints: 569386', '[2025-05-28 20:24:39.990829] [0x00007f6f1c5b9000] [debug]   #wr constraints: 59847', '[2025-05-28 20:24:39.990832] [0x00007f6f1c5b9000] [info]    #constraints: 629233', '[2025-05-28 20:24:40.272946] [0x00007f6f1c5b9000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue', '[2025-05-28 20:24:40.295481] [0x00007f6f1c5b9000] [debug]   #unit wr constraints = 59464', '[2025-05-28 20:24:40.295537] [0x00007f6f1c5b9000] [debug]   unit wr ratio = 0.9936', '[2025-05-28 20:24:40.295540] [0x00007f6f1c5b9000] [debug]   max wr length = 7', '[2025-05-28 20:24:40.295543] [0x00007f6f1c5b9000] [debug]   average wr length = 1.00812', '[2025-05-28 20:24:40.295549] [0x00007f6f1c5b9000] [debug]   average wr length(w/o unit cons) = 2.26893', '[2025-05-28 20:24:40.295640] [0x00007f6f1c5b9000] [debug]   #some constraint: 629233', '[2025-05-28 20:24:40.295642] [0x00007f6f1c5b9000] [debug]   #unique constraint: 570057', '[2025-05-28 20:24:40.328587] [0x00007f6f1c5b9000] [info]    construct time: 3872ms', '[2025-05-28 20:24:40.328616] [0x00007f6f1c5b9000] [debug]   pruning method: fast', '[2025-05-28 20:24:51.273456] [0x00007f6f1c5b9000] [debug]   constructing reachability time: 5926ms', '[2025-05-28 20:24:51.273544] [0x00007f6f1c5b9000] [debug]   checking time: 11ms', '[2025-05-28 20:24:51.273548] [0x00007f6f1c5b9000] [debug]   adding edge time: 101ms', '[2025-05-28 20:24:51.612497] [0x00007f6f1c5b9000] [debug]   after pruning, remeasuring repeat values...', '[2025-05-28 20:24:51.612540] [0x00007f6f1c5b9000] [debug]   #unit wr constraints = 0', '[2025-05-28 20:24:51.612556] [0x00007f6f1c5b9000] [debug]   unit wr ratio = 0', '[2025-05-28 20:24:51.612558] [0x00007f6f1c5b9000] [debug]   max wr length = 3', '[2025-05-28 20:24:51.612561] [0x00007f6f1c5b9000] [debug]   average wr length = 2.10345', '[2025-05-28 20:24:51.612564] [0x00007f6f1c5b9000] [debug]   average wr length(w/o unit cons) = 2.10345', '[2025-05-28 20:24:51.612566] [0x00007f6f1c5b9000] [debug]   #some constraint: 15062', '[2025-05-28 20:24:51.612568] [0x00007f6f1c5b9000] [debug]   #unique constraint: 15068', '[2025-05-28 20:24:51.612575] [0x00007f6f1c5b9000] [info]    prune time: 11284ms', '[2025-05-28 20:24:51.892248] [0x00007f6f1c5b9000] [info]    solver initializing time: 279ms', '[2025-05-28 20:27:21.516017] [0x00007f6f1c5b9000] [info]    solve time: 149623ms', 'accept: true', '']
+[2025-05-28 20:27:22,969] [INFO]  thread 1 finished task 50_200_20_50000_0.3_r_0.5_0.5_1000
+[2025-05-28 20:27:22,970] [INFO]  thread 1 starts running task 50_400_20_50000_0.3_r_0.5_0.5_1000
+[2025-05-28 20:27:22,970] [DEBUG]  thread 1 runs cmd ['/usr/bin/time', '-v', 'timeout', '24h', '/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_400_20_50000_0.3_r_0.5_0.5_1000/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--log-level', 'debug', '--measuring-repeat-values', '--isolation-level', 'si', '--pruning', 'fast']
+[2025-05-28 20:50:07,364] [DEBUG]  thread finished checking 50_400_20_50000_0.3_r_0.5_0.5_1000, stdout = [2025-05-28 20:27:22.994139] [0x00007f7114106000] [debug]   use acyclic-minisat as backend solver
+[2025-05-28 20:27:22.994175] [0x00007f7114106000] [debug]   target isolation level: si
+[2025-05-28 20:27:22.994182] [0x00007f7114106000] [debug]   history type: dbcop
+[2025-05-28 20:27:23.050006] [0x00007f7114106000] [info]    #sessions: 51
+[2025-05-28 20:27:23.050048] [0x00007f7114106000] [info]    #transactions: 20001
+[2025-05-28 20:27:23.050364] [0x00007f7114106000] [info]    #events: 449719
+[2025-05-28 20:27:50.412989] [0x00007f7114106000] [debug]   #ww constraints: 2244759
+[2025-05-28 20:27:50.413048] [0x00007f7114106000] [debug]   #wr constraints: 120150
+[2025-05-28 20:27:50.413052] [0x00007f7114106000] [info]    #constraints: 2364909
+[2025-05-28 20:27:51.189670] [0x00007f7114106000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2025-05-28 20:27:51.219500] [0x00007f7114106000] [debug]   #unit wr constraints = 118778
+[2025-05-28 20:27:51.219556] [0x00007f7114106000] [debug]   unit wr ratio = 0.988581
+[2025-05-28 20:27:51.219559] [0x00007f7114106000] [debug]   max wr length = 10
+[2025-05-28 20:27:51.219561] [0x00007f7114106000] [debug]   average wr length = 1.01352
+[2025-05-28 20:27:51.219569] [0x00007f7114106000] [debug]   average wr length(w/o unit cons) = 2.18367
+[2025-05-28 20:27:51.219788] [0x00007f7114106000] [debug]   #some constraint: 2364909
+[2025-05-28 20:27:51.219791] [0x00007f7114106000] [debug]   #unique constraint: 2246785
+[2025-05-28 20:27:51.259424] [0x00007f7114106000] [info]    construct time: 28265ms
+[2025-05-28 20:27:51.259452] [0x00007f7114106000] [debug]   pruning method: fast
+[2025-05-28 20:31:10.890047] [0x00007f7114106000] [debug]   constructing reachability time: 173807ms
+[2025-05-28 20:31:10.890084] [0x00007f7114106000] [debug]   checking time: 3ms
+[2025-05-28 20:31:10.890087] [0x00007f7114106000] [debug]   adding edge time: 441ms
+[2025-05-28 20:31:12.349649] [0x00007f7114106000] [debug]   after pruning, remeasuring repeat values...
+[2025-05-28 20:31:12.349678] [0x00007f7114106000] [debug]   #unit wr constraints = 0
+[2025-05-28 20:31:12.349694] [0x00007f7114106000] [debug]   unit wr ratio = 0
+[2025-05-28 20:31:12.349696] [0x00007f7114106000] [debug]   max wr length = 2
+[2025-05-28 20:31:12.349699] [0x00007f7114106000] [debug]   average wr length = 2
+[2025-05-28 20:31:12.349702] [0x00007f7114106000] [debug]   average wr length(w/o unit cons) = 2
+[2025-05-28 20:31:12.349705] [0x00007f7114106000] [debug]   #some constraint: 32086
+[2025-05-28 20:31:12.349707] [0x00007f7114106000] [debug]   #unique constraint: 32086
+[2025-05-28 20:31:12.349715] [0x00007f7114106000] [info]    prune time: 201090ms
+[2025-05-28 20:31:13.417879] [0x00007f7114106000] [info]    solver initializing time: 1068ms
+[2025-05-28 20:50:04.578859] [0x00007f7114106000] [info]    solve time: 1131160ms
+accept: true
+, stderr =      Command being timed: "timeout 24h /smt-transactional-consistency-artifact/scripts/../builddir-release/checker /smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_400_20_50000_0.3_r_0.5_0.5_1000/hist-00000/history.bincode --solver acyclic-minisat --history-type dbcop --log-level debug --measuring-repeat-values --isolation-level si --pruning fast"
+        User time (seconds): 1341.91
+        System time (seconds): 20.26
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 22:43.38
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 18211644
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 0
+        Minor (reclaiming a frame) page faults: 4561426
+        Voluntary context switches: 3
+        Involuntary context switches: 134133
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+[2025-05-28 20:50:07,365] [DEBUG]  thread 1 starts parsing logs of task 50_400_20_50000_0.3_r_0.5_0.5_1000, max memory = 7139328, logs = ['[2025-05-28 20:27:22.994139] [0x00007f7114106000] [debug]   use acyclic-minisat as backend solver', '[2025-05-28 20:27:22.994175] [0x00007f7114106000] [debug]   target isolation level: si', '[2025-05-28 20:27:22.994182] [0x00007f7114106000] [debug]   history type: dbcop', '[2025-05-28 20:27:23.050006] [0x00007f7114106000] [info]    #sessions: 51', '[2025-05-28 20:27:23.050048] [0x00007f7114106000] [info]    #transactions: 20001', '[2025-05-28 20:27:23.050364] [0x00007f7114106000] [info]    #events: 449719', '[2025-05-28 20:27:50.412989] [0x00007f7114106000] [debug]   #ww constraints: 2244759', '[2025-05-28 20:27:50.413048] [0x00007f7114106000] [debug]   #wr constraints: 120150', '[2025-05-28 20:27:50.413052] [0x00007f7114106000] [info]    #constraints: 2364909', '[2025-05-28 20:27:51.189670] [0x00007f7114106000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue', '[2025-05-28 20:27:51.219500] [0x00007f7114106000] [debug]   #unit wr constraints = 118778', '[2025-05-28 20:27:51.219556] [0x00007f7114106000] [debug]   unit wr ratio = 0.988581', '[2025-05-28 20:27:51.219559] [0x00007f7114106000] [debug]   max wr length = 10', '[2025-05-28 20:27:51.219561] [0x00007f7114106000] [debug]   average wr length = 1.01352', '[2025-05-28 20:27:51.219569] [0x00007f7114106000] [debug]   average wr length(w/o unit cons) = 2.18367', '[2025-05-28 20:27:51.219788] [0x00007f7114106000] [debug]   #some constraint: 2364909', '[2025-05-28 20:27:51.219791] [0x00007f7114106000] [debug]   #unique constraint: 2246785', '[2025-05-28 20:27:51.259424] [0x00007f7114106000] [info]    construct time: 28265ms', '[2025-05-28 20:27:51.259452] [0x00007f7114106000] [debug]   pruning method: fast', '[2025-05-28 20:31:10.890047] [0x00007f7114106000] [debug]   constructing reachability time: 173807ms', '[2025-05-28 20:31:10.890084] [0x00007f7114106000] [debug]   checking time: 3ms', '[2025-05-28 20:31:10.890087] [0x00007f7114106000] [debug]   adding edge time: 441ms', '[2025-05-28 20:31:12.349649] [0x00007f7114106000] [debug]   after pruning, remeasuring repeat values...', '[2025-05-28 20:31:12.349678] [0x00007f7114106000] [debug]   #unit wr constraints = 0', '[2025-05-28 20:31:12.349694] [0x00007f7114106000] [debug]   unit wr ratio = 0', '[2025-05-28 20:31:12.349696] [0x00007f7114106000] [debug]   max wr length = 2', '[2025-05-28 20:31:12.349699] [0x00007f7114106000] [debug]   average wr length = 2', '[2025-05-28 20:31:12.349702] [0x00007f7114106000] [debug]   average wr length(w/o unit cons) = 2', '[2025-05-28 20:31:12.349705] [0x00007f7114106000] [debug]   #some constraint: 32086', '[2025-05-28 20:31:12.349707] [0x00007f7114106000] [debug]   #unique constraint: 32086', '[2025-05-28 20:31:12.349715] [0x00007f7114106000] [info]    prune time: 201090ms', '[2025-05-28 20:31:13.417879] [0x00007f7114106000] [info]    solver initializing time: 1068ms', '[2025-05-28 20:50:04.578859] [0x00007f7114106000] [info]    solve time: 1131160ms', 'accept: true', '']
+[2025-05-28 20:50:07,365] [INFO]  thread 1 finished task 50_400_20_50000_0.3_r_0.5_0.5_1000
+[2025-05-28 20:50:07,365] [INFO]  thread 1 starts running task 50_200_20_50000_0.5_r_0.5_0.5_1000
+[2025-05-28 20:50:07,365] [DEBUG]  thread 1 runs cmd ['/usr/bin/time', '-v', 'timeout', '24h', '/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_200_20_50000_0.5_r_0.5_0.5_1000/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--log-level', 'debug', '--measuring-repeat-values', '--isolation-level', 'si', '--pruning', 'fast']
+[2025-05-28 20:51:15,639] [DEBUG]  thread finished checking 50_200_20_50000_0.5_r_0.5_0.5_1000, stdout = [2025-05-28 20:50:07.391519] [0x00007f092c989000] [debug]   use acyclic-minisat as backend solver
+[2025-05-28 20:50:07.391566] [0x00007f092c989000] [debug]   target isolation level: si
+[2025-05-28 20:50:07.391573] [0x00007f092c989000] [debug]   history type: dbcop
+[2025-05-28 20:50:07.421538] [0x00007f092c989000] [info]    #sessions: 51
+[2025-05-28 20:50:07.421573] [0x00007f092c989000] [info]    #transactions: 10001
+[2025-05-28 20:50:07.421756] [0x00007f092c989000] [info]    #events: 247077
+[2025-05-28 20:50:08.669947] [0x00007f092c989000] [debug]   #ww constraints: 297963
+[2025-05-28 20:50:08.669981] [0x00007f092c989000] [debug]   #wr constraints: 99710
+[2025-05-28 20:50:08.669984] [0x00007f092c989000] [info]    #constraints: 397673
+[2025-05-28 20:50:08.769859] [0x00007f092c989000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2025-05-28 20:50:08.779597] [0x00007f092c989000] [debug]   #unit wr constraints = 99250
+[2025-05-28 20:50:08.779654] [0x00007f092c989000] [debug]   unit wr ratio = 0.995387
+[2025-05-28 20:50:08.779657] [0x00007f092c989000] [debug]   max wr length = 6
+[2025-05-28 20:50:08.779659] [0x00007f092c989000] [debug]   average wr length = 1.00562
+[2025-05-28 20:50:08.779665] [0x00007f092c989000] [debug]   average wr length(w/o unit cons) = 2.21739
+[2025-05-28 20:50:08.779837] [0x00007f092c989000] [debug]   #some constraint: 397673
+[2025-05-28 20:50:08.779840] [0x00007f092c989000] [debug]   #unique constraint: 298685
+[2025-05-28 20:50:08.798710] [0x00007f092c989000] [info]    construct time: 1407ms
+[2025-05-28 20:50:08.798738] [0x00007f092c989000] [debug]   pruning method: fast
+[2025-05-28 20:50:16.093361] [0x00007f092c989000] [debug]   constructing reachability time: 4297ms
+[2025-05-28 20:50:16.093403] [0x00007f092c989000] [debug]   checking time: 10ms
+[2025-05-28 20:50:16.093406] [0x00007f092c989000] [debug]   adding edge time: 63ms
+[2025-05-28 20:50:16.336357] [0x00007f092c989000] [debug]   after pruning, remeasuring repeat values...
+[2025-05-28 20:50:16.336388] [0x00007f092c989000] [debug]   #unit wr constraints = 0
+[2025-05-28 20:50:16.336405] [0x00007f092c989000] [debug]   unit wr ratio = 0
+[2025-05-28 20:50:16.336408] [0x00007f092c989000] [debug]   max wr length = 3
+[2025-05-28 20:50:16.336410] [0x00007f092c989000] [debug]   average wr length = 2.02703
+[2025-05-28 20:50:16.336414] [0x00007f092c989000] [debug]   average wr length(w/o unit cons) = 2.02703
+[2025-05-28 20:50:16.336417] [0x00007f092c989000] [debug]   #some constraint: 7378
+[2025-05-28 20:50:16.336419] [0x00007f092c989000] [debug]   #unique constraint: 7380
+[2025-05-28 20:50:16.336427] [0x00007f092c989000] [info]    prune time: 7537ms
+[2025-05-28 20:50:16.541146] [0x00007f092c989000] [info]    solver initializing time: 204ms
+[2025-05-28 20:51:14.298338] [0x00007f092c989000] [info]    solve time: 57757ms
+accept: true
+, stderr =      Command being timed: "timeout 24h /smt-transactional-consistency-artifact/scripts/../builddir-release/checker /smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_200_20_50000_0.5_r_0.5_0.5_1000/hist-00000/history.bincode --solver acyclic-minisat --history-type dbcop --log-level debug --measuring-repeat-values --isolation-level si --pruning fast"
+        User time (seconds): 65.87
+        System time (seconds): 1.32
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 1:07.26
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 2544372
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 0
+        Minor (reclaiming a frame) page faults: 635792
+        Voluntary context switches: 2
+        Involuntary context switches: 6627
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+[2025-05-28 20:51:15,640] [DEBUG]  thread 1 starts parsing logs of task 50_200_20_50000_0.5_r_0.5_0.5_1000, max memory = 7081984, logs = ['[2025-05-28 20:50:07.391519] [0x00007f092c989000] [debug]   use acyclic-minisat as backend solver', '[2025-05-28 20:50:07.391566] [0x00007f092c989000] [debug]   target isolation level: si', '[2025-05-28 20:50:07.391573] [0x00007f092c989000] [debug]   history type: dbcop', '[2025-05-28 20:50:07.421538] [0x00007f092c989000] [info]    #sessions: 51', '[2025-05-28 20:50:07.421573] [0x00007f092c989000] [info]    #transactions: 10001', '[2025-05-28 20:50:07.421756] [0x00007f092c989000] [info]    #events: 247077', '[2025-05-28 20:50:08.669947] [0x00007f092c989000] [debug]   #ww constraints: 297963', '[2025-05-28 20:50:08.669981] [0x00007f092c989000] [debug]   #wr constraints: 99710', '[2025-05-28 20:50:08.669984] [0x00007f092c989000] [info]    #constraints: 397673', '[2025-05-28 20:50:08.769859] [0x00007f092c989000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue', '[2025-05-28 20:50:08.779597] [0x00007f092c989000] [debug]   #unit wr constraints = 99250', '[2025-05-28 20:50:08.779654] [0x00007f092c989000] [debug]   unit wr ratio = 0.995387', '[2025-05-28 20:50:08.779657] [0x00007f092c989000] [debug]   max wr length = 6', '[2025-05-28 20:50:08.779659] [0x00007f092c989000] [debug]   average wr length = 1.00562', '[2025-05-28 20:50:08.779665] [0x00007f092c989000] [debug]   average wr length(w/o unit cons) = 2.21739', '[2025-05-28 20:50:08.779837] [0x00007f092c989000] [debug]   #some constraint: 397673', '[2025-05-28 20:50:08.779840] [0x00007f092c989000] [debug]   #unique constraint: 298685', '[2025-05-28 20:50:08.798710] [0x00007f092c989000] [info]    construct time: 1407ms', '[2025-05-28 20:50:08.798738] [0x00007f092c989000] [debug]   pruning method: fast', '[2025-05-28 20:50:16.093361] [0x00007f092c989000] [debug]   constructing reachability time: 4297ms', '[2025-05-28 20:50:16.093403] [0x00007f092c989000] [debug]   checking time: 10ms', '[2025-05-28 20:50:16.093406] [0x00007f092c989000] [debug]   adding edge time: 63ms', '[2025-05-28 20:50:16.336357] [0x00007f092c989000] [debug]   after pruning, remeasuring repeat values...', '[2025-05-28 20:50:16.336388] [0x00007f092c989000] [debug]   #unit wr constraints = 0', '[2025-05-28 20:50:16.336405] [0x00007f092c989000] [debug]   unit wr ratio = 0', '[2025-05-28 20:50:16.336408] [0x00007f092c989000] [debug]   max wr length = 3', '[2025-05-28 20:50:16.336410] [0x00007f092c989000] [debug]   average wr length = 2.02703', '[2025-05-28 20:50:16.336414] [0x00007f092c989000] [debug]   average wr length(w/o unit cons) = 2.02703', '[2025-05-28 20:50:16.336417] [0x00007f092c989000] [debug]   #some constraint: 7378', '[2025-05-28 20:50:16.336419] [0x00007f092c989000] [debug]   #unique constraint: 7380', '[2025-05-28 20:50:16.336427] [0x00007f092c989000] [info]    prune time: 7537ms', '[2025-05-28 20:50:16.541146] [0x00007f092c989000] [info]    solver initializing time: 204ms', '[2025-05-28 20:51:14.298338] [0x00007f092c989000] [info]    solve time: 57757ms', 'accept: true', '']
+[2025-05-28 20:51:15,640] [INFO]  thread 1 finished task 50_200_20_50000_0.5_r_0.5_0.5_1000
+[2025-05-28 20:51:15,640] [INFO]  thread 1 starts running task 50_800_20_50000_0.3_r_0.5_0.5_1000
+[2025-05-28 20:51:15,640] [DEBUG]  thread 1 runs cmd ['/usr/bin/time', '-v', 'timeout', '24h', '/smt-transactional-consistency-artifact/scripts/../builddir-release/checker', '/smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_800_20_50000_0.3_r_0.5_0.5_1000/hist-00000/history.bincode', '--solver', 'acyclic-minisat', '--history-type', 'dbcop', '--log-level', 'debug', '--measuring-repeat-values', '--isolation-level', 'si', '--pruning', 'fast']
+[2025-05-28 22:41:01,083] [DEBUG]  thread finished checking 50_1000_20_50000_0.3_r_0.5_0.5_1000, stdout = [2025-05-28 16:03:34.413857] [0x00007f3e1983a000] [debug]   use acyclic-minisat as backend solver
+[2025-05-28 16:03:34.413881] [0x00007f3e1983a000] [debug]   target isolation level: si
+[2025-05-28 16:03:34.413884] [0x00007f3e1983a000] [debug]   history type: dbcop
+[2025-05-28 16:03:34.519952] [0x00007f3e1983a000] [info]    #sessions: 51
+[2025-05-28 16:03:34.519994] [0x00007f3e1983a000] [info]    #transactions: 50001
+[2025-05-28 16:03:34.520720] [0x00007f3e1983a000] [info]    #events: 1049999
+[2025-05-28 16:12:22.234225] [0x00007f3e1983a000] [debug]   #ww constraints: 14022435
+[2025-05-28 16:12:22.234282] [0x00007f3e1983a000] [debug]   #wr constraints: 299840
+[2025-05-28 16:12:22.234285] [0x00007f3e1983a000] [info]    #constraints: 14322275
+[2025-05-28 16:12:29.736129] [0x00007f3e1983a000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2025-05-28 16:12:29.839402] [0x00007f3e1983a000] [debug]   #unit wr constraints = 292613
+[2025-05-28 16:12:29.839464] [0x00007f3e1983a000] [debug]   unit wr ratio = 0.975897
+[2025-05-28 16:12:29.839467] [0x00007f3e1983a000] [debug]   max wr length = 14
+[2025-05-28 16:12:29.839469] [0x00007f3e1983a000] [debug]   average wr length = 1.03118
+[2025-05-28 16:12:29.839476] [0x00007f3e1983a000] [debug]   average wr length(w/o unit cons) = 2.29348
+[2025-05-28 16:12:29.840566] [0x00007f3e1983a000] [debug]   #some constraint: 14322275
+[2025-05-28 16:12:29.840586] [0x00007f3e1983a000] [debug]   #unique constraint: 14036315
+[2025-05-28 16:12:29.940690] [0x00007f3e1983a000] [info]    construct time: 535526ms
+[2025-05-28 16:12:29.940717] [0x00007f3e1983a000] [debug]   pruning method: fast
+[2025-05-28 17:52:42.669840] [0x00007f3e1983a000] [debug]   constructing reachability time: 5755246ms
+[2025-05-28 17:52:42.669877] [0x00007f3e1983a000] [debug]   checking time: 514ms
+[2025-05-28 17:52:42.669880] [0x00007f3e1983a000] [debug]   adding edge time: 3790ms
+[2025-05-28 17:52:55.262318] [0x00007f3e1983a000] [debug]   after pruning, remeasuring repeat values...
+[2025-05-28 17:52:55.262360] [0x00007f3e1983a000] [debug]   #unit wr constraints = 0
+[2025-05-28 17:52:55.262375] [0x00007f3e1983a000] [debug]   unit wr ratio = 0
+[2025-05-28 17:52:55.262377] [0x00007f3e1983a000] [debug]   max wr length = 2
+[2025-05-28 17:52:55.262379] [0x00007f3e1983a000] [debug]   average wr length = 2
+[2025-05-28 17:52:55.262383] [0x00007f3e1983a000] [debug]   average wr length(w/o unit cons) = 2
+[2025-05-28 17:52:55.262386] [0x00007f3e1983a000] [debug]   #some constraint: 85201
+[2025-05-28 17:52:55.262388] [0x00007f3e1983a000] [debug]   #unique constraint: 85201
+[2025-05-28 17:52:55.262396] [0x00007f3e1983a000] [info]    prune time: 6025321ms
+[2025-05-28 17:53:02.754369] [0x00007f3e1983a000] [info]    solver initializing time: 7491ms
+[2025-05-28 22:40:46.933520] [0x00007f3e1983a000] [info]    solve time: 17264179ms
+accept: true
+, stderr =      Command being timed: "timeout 24h /smt-transactional-consistency-artifact/scripts/../builddir-release/checker /smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_1000_20_50000_0.3_r_0.5_0.5_1000/hist-00000/history.bincode --solver acyclic-minisat --history-type dbcop --log-level debug --measuring-repeat-values --isolation-level si --pruning fast"
+        User time (seconds): 23247.12
+        System time (seconds): 573.35
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 6:37:25
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 179350344
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 0
+        Minor (reclaiming a frame) page faults: 73057332
+        Voluntary context switches: 6
+        Involuntary context switches: 2338829
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+[2025-05-28 22:41:01,083] [DEBUG]  thread 0 starts parsing logs of task 50_1000_20_50000_0.3_r_0.5_0.5_1000, max memory = 6930432, logs = ['[2025-05-28 16:03:34.413857] [0x00007f3e1983a000] [debug]   use acyclic-minisat as backend solver', '[2025-05-28 16:03:34.413881] [0x00007f3e1983a000] [debug]   target isolation level: si', '[2025-05-28 16:03:34.413884] [0x00007f3e1983a000] [debug]   history type: dbcop', '[2025-05-28 16:03:34.519952] [0x00007f3e1983a000] [info]    #sessions: 51', '[2025-05-28 16:03:34.519994] [0x00007f3e1983a000] [info]    #transactions: 50001', '[2025-05-28 16:03:34.520720] [0x00007f3e1983a000] [info]    #events: 1049999', '[2025-05-28 16:12:22.234225] [0x00007f3e1983a000] [debug]   #ww constraints: 14022435', '[2025-05-28 16:12:22.234282] [0x00007f3e1983a000] [debug]   #wr constraints: 299840', '[2025-05-28 16:12:22.234285] [0x00007f3e1983a000] [info]    #constraints: 14322275', '[2025-05-28 16:12:29.736129] [0x00007f3e1983a000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue', '[2025-05-28 16:12:29.839402] [0x00007f3e1983a000] [debug]   #unit wr constraints = 292613', '[2025-05-28 16:12:29.839464] [0x00007f3e1983a000] [debug]   unit wr ratio = 0.975897', '[2025-05-28 16:12:29.839467] [0x00007f3e1983a000] [debug]   max wr length = 14', '[2025-05-28 16:12:29.839469] [0x00007f3e1983a000] [debug]   average wr length = 1.03118', '[2025-05-28 16:12:29.839476] [0x00007f3e1983a000] [debug]   average wr length(w/o unit cons) = 2.29348', '[2025-05-28 16:12:29.840566] [0x00007f3e1983a000] [debug]   #some constraint: 14322275', '[2025-05-28 16:12:29.840586] [0x00007f3e1983a000] [debug]   #unique constraint: 14036315', '[2025-05-28 16:12:29.940690] [0x00007f3e1983a000] [info]    construct time: 535526ms', '[2025-05-28 16:12:29.940717] [0x00007f3e1983a000] [debug]   pruning method: fast', '[2025-05-28 17:52:42.669840] [0x00007f3e1983a000] [debug]   constructing reachability time: 5755246ms', '[2025-05-28 17:52:42.669877] [0x00007f3e1983a000] [debug]   checking time: 514ms', '[2025-05-2817:52:42.669880] [0x00007f3e1983a000] [debug]   adding edge time: 3790ms', '[2025-05-28 17:52:55.262318] [0x00007f3e1983a000] [debug]   after pruning, remeasuring repeat values...', '[2025-05-28 17:52:55.262360] [0x00007f3e1983a000] [debug]   #unit wr constraints = 0', '[2025-05-28 17:52:55.262375] [0x00007f3e1983a000] [debug]   unit wr ratio = 0', '[2025-05-28 17:52:55.262377] [0x00007f3e1983a000] [debug]   max wr length = 2', '[2025-05-28 17:52:55.262379] [0x00007f3e1983a000] [debug]   average wr length = 2', '[2025-05-28 17:52:55.262383] [0x00007f3e1983a000] [debug]   average wr length(w/o unit cons) = 2', '[2025-05-28 17:52:55.262386] [0x00007f3e1983a000] [debug]   #some constraint: 85201', '[2025-05-28 17:52:55.262388] [0x00007f3e1983a000] [debug]   #unique constraint: 85201', '[2025-05-28 17:52:55.262396] [0x00007f3e1983a000] [info]    prune time: 6025321ms', '[2025-05-28 17:53:02.754369] [0x00007f3e1983a000] [info]    solver initializing time: 7491ms', '[2025-05-28 22:40:46.933520] [0x00007f3e1983a000] [info]    solve time: 17264179ms', 'accept: true', '']
+[2025-05-28 22:41:01,083] [INFO]  thread 0 finished task 50_1000_20_50000_0.3_r_0.5_0.5_1000
+[2025-05-28 23:58:21,404] [DEBUG]  thread finished checking 50_800_20_50000_0.3_r_0.5_0.5_1000, stdout = [2025-05-28 20:51:15.663984] [0x00007fcab566a000] [debug]   use acyclic-minisat as backend solver
+[2025-05-28 20:51:15.664020] [0x00007fcab566a000] [debug]   target isolation level: si
+[2025-05-28 20:51:15.664027] [0x00007fcab566a000] [debug]   history type: dbcop
+[2025-05-28 20:51:15.751358] [0x00007fcab566a000] [info]    #sessions: 51
+[2025-05-28 20:51:15.751396] [0x00007fcab566a000] [info]    #transactions: 40001
+[2025-05-28 20:51:15.752016] [0x00007fcab566a000] [info]    #events: 849999
+[2025-05-28 20:55:21.227422] [0x00007fcab566a000] [debug]   #ww constraints: 8927331
+[2025-05-28 20:55:21.227481] [0x00007fcab566a000] [debug]   #wr constraints: 239842
+[2025-05-28 20:55:21.227484] [0x00007fcab566a000] [info]    #constraints: 9167173
+[2025-05-28 20:55:25.818584] [0x00007fcab566a000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue
+[2025-05-28 20:55:25.906465] [0x00007fcab566a000] [debug]   #unit wr constraints = 235046
+[2025-05-28 20:55:25.906569] [0x00007fcab566a000] [debug]   unit wr ratio = 0.980004
+[2025-05-28 20:55:25.906571] [0x00007fcab566a000] [debug]   max wr length = 15
+[2025-05-28 20:55:25.906574] [0x00007fcab566a000] [debug]   average wr length = 1.02655
+[2025-05-28 20:55:25.906581] [0x00007fcab566a000] [debug]   average wr length(w/o unit cons) = 2.32756
+[2025-05-28 20:55:25.907402] [0x00007fcab566a000] [debug]   #some constraint: 9167173
+[2025-05-28 20:55:25.907417] [0x00007fcab566a000] [debug]   #unique constraint: 8937453
+[2025-05-28 20:55:25.986036] [0x00007fcab566a000] [info]    construct time: 250321ms
+[2025-05-28 20:55:25.986069] [0x00007fcab566a000] [debug]   pruning method: fast
+[2025-05-28 21:33:10.747007] [0x00007fcab566a000] [debug]   constructing reachability time: 2130317ms
+[2025-05-28 21:33:10.747042] [0x00007fcab566a000] [debug]   checking time: 110ms
+[2025-05-28 21:33:10.747044] [0x00007fcab566a000] [debug]   adding edge time: 2292ms
+[2025-05-28 21:33:18.038034] [0x00007fcab566a000] [debug]   after pruning, remeasuring repeat values...
+[2025-05-28 21:33:18.038079] [0x00007fcab566a000] [debug]   #unit wr constraints = 0
+[2025-05-28 21:33:18.038096] [0x00007fcab566a000] [debug]   unit wr ratio = 0
+[2025-05-28 21:33:18.038098] [0x00007fcab566a000] [debug]   max wr length = 3
+[2025-05-28 21:33:18.038100] [0x00007fcab566a000] [debug]   average wr length = 2.01031
+[2025-05-28 21:33:18.038104] [0x00007fcab566a000] [debug]   average wr length(w/o unit cons) = 2.01031
+[2025-05-28 21:33:18.038106] [0x00007fcab566a000] [debug]   #some constraint: 64643
+[2025-05-28 21:33:18.038108] [0x00007fcab566a000] [debug]   #unique constraint: 64645
+[2025-05-28 21:33:18.038117] [0x00007fcab566a000] [info]    prune time: 2272052ms
+[2025-05-28 21:33:22.572844] [0x00007fcab566a000] [info]    solver initializing time: 4534ms
+[2025-05-28 23:58:12.658597] [0x00007fcab566a000] [info]    solve time: 8690085ms
+accept: true
+, stderr =      Command being timed: "timeout 24h /smt-transactional-consistency-artifact/scripts/../builddir-release/checker /smt-transactional-consistency-artifact/scripts/../history/si/scala-txns-small/50_800_20_50000_0.3_r_0.5_0.5_1000/hist-00000/history.bincode --solver acyclic-minisat --history-type dbcop --log-level debug --measuring-repeat-values --isolation-level si --pruning fast"
+        User time (seconds): 10969.85
+        System time (seconds): 244.89
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 3:07:04
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 102879788
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 0
+        Minor (reclaiming a frame) page faults: 31042952
+        Voluntary context switches: 3
+        Involuntary context switches: 1103166
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+[2025-05-28 23:58:21,405] [DEBUG]  thread 1 starts parsing logs of task 50_800_20_50000_0.3_r_0.5_0.5_1000, max memory = 7315456, logs = ['[2025-05-28 20:51:15.663984] [0x00007fcab566a000] [debug]   use acyclic-minisat as backend solver', '[2025-05-28 20:51:15.664020] [0x00007fcab566a000] [debug]   target isolation level: si', '[2025-05-28 20:51:15.664027] [0x00007fcab566a000] [debug]   history type: dbcop', '[2025-05-28 20:51:15.751358] [0x00007fcab566a000] [info]    #sessions: 51', '[2025-05-28 20:51:15.751396] [0x00007fcab566a000] [info]    #transactions: 40001', '[2025-05-28 20:51:15.752016] [0x00007fcab566a000] [info]    #events: 849999', '[2025-05-28 20:55:21.227422] [0x00007fcab566a000] [debug]   #ww constraints: 8927331', '[2025-05-28 20:55:21.227481] [0x00007fcab566a000] [debug]   #wr constraints: 239842', '[2025-05-28 20:55:21.227484] [0x00007fcab566a000] [info]    #constraints: 9167173', '[2025-05-28 20:55:25.818584] [0x00007fcab566a000] [debug]   Find multiple writes on same (key, value). This history does NOT satisfy UniqueValue', '[2025-05-28 20:55:25.906465] [0x00007fcab566a000] [debug]   #unit wr constraints = 235046', '[2025-05-28 20:55:25.906569] [0x00007fcab566a000] [debug]   unit wr ratio = 0.980004', '[2025-05-28 20:55:25.906571] [0x00007fcab566a000] [debug]   max wr length = 15', '[2025-05-28 20:55:25.906574] [0x00007fcab566a000] [debug]   average wr length = 1.02655', '[2025-05-28 20:55:25.906581] [0x00007fcab566a000] [debug]   average wr length(w/o unit cons) = 2.32756', '[2025-05-28 20:55:25.907402] [0x00007fcab566a000] [debug]   #some constraint: 9167173', '[2025-05-28 20:55:25.907417] [0x00007fcab566a000] [debug]   #unique constraint: 8937453', '[2025-05-28 20:55:25.986036] [0x00007fcab566a000] [info]    construct time: 250321ms', '[2025-05-28 20:55:25.986069] [0x00007fcab566a000] [debug]   pruning method: fast', '[2025-05-28 21:33:10.747007] [0x00007fcab566a000] [debug]   constructing reachability time: 2130317ms', '[2025-05-28 21:33:10.747042] [0x00007fcab566a000] [debug]   checking time: 110ms', '[2025-05-28 21:33:10.747044] [0x00007fcab566a000] [debug]   adding edge time: 2292ms', '[2025-05-28 21:33:18.038034] [0x00007fcab566a000] [debug]   after pruning, remeasuring repeat values...', '[2025-05-28 21:33:18.038079] [0x00007fcab566a000] [debug]   #unit wr constraints = 0', '[2025-05-28 21:33:18.038096] [0x00007fcab566a000] [debug]   unit wr ratio = 0', '[2025-05-28 21:33:18.038098] [0x00007fcab566a000] [debug]   max wr length = 3', '[2025-05-28 21:33:18.038100] [0x00007fcab566a000] [debug]   average wr length = 2.01031', '[2025-05-28 21:33:18.038104] [0x00007fcab566a000] [debug]   average wr length(w/o unit cons) = 2.01031', '[2025-05-28 21:33:18.038106] [0x00007fcab566a000] [debug]   #some constraint: 64643', '[2025-05-28 21:33:18.038108] [0x00007fcab566a000] [debug]   #unique constraint: 64645', '[2025-05-28 21:33:18.038117] [0x00007fcab566a000] [info]    prune time: 2272052ms', '[2025-05-28 21:33:22.572844] [0x00007fcab566a000] [info]    solver initializing time: 4534ms', '[2025-05-28 23:58:12.658597] [0x00007fcab566a000] [info] solve time: 8690085ms', 'accept: true', '']
+[2025-05-28 23:58:21,405] [INFO]  thread 1 finished task 50_800_20_50000_0.3_r_0.5_0.5_1000
