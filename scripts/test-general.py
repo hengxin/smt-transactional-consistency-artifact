@@ -49,11 +49,11 @@ logging.info(f'root path = {root_path}')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'uv')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'no-uv', 'polysi-fig7-like')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general')
-# history_path = os.path.join(root_path, 'history', 'ser', 'general-pldi')
+history_path = os.path.join(root_path, 'history', 'ser', 'general-pldi')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general-1k')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general-width2')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general-5k')
-history_path = os.path.join(root_path, 'history', 'ser', 'general-5k-2')
+# history_path = os.path.join(root_path, 'history', 'ser', 'general-5k-2')
 # history_path = os.path.join(root_path, 'history', 'ser', 'tmp')
 # history_path = os.path.join(root_path, 'history', '{}-logs'.format(history_type), 'no-uv', 'scalability4')
 logging.info(f'history path = {history_path}')
@@ -69,13 +69,13 @@ solver = 'acyclic-minisat'
 assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3' or solver == 'monosat-baseline'
 logging.info(f'solver = {solver}')
 
-pruning_method = 'none'
+pruning_method = 'basic'
 assert pruning_method == 'fast' or pruning_method == 'normal' or pruning_method == 'none' or pruning_method == 'unit' or pruning_method == 'basic'
 logging.info(f'pruning method = {pruning_method}')
 
 # timeout = '30m'
 # timeout = '10m'
-timeout = '100d'
+timeout = '3h'
 logging.info(f'timeout = {timeout}')
 
 logging.info(f'Session order initialization: default')

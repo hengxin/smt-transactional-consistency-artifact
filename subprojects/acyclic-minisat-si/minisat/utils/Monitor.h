@@ -2,6 +2,7 @@
 #define MINISAT_SI_MONITOR_H
 
 #include <cstdint>
+#include <unordered_map>
 
 namespace MinisatSI {
 class Monitor {
@@ -15,6 +16,9 @@ public:
   int64_t construct_uep_count;
   int64_t uep_b_size_sum, uep_f_size_sum;
   int64_t propagated_lit_add_times;  
+
+  std::unordered_map<int, int64_t> cycle_width_count;
+  std::unordered_map<int, int64_t> minimal_cycle_width_count;
 
   static Monitor *monitor;
 

@@ -20,12 +20,12 @@ bool init_pair_conflict(AcyclicSolver &solver) {
   // return false;
 
   Polygraph *polygraph = solver.get_polygraph();
-  if (polygraph->n_vertices > 200000) {
-    Logger::log(fmt::format(" - failed!  polygraph has {} vertices, > limit 100000", polygraph->n_vertices));
+  if (polygraph->n_vertices > 1000000) {
+    Logger::log(fmt::format(" - failed!  polygraph has {} vertices, > limit 1m", polygraph->n_vertices));
     return false;
   }
-  if (polygraph->n_vars > 100000) {
-    Logger::log(fmt::format(" - failed! solver has {} vars, > limit 10000", polygraph->n_vars));
+  if (polygraph->n_vars > 10000000) {
+    Logger::log(fmt::format(" - failed! solver has {} vars, > limit 10m", polygraph->n_vars));
     return false;
   }
 

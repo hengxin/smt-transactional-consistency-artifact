@@ -59,20 +59,20 @@ logging.info(f'root path = {root_path}')
 # will run all histories under this path
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'various')
 # history_path = os.path.join(root_path, 'history', 'ser', 'same-listappend-rw')
-history_path = os.path.join(root_path, 'history', 'ser', 'various-pldi')
-# history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_general_partition_writes')
+# history_path = os.path.join(root_path, 'history', 'ser', 'various-pldi')
+history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_general_partition_writes')
 logging.info(f'history path = {history_path}')
 
 # checker_path = os.path.join(root_path, 'builddir', 'checker')
 checker_path = os.path.join(root_path, 'builddir-release', 'checker')
 logging.info(f'checker path = {checker_path}')
 
-# solver = 'acyclic-minisat'
-solver = 'monosat'
+solver = 'acyclic-minisat'
+# solver = 'monosat'
 assert solver == 'acyclic-minisat' or solver == 'monosat' or solver == 'z3' or solver == 'monosat-baseline'
 logging.info(f'solver = {solver}')
 
-pruning_method = 'none'
+pruning_method = 'fast'
 assert pruning_method == 'fast' or pruning_method == 'normal' or pruning_method == 'none' or pruning_method == 'basic'
 logging.info(f'pruning method = {pruning_method}')
 

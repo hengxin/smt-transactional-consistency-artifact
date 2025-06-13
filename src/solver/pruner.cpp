@@ -17,6 +17,7 @@
 #include <cassert>
 #include <iostream>
 #include <chrono>
+#include <malloc.h>
 
 #include "history/constraint.h"
 #include "history/dependencygraph.h"
@@ -860,6 +861,8 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
                                  << c;
       }
     }
+    
+    malloc_trim(0);
   }
 
   BOOST_LOG_TRIVIAL(debug) << "constructing reachability time: " << reachability_duration;

@@ -18,9 +18,9 @@
 
 // #define REDUCE_KNOWN_GRAPH 1     
 
-#define FIND_MINIMAL_CYCLE 1
+// #define FIND_MINIMAL_CYCLE 1
 
-// #define HEURISTIC_TOPO_ORDER 1
+#define HEURISTIC_TOPO_ORDER 1
 
 // * note: INIT_BY_SESS would be overwritten by INIT_BY_RANDOM
 // #define HEURISTIC_TOPO_INIT_BY_SESS 1
@@ -32,13 +32,13 @@
 // use ICD algorithm default
 #define PK_TOPO_ALGORITHM 1
 
-// #define INIT_PAIR_CONFLICT 1
+#define INIT_PAIR_CONFLICT 1
 
 // #define ENCODE_MORE_CONFLICT 1
 
 #define CONFLICT_WIDTH 4
 
-#define MONITOR_ENABLED 1
+// #define MONITOR_ENABLED 1
 
 // #define LOGGER_ENABLED 1
 
