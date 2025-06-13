@@ -2,54 +2,81 @@ import json
 import os
 import sys
 
-# data_name = 'roachdb_general_all_writes'
+# SER
+data_name = 'roachdb_general_all_writes'
 # data_name = 'roachdb_general_partition_writes'
+# data_name = 'roachdb_all_writes'
+# data_name = 'roachdb_partition_writes'
+
+# SI
 # data_name = 'galera_partition_writes'
 # data_name = 'galera_all_writes'
 
-# data_name = 'roachdb_all_writes'
-data_name = 'roachdb_partition_writes'
-
+# checker = 'ours'
 # checker = 'polysi'
-checker = 'ours'
-# checker = 'cobra'
+checker = 'cobra'
+# checker = 'dbcop'
 
-# 1. load NuSer data
-root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
-result_path = os.path.join(root_path, 'results')
-if checker == 'ours':
-  data_path = os.path.join(result_path, data_name + '.json')
-else:
-  data_path = os.path.join(result_path, data_name + f'-{checker}' + '.json')
+if checker != 'dbcop':
+  root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
+  result_path = os.path.join(root_path, 'results')
+  if checker == 'ours':
+    data_path = os.path.join(result_path, data_name + '.json')
+  else:
+    data_path = os.path.join(result_path, data_name + f'-{checker}' + '.json')
   print(data_path)
 
-with open(data_path) as data:
-  data = json.load(data)
-
-# 2. load dbcop data
-dbcop_data_path = f'/home/rikka/dbcop-verifier/output/{data_name}'
-dbcop_data = {}
-for hist in os.listdir(dbcop_data_path):
-  dbcop_hist_path = os.path.join(dbcop_data_path, hist)
-  for spec_hist in os.listdir(dbcop_hist_path):
-    name = hist + ';' + spec_hist
-    json_path = os.path.join(dbcop_hist_path, spec_hist, 'result_log.json')
-    with open(json_path, 'r') as result_data:
-      content = result_data.read()
-      json_content = '{' + content.split('{')[-1]
-      json_data = json.loads(json_content)
-      if json_data['duration']:
-        dbcop_data[name] = json_data['duration']
-      # print(json_data)
-      # sys.exit(0)
-
-# 3. compare data and dbcop_data
-# assert len(data.keys()) == len(dbcop_data.keys())
-ours_runtime, dbcop_runtime = 0, 0
-for task in data.keys():
-  assert task in dbcop_data.keys()
-  ours_runtime += float(data[task]['total time'][:-2])
-  dbcop_runtime += dbcop_data[task]
+  with open(data_path) as data:
+    data = json.load(data)
   
+  accept_cnt, reject_cnt = 0, 0 
+  accept_runtime, reject_runtime = 0, 0
+  for task in data.keys():
+    if data[task]['accept']:
+      accept_cnt += 1
+      accept_runtime += float(data[task]['total time'][:-2])
+    else:
+      assert not data[task]['accept']
+      reject_cnt += 1
+      reject_runtime += float(data[task]['total time'][:-2])
+  
+  print(f'checker = {checker}, data name = {data_name}') 
+  print(f'accept cnt = {accept_cnt}, reject cnt = {reject_cnt}')
+  print(f'accept runtime = {accept_runtime}ms, reject runtime = {reject_runtime}ms')
 
-print(f'ours runtime = {ours_runtime}ms, dbcop runtime = {dbcop_runtime * 1000}ms')
+if checker == 'dbcop':
+  dbcop_data_path = f'/home/rikka/dbcop-verifier/output/{data_name}'
+  dbcop_results, dbcop_runtimes = {}, {}
+  for hist in os.listdir(dbcop_data_path):
+    dbcop_hist_path = os.path.join(dbcop_data_path, hist)
+    for spec_hist in os.listdir(dbcop_hist_path):
+      name = hist + ';' + spec_hist
+      json_path = os.path.join(dbcop_hist_path, spec_hist, 'result_log.json')
+      with open(json_path, 'r') as result_data:
+        content = result_data.read()
+        json_content = '{' + content.split('{')[-1]
+        json_data = json.loads(json_content)
+        if json_data['duration']:
+          dbcop_runtimes[name] = json_data['duration']
+        if json_data['minViolation'] == 'ok':
+          dbcop_results[name] = True
+        # elif json_data['minViolation'] == 'Serializable' or json_data['minViolation'] == 'SnapshotIsolation':
+        #   dbcop_data[name] = False
+        else:
+          dbcop_results[name] = False
+
+  accept_cnt, reject_cnt = 0, 0 
+  accept_runtime, reject_runtime = 0, 0
+  for task in dbcop_results.keys():
+    assert task in dbcop_runtimes.keys()
+    if dbcop_results[task]:
+      accept_cnt += 1
+      accept_runtime += float(dbcop_runtimes[task])
+    else:
+      assert not dbcop_results[task]
+      reject_cnt += 1
+      reject_runtime += float(dbcop_runtimes[task])
+  
+  print(f'checker = {checker}, data name = {data_name}') 
+  print(f'accept cnt = {accept_cnt}, reject cnt = {reject_cnt}')
+  print(f'accept runtime = {accept_runtime * 1000}ms, reject runtime = {reject_runtime * 1000}ms')

@@ -51,7 +51,7 @@ logging.basicConfig(
   filemode = 'w'  
 )
 
-checker = 'ours'
+checker = 'cobra'
 assert checker == 'polysi' or checker == 'viper' or checker == 'ours' or checker == 'cobra'
 logging.info(f'checker = {checker}')
 
@@ -66,9 +66,9 @@ logging.info(f'root path = {root_path}')
 # history_path = os.path.join(root_path, 'history', 'ser', 'same-listappend-rw')
 # history_path = os.path.join(root_path, 'history', 'ser', 'various-pldi')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_all_writes')
-history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_partition_writes')
+# history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_partition_writes')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_general_partition_writes')
-# history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_general_all_writes')
+history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_general_all_writes')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'galera_all_writes')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'galera_partition_writes')
 logging.info(f'history path = {history_path}')
@@ -106,7 +106,7 @@ logging.info(f'isolation level = {isolation_level}')
 n_threads = 1
 logging.info(f'use {n_threads} thread(s)')
 
-output_path = os.path.join(root_path, 'results', 'roachdb_partition_writes.json')
+output_path = os.path.join(root_path, 'results', 'roachdb_general_all_writes-cobra.json')
 logging.info(f'output path = {output_path}')
 
 timeout_duration = 60 # s
