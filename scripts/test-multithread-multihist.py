@@ -51,7 +51,7 @@ logging.basicConfig(
   filemode = 'w'  
 )
 
-checker = 'cobra'
+checker = 'viper'
 assert checker == 'polysi' or checker == 'viper' or checker == 'ours' or checker == 'cobra'
 logging.info(f'checker = {checker}')
 
@@ -68,9 +68,9 @@ logging.info(f'root path = {root_path}')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_all_writes')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_partition_writes')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_general_partition_writes')
-history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_general_all_writes')
+# history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'roachdb_general_all_writes')
 # history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'galera_all_writes')
-# history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'galera_partition_writes')
+history_path = os.path.join(root_path, 'history', 'ser', '{}-logs'.format(history_type), 'oopsla19', 'galera_partition_writes')
 logging.info(f'history path = {history_path}')
 
 if checker == 'ours':
@@ -106,7 +106,7 @@ logging.info(f'isolation level = {isolation_level}')
 n_threads = 1
 logging.info(f'use {n_threads} thread(s)')
 
-output_path = os.path.join(root_path, 'results', 'roachdb_general_all_writes-cobra.json')
+output_path = os.path.join(root_path, 'results', 'galera_partition_writes-viper.json')
 logging.info(f'output path = {output_path}')
 
 timeout_duration = 60 # s
@@ -269,28 +269,27 @@ def run_task(thread_id, task):
     return
     
   if checker == 'viper':
-    cobra_tmp_hist_dir = os.path.join(root_path, 'cobra_tmp_hist_dir')
-    shutil.rmtree(cobra_tmp_hist_dir)
-    os.makedirs(cobra_tmp_hist_dir)
+    viper_tmp_hist_dir = os.path.join(root_path, 'viper_tmp_hist_dir')
+    shutil.rmtree(viper_tmp_hist_dir)
+    os.makedirs(viper_tmp_hist_dir)
     subprocess.run(
       ['java', '-jar', '/home/rikka/PolySI/build/libs/PolySI-1.0.0-SNAPSHOT.jar', 
-       'convert', '-f=dbcop', '-o=cobra', '-t=identity', 
-       bincode_path, cobra_tmp_hist_dir],
+       'convert', '-f=dbcop', '-o=viper', '-t=identity', 
+       bincode_path, viper_tmp_hist_dir],
       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
     )
     cmd = ['python3', checker_path, 
            '--config_file', config_path, 
            '--algo', '6', 
-           '--sub_dir', cobra_tmp_hist_dir,
-           '--perf_file', './test_pertf.txt',
+           '--sub_dir', 'viper_tmp_hist_dir',
+           '--perf_file', os.path.join(root_path, 'test_perf.txt'),
            '--exp_name', 'test', 
            '--strong-session']
-    # print(cmd)
     st_time = time.time()
     logs = subprocess.run(cmd, capture_output=True, text=True).stdout.split(os.linesep)
     ed_time = time.time()
     
-    print(logs)
+    # print(logs)
     for log in logs:
       if log == '':
         continue

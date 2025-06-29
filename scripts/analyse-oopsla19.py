@@ -4,12 +4,12 @@ import sys
 
 # data_name = 'roachdb_all_writes'
 # data_name = 'roachdb_partition_writes'
-data_name = 'roachdb_general_all_writes'
+# data_name = 'roachdb_general_all_writes'
 # data_name = 'roachdb_general_partition_writes'
-# data_name = 'galera_partition_writes'
+data_name = 'galera_partition_writes'
 # data_name = 'galera_all_writes'
 
-checker = 'cobra'
+checker = 'viper'
 
 # 1. load NuSer data
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')

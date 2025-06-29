@@ -3,18 +3,19 @@ import os
 import sys
 
 # SER
-data_name = 'roachdb_general_all_writes'
+# data_name = 'roachdb_general_all_writes'
 # data_name = 'roachdb_general_partition_writes'
 # data_name = 'roachdb_all_writes'
 # data_name = 'roachdb_partition_writes'
 
 # SI
-# data_name = 'galera_partition_writes'
+data_name = 'galera_partition_writes'
 # data_name = 'galera_all_writes'
 
 # checker = 'ours'
 # checker = 'polysi'
-checker = 'cobra'
+# checker = 'cobra'
+checker = 'viper'
 # checker = 'dbcop'
 
 if checker != 'dbcop':
