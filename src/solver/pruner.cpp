@@ -659,6 +659,9 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
     {
       auto curr_time = chrono::steady_clock::now();
       reachability_duration += chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+      BOOST_LOG_TRIVIAL(debug) 
+        << "reachability time: "
+        << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
       time = curr_time;
     }
 
@@ -952,6 +955,9 @@ auto prune_constraints(DependencyGraph &dependency_graph,
     {
       auto curr_time = chrono::steady_clock::now();
       reachability_duration += chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+      BOOST_LOG_TRIVIAL(debug) 
+        << "reachability time: "
+        << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
       time = curr_time;
     }
 
