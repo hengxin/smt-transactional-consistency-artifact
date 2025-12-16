@@ -40,6 +40,11 @@ struct AcyclicMinisatSolver : AbstractSolver {
                        const history::HistoryMetaInfo &history_meta_info,
                        const std::string &isolation_level);
 
+  AcyclicMinisatSolver(const history::UnfoldedDependencyGraph &known_graph,
+                       const history::UnfoldedConstraints &constraints,
+                       const history::HistoryMetaInfo &history_meta_info,
+                       const std::string &isolation_level);
+
   auto solve() -> bool override;
 
   ~AcyclicMinisatSolver();

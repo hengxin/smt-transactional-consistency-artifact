@@ -244,34 +244,34 @@ auto main(int argc, char **argv) -> int {
   //   }
   // }
 
-  // if (accept) {
-  //   // encode constraints and known graph
-  //   auto solver = solver::SolverFactory::getSolverFactory().make(solver_type, 
-  //                                                                dependency_graph, 
-  //                                                                constraints, 
-  //                                                                history_meta_info,
-  //                                                                isolation_level);
+  if (accept) {
+    // encode constraints and known graph
+    auto solver = solver::SolverFactory::getSolverFactory().make(solver_type, 
+                                                                 dependency_graph, 
+                                                                 constraints, 
+                                                                 history_meta_info,
+                                                                 isolation_level);
 
-  //   {
-  //     auto curr_time = chrono::steady_clock::now();
-  //     BOOST_LOG_TRIVIAL(info)
-  //         << "solver initializing time: "
-  //         << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
-  //     time = curr_time;
-  //   }
+    {
+      auto curr_time = chrono::steady_clock::now();
+      BOOST_LOG_TRIVIAL(info)
+          << "solver initializing time: "
+          << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+      time = curr_time;
+    }
 
-  //   // use SMT solver to solve constraints
-  //   accept = solver->solve();
+    // use SMT solver to solve constraints
+    accept = solver->solve();
 
-  //   {
-  //     auto curr_time = chrono::steady_clock::now();
-  //     BOOST_LOG_TRIVIAL(info)
-  //         << "solve time: "
-  //         << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
-  //   }
+    {
+      auto curr_time = chrono::steady_clock::now();
+      BOOST_LOG_TRIVIAL(info)
+          << "solve time: "
+          << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+    }
 
-  //   delete solver;
-  // }
+    delete solver;
+  }
   std::cout << "accept: " << std::boolalpha << accept << std::endl;
   return 0;
 }

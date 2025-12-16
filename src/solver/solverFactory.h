@@ -14,10 +14,10 @@
 
 namespace checker::solver {
   struct SolverFactory {
-private:    
+  private:    
     static const SolverFactory solverFactory;
 
-public:
+  public:
     auto make(const std::string &solver_type, 
               const history::DependencyGraph &dependency_graph,
               const history::Constraints &constraints,
@@ -34,6 +34,21 @@ public:
                 }
               }
 
+    auto make(const std::string &solver_type, 
+              const history::UnfoldedDependencyGraph &dependency_graph,
+              const history::UnfoldedConstraints &constraints,
+              const history::HistoryMetaInfo &history_meta_info,
+              const std::string &isolation_level) -> AbstractSolver * {
+                if (solver_type == "z3") {
+                  throw std::runtime_error("not implemented!");
+                } else if (solver_type == "monosat") {
+                  throw std::runtime_error("not implemented!");
+                } else if (solver_type == "acyclic-minisat") {
+                  return new AcyclicMinisatSolver{dependency_graph, constraints, history_meta_info, isolation_level};
+                } else {
+                  throw std::runtime_error("unknown solver!");
+                }
+              }
     static auto getSolverFactory() -> SolverFactory { return solverFactory; }
   };
 }

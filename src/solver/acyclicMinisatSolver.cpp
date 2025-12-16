@@ -21,6 +21,13 @@ using EdgeType = checker::history::EdgeType;
 
 namespace checker::solver {
 
+AcyclicMinisatSolver::AcyclicMinisatSolver(const history::UnfoldedDependencyGraph &known_graph,
+                                           const history::UnfoldedConstraints &constraints,
+                                           const history::HistoryMetaInfo &history_meta_info,
+                                           const std::string &isolation_level) {
+  // TODO: constructor for abstract solver 
+}
+
 AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known_graph,
                                            const history::Constraints &constraints,
                                            const history::HistoryMetaInfo &history_meta_info,
