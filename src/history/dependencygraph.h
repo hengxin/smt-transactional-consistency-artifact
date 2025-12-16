@@ -16,7 +16,7 @@
 
 namespace checker::history {
 
-enum class EdgeType { WW, RW, WR, SO, LO };
+enum class EdgeType { WW, RW, WR, SO, LO, PO };
 
 struct EdgeInfo {
   EdgeType type;
@@ -50,8 +50,30 @@ struct DependencyGraph {
       -> std::ostream &;
 };
 
+struct UnfoldedDependencyGraph {
+  using SubGraph = utils::Graph<int64_t, EdgeInfo>;
+
+  SubGraph so;
+  SubGraph rw;
+  SubGraph wr;
+  SubGraph ww;
+  SubGraph lo;
+  SubGraph po;
+
+  auto edges() const -> std::ranges::range auto{
+    return std::array{so.edges(), rw.edges(), wr.edges(), ww.edges(), lo.edges(), po.edges()}  //
+           | std::ranges::views::join;
+  }
+
+  auto num_vertices() const -> size_t { return boost::num_vertices(*so.graph); }
+
+  friend auto operator<<(std::ostream &os, const UnfoldedDependencyGraph &graph)
+      -> std::ostream &;
+};
+
 auto known_graph_of(const History &history, const HistoryMetaInfo &history_meta) -> DependencyGraph;
 auto known_graph_of(const InstrumentedHistory &ins_history) -> DependencyGraph;
+auto unfolded_known_graph_of(const InstrumentedHistory &ins_history) -> UnfoldedDependencyGraph;
 
 }  // namespace checker::history
 

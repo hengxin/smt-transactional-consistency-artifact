@@ -406,24 +406,46 @@ auto operator<<(std::ostream &os, const InstrumentedHistory &ins_history) -> std
 
   auto output_list = [&out](const vector<int64_t> &list) {
     out << "[";
-    for (const auto &v : list) out << v << ", ";
+    for (const auto &v : list) {
+      if (v == INIT_VALUE) out << "Empty, ";
+      else out << v << ", ";
+    } 
     out << "]";
   };
 
   out << "\nParticipants:\n";
   for (const auto &p_txn : ins_history.participant_txns) {
     out << "txn_id: " << p_txn.id << ": ";
-    for (const auto &[key, key_op] : p_txn.key_operations) {
-      if (key_op.read_values) {
-        out << "R(" << key << ", ";
-        output_list(*key_op.read_values);
+    for (const auto &e : p_txn.events) {
+      if (e.type == EventType::READ) {
+        out << "R(" << e.key << ", ";
+        output_list(e.read_values);
         out << "), ";
-      } 
-      if (key_op.write_value) {
-        out << "A(" << key << ", " << *key_op.write_value << "), ";
+      } else {
+        assert(e.type == EventType::WRITE); 
+        if (e.write_value == INIT_VALUE) {
+          out << "A(" << e.key << ", " << "Empty" << "), ";
+        } else {
+          out << "A(" << e.key << ", " << e.write_value << "), ";
+        }
       }
     }
     out << "\n";
+
+    // for (const auto &[key, key_op] : p_txn.key_operations) {
+    //   if (key_op.read_values) {
+    //     out << "R(" << key << ", ";
+    //     output_list(*key_op.read_values);
+    //     out << "), ";
+    //   } 
+    //   if (key_op.write_value) {
+    //     if (*key_op.write_value == INIT_VALUE) {
+    //       out << "A(" << key << ", " << "Empty" << "), ";
+    //     } else {
+    //       out << "A(" << key << ", " << *key_op.write_value << "), ";
+    //     }
+    //   }
+    // }
   }
 
   out << "\nObservers:\n";
@@ -498,7 +520,6 @@ auto parse_elle_list_append_history(std::ifstream &is) -> History {
 
   constexpr int64_t init_session_id = 0;
   constexpr int64_t init_txn_id = 0;
-  constexpr int64_t INIT_VALUE = 0x7ff7f7f7f7f7f7f7;
 
   int n_lines = 0;
   is >> n_lines;
@@ -632,7 +653,7 @@ auto instrumented_history_of(const History &history) -> InstrumentedHistory {
     return true;
   };
 
-  int64_t txn_recount = 0;
+  int64_t txn_recount = 0, event_recount = 0;
   auto id_map = unordered_map<int64_t, int64_t>{}; // txn_id -> new_txn_id
   auto max_length_lists = unordered_map<int64_t, vector<int64_t>>{};
   for (const auto &txn : history.transactions()) {
@@ -666,22 +687,26 @@ auto instrumented_history_of(const History &history) -> InstrumentedHistory {
       }
     }
     auto participant_txn = ParticipantTransaction{};
-    participant_txn.id = txn_recount++;
-
-    for (const auto &key : keys) {
-      auto key_operation = KeyOperation{ .key = key, };
-      if (!read_value.contains(key)) {
-        key_operation.write_value = write_value.at(key);
-      } else {
-        key_operation.read_values = read_value.at(key);
-        if (write_value.contains(key)) {
-          assert(write_value[key] == *(key_operation.read_values->rbegin()));
-          key_operation.read_values->pop_back();
-          key_operation.write_value = write_value.at(key);
-        } 
-      }
-      participant_txn.key_operations[key] = key_operation;
+    participant_txn.id = txn_recount++; 
+    participant_txn.events = txn.events; 
+    for (auto &e : participant_txn.events) {
+      e.id = event_recount++;
     }
+
+    // for (const auto &key : keys) {
+    //   auto key_operation = KeyOperation{ .key = key, };
+    //   if (!read_value.contains(key)) {
+    //     key_operation.write_value = write_value.at(key);
+    //   } else {
+    //     key_operation.read_values = read_value.at(key);
+    //     if (write_value.contains(key)) {
+    //       assert(write_value[key] == *(key_operation.read_values->rbegin()));
+    //       key_operation.read_values->pop_back();
+    //       key_operation.write_value = write_value.at(key);
+    //     } 
+    //   }
+    //   participant_txn.key_operations[key] = key_operation;
+    // } 
 
     id_map[txn.id] = participant_txn.id;
     ins_history.participant_txns.emplace_back(participant_txn);
@@ -705,6 +730,7 @@ auto instrumented_history_of(const History &history) -> InstrumentedHistory {
       cur_list.emplace_back(v);
       ins_history.observer_txns.emplace_back(ObserverTransaction{
         .id = txn_recount++,
+        .event_id = event_recount++, 
         .key = key,
         .read_values = cur_list,
       });
@@ -761,6 +787,8 @@ auto compute_history_meta_info(const History &history) -> HistoryMetaInfo {
 auto compute_history_meta_info(const InstrumentedHistory &ins_history) -> HistoryMetaInfo {
   // only consider read_length now
   auto history_meta_info = HistoryMetaInfo{};
+
+  /*
   auto &read_length = history_meta_info.read_length; // txn_id -> (key -> length)
   for (const auto &[txn_id, key, rvs] : ins_history.observer_txns) {
     assert(!read_length.contains(txn_id) || !read_length.at(txn_id).contains(key));
@@ -774,6 +802,8 @@ auto compute_history_meta_info(const InstrumentedHistory &ins_history) -> Histor
       }
     }
   }
+  */
+
   return history_meta_info;
 }
 

@@ -16,6 +16,8 @@ using std::optional;
 
 namespace checker::history {
 
+constexpr int64_t INIT_VALUE = 0x7ff7f7f7f7f7f7f7;
+
 enum class EventType { READ, WRITE };
 
 struct Event {
@@ -71,17 +73,20 @@ struct KeyOperation {
 
 struct ParticipantTransaction {
   int64_t id;
-  unordered_map<int64_t, KeyOperation> key_operations; // key -> keyOperation
+  // unordered_map<int64_t, KeyOperation> key_operations; // key -> keyOperation
+  std::vector<Event> events;
 };
 
 struct ObserverTransaction {
   int64_t id;
+  int64_t event_id;
   int64_t key;
   vector<int64_t> read_values;
 };
 
 struct InstrumentedHistory {
   vector<ParticipantTransaction> participant_txns;
+  // vector<Transaction> participant_txns;
   vector<ObserverTransaction> observer_txns;
 
   unordered_map<int64_t, int64_t> so_orders, lo_orders;

@@ -60,6 +60,14 @@ namespace checker::solver {
 auto fast_prune_constraints(DependencyGraph &dependency_graph,
                             Constraints &constraints,
                             const InstrumentedHistory &ins_history) -> bool {
+  // TODO: prune constraints
+  return true;
+}
+
+/*
+auto fast_prune_constraints(DependencyGraph &dependency_graph,
+                            Constraints &constraints,
+                            const InstrumentedHistory &ins_history) -> bool {
   
   auto read_length = unordered_map<int64_t, unordered_map<int64_t, unsigned>>{}; // txn_id -> (key -> length)
   for (const auto &[txn_id, key, rvs] : ins_history.observer_txns) {
@@ -568,6 +576,8 @@ auto fast_prune_constraints(DependencyGraph &dependency_graph,
   BOOST_LOG_TRIVIAL(debug) << "#wr constraints after pruning: " << wr_constraints.size();
   return true;
 }
+
+*/
 
 auto prune_constraints(DependencyGraph &dependency_graph,
                        Constraints &constraints) -> bool {

@@ -120,23 +120,8 @@ auto main(int argc, char **argv) -> int {
   if (history_type == "dbcop") {
     // read history
     throw std::runtime_error{"Not Implemented"};
-    // auto history_file = std::ifstream{args.get("history")};
-    // if (!history_file.is_open()) {
-    //   std::ostringstream os;
-    //   os << "Cannot open file '" << args.get("history") << "'";
-    //   throw std::runtime_error{os.str()};
-    // }
-
-    // history = history::parse_dbcop_history(history_file);
   } else if (history_type == "cobra") {
     throw std::runtime_error{"Not Implemented"};
-    // auto history_dir = args.get("history");
-    // try {
-    //   history = history::parse_cobra_history(history_dir);
-    // } catch (const std::runtime_error &e) {
-    //   std::cerr << e.what() << std::endl;
-    //   return 1;
-    // }
   } else if (history_type == "elle-list-append") {
     auto history_file = std::ifstream{args.get("history")};
     if (!history_file.is_open()) {
@@ -154,12 +139,14 @@ auto main(int argc, char **argv) -> int {
     logger << "history: " << history;
   }
 
-  if (!check_single_write(history)) { // violates SingleWrite Constraint
-    BOOST_LOG_TRIVIAL(debug) << "check single write: failed";
-    BOOST_LOG_TRIVIAL(debug) << "This history violates SingleWrite constraint";
-    throw std::runtime_error{"Detect multiple writes on 1 key in a transaction. This mode is not supported yet."};
-  }
-  BOOST_LOG_TRIVIAL(debug) << "check single write: ok";
+  // ------- Lift SingleWrite Assumption --------
+  // if (!check_single_write(history)) { // violates SingleWrite Constraint
+  //   BOOST_LOG_TRIVIAL(debug) << "check single write: failed";
+  //   BOOST_LOG_TRIVIAL(debug) << "This history violates SingleWrite constraint";
+  //   throw std::runtime_error{"Detect multiple writes on 1 key in a transaction. This mode is not supported yet."};
+  // }
+  // BOOST_LOG_TRIVIAL(debug) << "check single write: ok";
+  // --------------------------------------------
 
   if (!check_list_prefix(history)) { // violates LIST-PREFIX
     BOOST_LOG_TRIVIAL(debug) << "check LIST-PREFIX: failed";
@@ -177,16 +164,18 @@ auto main(int argc, char **argv) -> int {
 
   // TODO: history meta info  
   // compute known graph (WR edges) and constraints from history
-  auto dependency_graph = history::known_graph_of(ins_history);
+  // auto dependency_graph = history::known_graph_of(ins_history);
+  auto dependency_graph = history::unfolded_known_graph_of(ins_history);
 
   CHECKER_LOG_COND(trace, logger) {
-    logger << "dependency graph:\n"
+    logger << "unfolded dependency graph:\n"
            << dependency_graph;
   }
 
-  auto constraints = std::pair<std::vector<history::WWConstraint>, std::vector<history::WRConstraint>>{};
+  auto constraints = std::pair<std::vector<history::UnfoldedWWConstraint>, 
+                               std::vector<history::UnfoldedWRConstraint>>{};
   try {
-    constraints = history::constraints_of(ins_history); 
+    constraints = history::unfolded_constraints_of(ins_history); 
   } catch (std::runtime_error &e) {
     std::cerr << e.what() << std::endl;
     auto accept = false;
@@ -208,7 +197,7 @@ auto main(int argc, char **argv) -> int {
     // logger << "history: " << history << "\ndependency graph:\n"
     //        << dependency_graph;
 
-    logger << "constraints\n";
+    logger << "unfolded constraints\n";
     logger << "ww: \n";
     const auto &[ww_constraints, wr_constraints] = constraints;
     for (const auto &c : ww_constraints) { logger << c; }
@@ -216,72 +205,73 @@ auto main(int argc, char **argv) -> int {
     for (const auto &c : wr_constraints) { logger << c; }
   }
 
+  // TODO: temporarily disable the following procedures.
   auto accept = true;
 
-  if (args.get("--pruning") != "none") {
-    auto pruning_method = args.get("--pruning");
-    BOOST_LOG_TRIVIAL(debug) << "pruning method: " << pruning_method;
+  // if (args.get("--pruning") != "none") {
+  //   auto pruning_method = args.get("--pruning");
+  //   BOOST_LOG_TRIVIAL(debug) << "pruning method: " << pruning_method;
     
-    auto pruned = true;
-    if (pruning_method == "normal") {
-      if (isolation_level == "ser") {
-        accept = solver::prune_constraints(dependency_graph, constraints);
-      } else if (isolation_level == "si") {
-        accept = solver::prune_si_constraints(dependency_graph, constraints); // hard encode, bad implementation!
-      }
-    } else if (pruning_method == "fast") {
-      // must use fast pruning
-      if (isolation_level == "ser") {
-        accept = solver::fast_prune_constraints(dependency_graph, constraints, ins_history);
-      } else if (isolation_level == "si") {
-        accept = solver::fast_prune_si_constraints(dependency_graph, constraints); // hard encode, bad implementation!
-      }
-    } else {
-      pruned = false;
-      BOOST_LOG_TRIVIAL(info) << "unknown pruning method \"" 
-                              << pruning_method
-                              << "\", expect in {\"normal\", \"fast\", \"none\"}, skip pruning";
-    }
+  //   auto pruned = true;
+  //   if (pruning_method == "normal") {
+  //     if (isolation_level == "ser") {
+  //       accept = solver::prune_constraints(dependency_graph, constraints);
+  //     } else if (isolation_level == "si") {
+  //       accept = solver::prune_si_constraints(dependency_graph, constraints); // hard encode, bad implementation!
+  //     }
+  //   } else if (pruning_method == "fast") {
+  //     // must use fast pruning
+  //     if (isolation_level == "ser") {
+  //       accept = solver::fast_prune_constraints(dependency_graph, constraints, ins_history);
+  //     } else if (isolation_level == "si") {
+  //       accept = solver::fast_prune_si_constraints(dependency_graph, constraints); // hard encode, bad implementation!
+  //     }
+  //   } else {
+  //     pruned = false;
+  //     BOOST_LOG_TRIVIAL(info) << "unknown pruning method \"" 
+  //                             << pruning_method
+  //                             << "\", expect in {\"normal\", \"fast\", \"none\"}, skip pruning";
+  //   }
 
-    // display_constraints(constraints, "Constraints after Pruning:");
+  //   // display_constraints(constraints, "Constraints after Pruning:");
 
-    if (pruned) {
-      auto curr_time = chrono::steady_clock::now();
-      BOOST_LOG_TRIVIAL(info)
-          << "prune time: "
-          << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
-      time = curr_time;
-    }
-  }
+  //   if (pruned) {
+  //     auto curr_time = chrono::steady_clock::now();
+  //     BOOST_LOG_TRIVIAL(info)
+  //         << "prune time: "
+  //         << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+  //     time = curr_time;
+  //   }
+  // }
 
-  if (accept) {
-    // encode constraints and known graph
-    auto solver = solver::SolverFactory::getSolverFactory().make(solver_type, 
-                                                                 dependency_graph, 
-                                                                 constraints, 
-                                                                 history_meta_info,
-                                                                 isolation_level);
+  // if (accept) {
+  //   // encode constraints and known graph
+  //   auto solver = solver::SolverFactory::getSolverFactory().make(solver_type, 
+  //                                                                dependency_graph, 
+  //                                                                constraints, 
+  //                                                                history_meta_info,
+  //                                                                isolation_level);
 
-    {
-      auto curr_time = chrono::steady_clock::now();
-      BOOST_LOG_TRIVIAL(info)
-          << "solver initializing time: "
-          << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
-      time = curr_time;
-    }
+  //   {
+  //     auto curr_time = chrono::steady_clock::now();
+  //     BOOST_LOG_TRIVIAL(info)
+  //         << "solver initializing time: "
+  //         << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+  //     time = curr_time;
+  //   }
 
-    // use SMT solver to solve constraints
-    accept = solver->solve();
+  //   // use SMT solver to solve constraints
+  //   accept = solver->solve();
 
-    {
-      auto curr_time = chrono::steady_clock::now();
-      BOOST_LOG_TRIVIAL(info)
-          << "solve time: "
-          << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
-    }
+  //   {
+  //     auto curr_time = chrono::steady_clock::now();
+  //     BOOST_LOG_TRIVIAL(info)
+  //         << "solve time: "
+  //         << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+  //   }
 
-    delete solver;
-  }
+  //   delete solver;
+  // }
   std::cout << "accept: " << std::boolalpha << accept << std::endl;
   return 0;
 }

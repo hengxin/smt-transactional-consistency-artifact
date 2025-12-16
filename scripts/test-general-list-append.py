@@ -15,16 +15,21 @@ root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'general')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'single-write-uv')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'single-write-uv2')
-history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'same-listappend-rw2')
+history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'list-rw')
 transform_script_path = os.path.join(root_path, 'scripts', 'edn2txt', 'edn2txt.py')
-checker = 'nuser'
+checker = 'elle'
+# mode = 'rw' 
+mode = 'list'
 print(f'checker = {checker}')
 if checker == 'elle':
   checker_path = '/home/rikka/elle-cli/target/elle-cli-0.1.7-standalone.jar' # this is the absolute path of the built PolySI
 else:
   checker_path = os.path.join(root_path, 'builddir-release', 'checker')
+  if mode == 'rw':
+    checker_path = "/home/rikka/smt-transactional-consistency-artifact/builddir-release/checker"
   solver = 'acyclic-minisat'
   print('use [{}] as backend solver'.format(solver))
+  print(f'mode = {mode}')
 
 # params
 # general and single-write-uv
@@ -58,12 +63,21 @@ else:
 #           '20_1000_10_8000_0.5_r_0.5_100'],
 # }
 # same listappend and rw2
+# params = {
+#   'txn': ['20_500_10_2000_0.5_r_0.5_100',
+#           '20_750_10_2000_0.5_r_0.5_100',
+#           '20_800_10_2000_0.5_r_0.5_100', 
+#           '20_900_10_2000_0.5_r_0.5_100', 
+#           '20_1000_10_2000_0.5_r_0.5_100'],
+# }
+
+# list-rw
 params = {
-  'txn': ['20_500_10_2000_0.5_r_0.5_100',
-          '20_750_10_2000_0.5_r_0.5_100',
-          '20_800_10_2000_0.5_r_0.5_100', 
-          '20_900_10_2000_0.5_r_0.5_100', 
-          '20_1000_10_2000_0.5_r_0.5_100'],
+  'dup-r': ['100_100_8_5000_0.5_r_0_1.5_100',
+            '100_100_8_5000_0.5_r_0.25_1.5_100',
+            '100_100_8_5000_0.5_r_0.5_1.5_100', 
+            '100_100_8_5000_0.5_r_0.75_1.5_100', 
+            '100_100_8_5000_0.5_r_1_1.5_100'],
 }
 
 def run_single(history_dir, bincode):
@@ -81,35 +95,65 @@ def run_single(history_dir, bincode):
       assert log.split(' ')[-1] == 'true'
     runtime = (end_time - start_time) * 1000
   else:
-    output_tmp_file_name = 'hist.txt'
-    output_tmp_file_path = os.path.join(history_path, history_dir, output_tmp_file_name)
-    with open(output_tmp_file_path, 'w+') as hist_file:
-      subprocess.run(['python3', transform_script_path, bincode_path], stdout=hist_file)
-    start_time = time.perf_counter()
-    logs = subprocess.run([checker_path, output_tmp_file_path, '--solver', solver, '--history-type', history_type, '--pruning', 'fast'], capture_output=True, text=True).stdout.split(os.linesep)
-    end_time = time.perf_counter()
-    for log in logs:
-      if log == '':
-        continue
-      if log[0] == '[':
-        if log.find(':') == -1:
+    if mode == 'list':
+      output_tmp_file_name = 'hist.txt'
+      output_tmp_file_path = os.path.join(history_path, history_dir, output_tmp_file_name)
+      with open(output_tmp_file_path, 'w+') as hist_file:
+        subprocess.run(['python3', transform_script_path, bincode_path], stdout=hist_file)
+      start_time = time.perf_counter()
+      logs = subprocess.run([checker_path, output_tmp_file_path, '--solver', solver, '--history-type', history_type, '--pruning', 'fast'], capture_output=True, text=True).stdout.split(os.linesep)
+      end_time = time.perf_counter()
+      for log in logs:
+        if log == '':
           continue
-        if log.strip().endswith('ms'):
-          runtime += int(log.split(':')[-1].strip()[:-2]) # xxx'ms'
-      elif log[0] == 'a': # accept
-        if log.split(':')[-1].strip() != 'true':
-          print(f'checking result of {history_dir}/{bincode} is false')
-        # assert log.split(':')[-1].strip() == 'true' # must satisfy si
-      # print(log)
-    # print(runtime)
-    # print((end_time - start_time) * 1000)
-    runtime = (end_time - start_time) * 1000
-    os.remove(output_tmp_file_path)
+        if log[0] == '[':
+          if log.find(':') == -1:
+            continue
+          if log.strip().endswith('ms'):
+            runtime += int(log.split(':')[-1].strip()[:-2]) # xxx'ms'
+        elif log[0] == 'a': # accept
+          if log.split(':')[-1].strip() != 'true':
+            print(f'checking result of {history_dir}/{bincode} is false')
+          # assert log.split(':')[-1].strip() == 'true' # must satisfy si
+        # print(log)
+      # print(runtime)
+      # print((end_time - start_time) * 1000)
+      runtime = (end_time - start_time) * 1000
+      os.remove(output_tmp_file_path)
+    elif mode == "rw":
+      start_time = time.perf_counter()
+      bincode_path = os.path.join(bincode_path, 'history.bincode')
+      cmd = [checker_path, bincode_path, '--solver', solver, '--pruning', 'fast']
+      logs = subprocess.run(cmd, capture_output=True, text=True).stdout.split(os.linesep)
+      end_time = time.perf_counter()
+      for log in logs:
+        if log == '':
+          continue
+        if log[0] == '[':
+          if log.find(':') == -1:
+            continue
+          if log.strip().endswith('ms'):
+            runtime += int(log.split(':')[-1].strip()[:-2]) # xxx'ms'
+        elif log[0] == 'a': # accept
+          if log.split(':')[-1].strip() != 'true':
+            print(f'checking result of {history_dir}/{bincode} is false')
+          # assert log.split(':')[-1].strip() == 'true' # must satisfy si
+        # print(log)
+      # print(runtime)
+      # print((end_time - start_time) * 1000)
+      runtime = (end_time - start_time) * 1000
   return runtime
 
 
 def run(history_dir):
-  statistics = [ run_single(history_dir, bincode) for bincode in os.listdir(os.path.join(history_path, history_dir))]
+  if checker == 'elle' or (checker == 'nuser' and mode == 'list'):
+    statistics = [run_single(history_dir, bincode) 
+                for bincode in os.listdir(os.path.join(history_path, history_dir)) 
+                if os.path.isfile(os.path.join(history_path, history_dir, bincode))]
+  else: # checker == 'nuser' and mode == 'rw'
+    statistics = [run_single(history_dir, bincode) 
+                for bincode in os.listdir(os.path.join(history_path, history_dir)) 
+                if os.path.isdir(os.path.join(history_path, history_dir, bincode))]
   return sum(statistics) / len(statistics)
 
 all_statistics = {}

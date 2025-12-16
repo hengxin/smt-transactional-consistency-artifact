@@ -25,6 +25,17 @@ struct WWConstraint {
       -> std::ostream &;
 };
 
+struct UnfoldedWWConstraint {
+  using Edge = std::tuple<int64_t, int64_t, EdgeInfo>;
+
+  int64_t either_event_id;
+  int64_t or_event_id;
+
+  friend auto operator<<(std::ostream &os, const UnfoldedWWConstraint &constraint)
+      -> std::ostream &;
+};
+
+
 struct WRConstraint {
   using Edge = std::tuple<int64_t, int64_t, EdgeInfo>;
 
@@ -36,13 +47,28 @@ struct WRConstraint {
       -> std::ostream &;
 };
 
+struct UnfoldedWRConstraint {
+  using Edge = std::tuple<int64_t, int64_t, EdgeInfo>;
+
+  int64_t key;
+  int64_t read_event_id;
+  std::unordered_set<int64_t> write_event_ids;
+
+  friend auto operator<<(std::ostream &os, const UnfoldedWRConstraint &constraint)
+      -> std::ostream &;
+};
+
 using WWConstraints = std::vector<WWConstraint>;
 using WRConstraints = std::vector<WRConstraint>;
 using Constraints = std::pair<WWConstraints, WRConstraints>;
 
+using UnfoldedWWConstraints = std::vector<UnfoldedWWConstraint>;
+using UnfoldedWRConstraints = std::vector<UnfoldedWRConstraint>;
+using UnfoldedConstraints = std::pair<UnfoldedWWConstraints, UnfoldedWRConstraints>;
 
 // auto constraints_of(const History &history, const HistoryMetaInfo &history_meta) -> Constraints;
 auto constraints_of(const InstrumentedHistory &ins_history) -> Constraints;
+auto unfolded_constraints_of(const InstrumentedHistory &ins_history) -> UnfoldedConstraints;
 
 }  // namespace checker::history
 

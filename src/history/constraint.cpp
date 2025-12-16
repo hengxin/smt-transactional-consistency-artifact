@@ -53,11 +53,18 @@ namespace checker::history {
 
 auto constraints_of(const InstrumentedHistory &ins_history) 
   -> std::pair<std::vector<WWConstraint>, std::vector<WRConstraint>> {
+  // TODO
+  return std::pair<std::vector<WWConstraint>, std::vector<WRConstraint>>{};
+}
+
+/*
+auto constraints_of(const InstrumentedHistory &ins_history) 
+  -> std::pair<std::vector<WWConstraint>, std::vector<WRConstraint>> {
   // 0. construct useful events(the first READ and the last WRITE per key) for each txn
   struct RWEvent {
     int64_t key;
     int64_t value; // write_value or read_values's last element
-    EventType type;
+    EventType type; 
     int64_t transaction_id;
   };
   auto useful_writes = std::vector<RWEvent>{}, useful_reads = std::vector<RWEvent>{};
@@ -192,215 +199,85 @@ auto constraints_of(const InstrumentedHistory &ins_history)
   BOOST_LOG_TRIVIAL(debug) << "#wr constraints: " << wr_constraints.size();
   BOOST_LOG_TRIVIAL(info) << "#constraints: " << ww_constraints.size() + wr_constraints.size();
   return std::make_pair(ww_constraints, wr_constraints); 
-}
+} 
+*/
 
-// auto constraints_of(const History &history, const HistoryMetaInfo &history_meta) 
-//     -> std::pair<std::vector<WWConstraint>, std::vector<WRConstraint>> {
-//   // TODO: construct WW and WR constraints
-//   const auto &write_node = history_meta.write_node;
-//   const auto &read_node = history_meta.read_node;
-//   // 1. WW constraints
-//   auto ww_constraints = std::vector<WWConstraint>{};
-//   {
-//     auto write_nodes_per_key = unordered_map<int64_t, unordered_set<int64_t>>{};
-//     auto write_keys = unordered_set<int64_t>{};
-//     for (const auto &[event_id, key, wv, rvs, type, txn_id] : history.events()) {
-//       if (type == EventType::READ) continue;
-//       if (!write_keys.contains(key)) write_keys.insert(key);
-//       write_nodes_per_key[key].insert(write_node.at(event_id));
-//     }
+auto unfolded_constraints_of(const InstrumentedHistory &ins_history) -> UnfoldedConstraints {
+  // TODO: unfolded constraints of 
+  // 0. prepare flattened events list 
+  auto keys = std::set<int64_t>{};
+  auto events_per_key = std::map<int64_t, std::vector<Event>>{};
+  for (const auto &txn : ins_history.participant_txns) {
+    for (const auto &e : txn.events) {
+      keys.insert(e.key);
+      events_per_key[e.key].emplace_back(e);
+    }
+  }
+  for (const auto &txn : ins_history.observer_txns) {
+    keys.insert(txn.key);
+    events_per_key[txn.key].emplace_back(Event{
+      .id = txn.event_id,
+      .key = txn.key,
+      .read_values = txn.read_values, 
+      .type = EventType::READ, 
+      .transaction_id = txn.id,
+    });
+  }
 
-//     for (const auto &key : write_keys) {
-//       auto write_nodes = vector<int64_t>(write_nodes_per_key[key].begin(), write_nodes_per_key[key].end());
-//       unsigned n = write_nodes.size();
-//       for (unsigned i = 0; i < n; i++) {
-//         int64_t either_node = write_nodes[i];
-//         for (unsigned j = i + 1; j < n; j++) {
-//           int64_t or_node = write_nodes[j];
-//           ww_constraints.emplace_back(WWConstraint{
-//             .either_node_id = either_node,
-//             .or_node_id = or_node,
-//             .either_edges = {{either_node, or_node, EdgeInfo{.type = EdgeType::WW, .keys = {key}}}},
-//             .or_edges = {{or_node, either_node, EdgeInfo{.type = EdgeType::WW, .keys = {key}}}},
-//           });
-//         }
-//       }
-//     }
-//   }
-
-//   // 2. WR constraints
-//   auto wr_constraints = std::vector<WRConstraint>{};
-//   {
-//     auto write_nodes_per_key_per_value = unordered_map<int64_t, unordered_map<int64_t, unordered_set<int64_t>>>{}; // key -> (value -> node_ids)
-//     for (const auto &[event_id, key, wv, rvs, type, txn_id] : history.events()) {
-//       if (type == EventType::READ) continue;
-//       write_nodes_per_key_per_value[key][wv].insert(write_node.at(event_id));
-//     }
-//     for (const auto &event : history.events()) {
-//       if (event.type == EventType::WRITE) continue;
-//       // type == EventType::READ
-//       int64_t index = 0;
-//       for (const auto &v : event.read_values) {
-//         int64_t read_node_id = read_node.at(event.id).at(index);
-//         auto write_node_ids = write_nodes_per_key_per_value[event.key][v]; // copy
-//         if (write_node_ids.empty()) {
-//           std::cerr << "read node id = " << read_node_id << ", " 
-//                     << "key = " << event.key << ", " 
-//                     << "value = " << v << std::endl;
-//           throw std::runtime_error {"exception found in construct wr constraint: no matched value write"};
-//         }
-//         wr_constraints.emplace_back(WRConstraint{
-//           .key = event.key,
-//           .read_node_id = read_node_id,
-//           .write_node_ids = write_node_ids,
-//         });
-//         ++index;
-//       }
-//     }
-//   }
-
-//   BOOST_LOG_TRIVIAL(debug) << "#ww constraints: " << ww_constraints.size();
-//   BOOST_LOG_TRIVIAL(debug) << "#wr constraints: " << wr_constraints.size();
-//   BOOST_LOG_TRIVIAL(info) << "#constraints: " << ww_constraints.size() + wr_constraints.size();
-//   return std::make_pair(ww_constraints, wr_constraints);
-// }
-
-/*
-auto constraints_of(const History &history, const HistoryMetaInfo &history_meta)
-    -> std::pair<std::vector<WWConstraint>, std::vector<WRConstraint>> {
-  // 0. construct useful events(the first READ and the last WRITE per key) for each txn
-  auto useful_writes = std::vector<Event>{}, useful_reads = std::vector<Event>{};
+  // 1. construct ww constraints
+  auto ww_constraints = UnfoldedWWConstraints{};
   {
-    for (const auto &session : history.sessions) {
-      for (const auto &txn : session.transactions) {
-        auto cur_value = std::unordered_map<int64_t, int64_t>{}; // key -> value (for current txn)
-        for (const auto &event : txn.events) {
-          const auto &[key, value, type, txn_id] = event;
-          if (type == EventType::READ) {
-            if (!cur_value.contains(key)) {
-              useful_reads.emplace_back(event);
-            } else {
-              if (cur_value[key] != value) 
-                throw std::runtime_error{"exception found in 1 txn."}; // violate ser
-            }
-          } else { // EventType::WRITE
-            cur_value[key] = value;
+    for (const auto &key : keys) {
+      const auto &events = events_per_key[key];
+      for (auto e1_index = 0u; e1_index < events.size(); e1_index++) {
+        const auto &e1 = events[e1_index];
+        for (auto e2_index = e1_index + 1; e2_index < events.size(); e2_index++) {
+          const auto &e2 = events[e2_index];
+          if (e1.type == EventType::WRITE && e2.type == EventType::WRITE) {
+            ww_constraints.emplace_back(UnfoldedWWConstraint{
+              .either_event_id = e1.id, 
+              .or_event_id = e2.id, 
+            });
           }
         }
-        for (const auto &[key, value] : cur_value) {
-          useful_writes.emplace_back((Event) {
-            .key = key, 
-            .value = value, 
-            .type = EventType::WRITE, 
-            .transaction_id = txn.id
-          });
+      }
+    }
+  }
+
+  // 2. construct wr constraints
+  auto wr_constraints = UnfoldedWRConstraints{};
+  {
+    for (const auto &key : keys) {
+      const auto &events = events_per_key[key];
+      for (const auto &r : events) {
+        if (r.type != EventType::READ) continue;
+        auto write_event_ids = std::unordered_set<int64_t>{};
+        for (const auto &w : events) {
+          if (w.type != EventType::WRITE) continue; 
+          if (w.write_value == *r.read_values.rbegin()) {
+            write_event_ids.insert(w.id);
+          }
         }
+        if (write_event_ids.empty()) {
+          std::cerr << "read txn id = " << r.transaction_id << ", " 
+                    << "key = " << key << ", " 
+                    << "value (of last element) = " << *r.read_values.rbegin() << std::endl;
+          throw std::runtime_error {"exception found in construct wr constraint: no matching write value"};
+        }
+        wr_constraints.emplace_back(UnfoldedWRConstraint{
+          .key = key, 
+          .read_event_id = r.id, 
+          .write_event_ids = write_event_ids
+        });
       }
     }
   }
   
-  // 1. add ww constraints
-  auto ww_constraints = std::vector<WWConstraint>{};
-  {
-    auto write_txns_per_key = unordered_map<int64_t, unordered_set<int64_t>>{};
-    for (const auto &event : useful_writes) {
-      write_txns_per_key[event.key].emplace(event.transaction_id);
-    }
-
-    auto edges_per_txn_pair = unordered_map<
-      pair<int64_t, int64_t>,
-      unordered_map<std::tuple<int64_t, int64_t, EdgeType>, vector<int64_t>, decltype(hash_edge_endpoint)>,
-      decltype(hash_txns_pair)>{};
-    for (const auto &[key, txns] : write_txns_per_key) {
-      for (auto it = txns.begin(); it != txns.end(); it++) {
-        for (const auto &txn2 : subrange(std::next(it), txns.end())) {
-          auto add_key = [&](int64_t txn1, int64_t txn2) {
-            edges_per_txn_pair[{txn1, txn2}][{txn1, txn2, EdgeType::WW}]
-                .emplace_back(key);
-          };
-
-          add_key(*it, txn2);
-          add_key(txn2, *it);
-        }
-      }
-    }
-
-    auto added_pairs = unordered_set<pair<int64_t, int64_t>, decltype(hash_txns_pair)>{};
-    for (const auto &[p, v] : edges_per_txn_pair) {
-      auto [txn1, txn2] = p;
-
-      if (added_pairs.contains({txn2, txn1})) {
-        continue;
-      }
-      added_pairs.emplace(txn1, txn2);
-
-      auto to_edge = [&](auto txn1, auto txn2) {
-        return transform([=](auto &&p) {
-          auto &&[t, keys] = p;
-          auto &&[from, to, type] = t;
-          return WWConstraint::Edge{
-              from,
-              to,
-              EdgeInfo{
-                  .type = type,
-                  .keys = std::move(keys),
-              },
-          };
-        });
-      };
-
-      // here, if UV constraint is relaxed, only WW edges exist
-      auto either_edges = edges_per_txn_pair.at({txn1, txn2})  //
-                          | to_edge(txn1, txn2)                //
-                          | to<vector<WWConstraint::Edge>>;
-      auto or_edges = edges_per_txn_pair[{txn2, txn1}]  //
-                      | to_edge(txn2, txn1)             //
-                      | to<vector<WWConstraint::Edge>>;
-      ww_constraints.emplace_back(WWConstraint{
-          .either_txn_id = txn1,
-          .or_txn_id = txn2,
-          .either_edges = either_edges,
-          .or_edges = or_edges,
-      });
-    }
-  }
-
-  // 2. add wr constraints
-  auto wr_constraints = std::vector<WRConstraint>{};
-  {
-    // for each read event, find all write events that write the same value for each key 
-    auto read_events_per_txn = std::unordered_map<int64_t, std::unordered_set<std::pair<int64_t, int64_t>, decltype(hash_txns_pair)>>{}; // txn_id -> <key, value>
-    for (const auto &event : useful_reads) {
-      read_events_per_txn[event.transaction_id].insert(std::make_pair(event.key, event.value));
-    }
-    auto txns_per_write_event = std::unordered_map<std::pair<int64_t, int64_t>, std::unordered_set<int64_t>, decltype(hash_txns_pair)>{};
-    // <key, value> -> txn_id, here hash_txns_pair is borrowed.
-    for (const auto &event : useful_writes) {
-      txns_per_write_event[std::make_pair(event.key, event.value)].insert(event.transaction_id);
-    }
-    for (const auto &[read_txn_id, read_txn_events] : read_events_per_txn) {
-      for (const auto &[key, value] : read_txn_events) {
-        auto wr_constraint = WRConstraint { .key = key, .read_txn_id = read_txn_id, .write_txn_ids = {} };
-        for (const auto &write_txn_id : txns_per_write_event[std::make_pair(key, value)]) {
-          if (write_txn_id != read_txn_id) wr_constraint.write_txn_ids.insert(write_txn_id);
-        }
-        if (wr_constraint.write_txn_ids.empty()) {
-          std::cerr << "read txn id = " << read_txn_id << ", " 
-                    << "key = " << key << ", " 
-                    << "value = " << value << std::endl;
-          throw std::runtime_error {"exception found in construct wr constraint: no matched value write"};
-        } 
-        wr_constraints.emplace_back(wr_constraint);
-      }
-    }
-  }
-
   BOOST_LOG_TRIVIAL(debug) << "#ww constraints: " << ww_constraints.size();
   BOOST_LOG_TRIVIAL(debug) << "#wr constraints: " << wr_constraints.size();
   BOOST_LOG_TRIVIAL(info) << "#constraints: " << ww_constraints.size() + wr_constraints.size();
   return std::make_pair(ww_constraints, wr_constraints);
 }
-*/
 
 auto operator<<(std::ostream &os, const WWConstraint &constraint)
     -> std::ostream & {
@@ -427,7 +304,20 @@ auto operator<<(std::ostream &os, const WWConstraint &constraint)
   return os;
 }
 
-// TODO: overload operator << of WRConstraint
+auto operator<<(std::ostream &os, const UnfoldedWWConstraint &constraint)
+    -> std::ostream & {
+  auto out = std::osyncstream{os};
+  auto print_cond = [&](const char *tag, int64_t first_id, int64_t second_id) {
+    out << tag << ' ' << first_id << "->" << second_id << ": ";
+  };
+
+  print_cond("either", constraint.either_event_id, constraint.or_event_id);
+  out << "; ";
+  print_cond("or", constraint.or_event_id, constraint.either_event_id);
+  out << '\n';
+  return os;
+}
+
 
 auto operator<<(std::ostream &os, const WRConstraint &constraint) 
     -> std::ostream & {
@@ -436,6 +326,19 @@ auto operator<<(std::ostream &os, const WRConstraint &constraint)
   out << "read_txn: " << constraint.read_txn_id << ", "
       << "write_txns: {";
   for (const auto write_node_id : constraint.write_txn_ids) {
+    out << write_node_id << ", ";
+  }
+  out << "} } \n";
+  return os;
+}
+
+auto operator<<(std::ostream &os, const UnfoldedWRConstraint &constraint) 
+    -> std::ostream & {
+  auto out = std::osyncstream{os};
+  out << "key: " << constraint.key << " { ";
+  out << "read_event: " << constraint.read_event_id << ", "
+      << "write_events: {";
+  for (const auto write_node_id : constraint.write_event_ids) {
     out << write_node_id << ", ";
   }
   out << "} } \n";
