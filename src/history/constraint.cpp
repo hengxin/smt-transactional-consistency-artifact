@@ -237,6 +237,7 @@ auto unfolded_constraints_of(const InstrumentedHistory &ins_history) -> Unfolded
             ww_constraints.emplace_back(UnfoldedWWConstraint{
               .either_event_id = e1.id, 
               .or_event_id = e2.id, 
+              .key = key,
             });
           }
         }
@@ -307,13 +308,13 @@ auto operator<<(std::ostream &os, const WWConstraint &constraint)
 auto operator<<(std::ostream &os, const UnfoldedWWConstraint &constraint)
     -> std::ostream & {
   auto out = std::osyncstream{os};
-  auto print_cond = [&](const char *tag, int64_t first_id, int64_t second_id) {
-    out << tag << ' ' << first_id << "->" << second_id << ": ";
+  auto print_cond = [&](const char *tag, int64_t first_id, int64_t second_id, int64_t key) {
+    out << tag << ' ' << first_id << "->" << second_id << "key = " << key;
   };
 
-  print_cond("either", constraint.either_event_id, constraint.or_event_id);
+  print_cond("either", constraint.either_event_id, constraint.or_event_id, constraint.key);
   out << "; ";
-  print_cond("or", constraint.or_event_id, constraint.either_event_id);
+  print_cond("or", constraint.or_event_id, constraint.either_event_id, constraint.key);
   out << '\n';
   return os;
 }

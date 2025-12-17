@@ -13,6 +13,7 @@ using Edge = std::tuple<int, int, int, std::vector<int64_t>>; // <type, from, to
                                                               //        2: WR,
                                                               //        3: RW, keys = {}
                                                               //        4: LO, keys = {}
+                                                              //        5: PO, keys = {}
 using KnownGraph = std::vector<Edge>;
 
 using WWConstraint = std::tuple<int, int, std::vector<int64_t>>; // <either, or, keys>

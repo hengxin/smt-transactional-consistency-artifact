@@ -30,6 +30,7 @@ struct UnfoldedWWConstraint {
 
   int64_t either_event_id;
   int64_t or_event_id;
+  int64_t key; 
 
   friend auto operator<<(std::ostream &os, const UnfoldedWWConstraint &constraint)
       -> std::ostream &;

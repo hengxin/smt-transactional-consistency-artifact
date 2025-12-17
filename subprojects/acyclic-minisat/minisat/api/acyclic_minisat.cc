@@ -93,12 +93,24 @@ bool am_solve_with_suggestion(int n_vertices, const KnownGraph &known_graph, con
   return accept;
 }
 
+bool am_solve_list(int n_vertices, 
+                   const KnownGraph &known_graph, 
+                   const Constraints &constraints, 
+                   const std::unordered_map<int, int> &length_of_read_event, 
+                   const std::unordered_map<int, int64_t> &key_of_event,
+                   const std::unordered_map<int, int> &txn_id) {
+  // TODO: am_solve_list
+  return true;
+}
+
 bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &constraints,
               // history meta info
               const int n_sessions, const int n_total_transactions, const int n_total_events,
               const std::unordered_map<int, std::unordered_map<int64_t, int>> &write_steps,
               const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps,
-              const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_length) {
+              const std::unordered_map<int, int> &length_of_read_event,
+              const std::unordered_map<int, int64_t> &key_of_event,
+              const std::unordered_map<int, int> &txn_id) {
   Logger::log("[Acyclic Minisat QxQ]");
 
   bool accept = false;
@@ -112,7 +124,8 @@ bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &
   // }
   if (!accept) {
     // std::cout << "suggest dist = -1\n";
-    accept = am_solve_with_suggestion(n_vertices, known_graph, constraints, /* dist = */ -1, write_steps, read_steps, read_length);
+    // accept = am_solve_with_suggestion(n_vertices, known_graph, constraints, /* dist = */ -1, write_steps, read_steps, read_length);
+    accept = am_solve_list(n_vertices, known_graph, constraints, length_of_read_event, key_of_event, txn_id); 
     // ++test_round;
   } 
 

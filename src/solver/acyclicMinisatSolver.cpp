@@ -14,9 +14,11 @@
 #include "utils/agnf.h"
 #include "utils/subprocess.hpp"
 #include "utils/tarjan_graph.h"
+#include "utils/ufs.h"
 
 namespace fs = std::filesystem;
 
+using UFS = checker::utils::UFS;
 using EdgeType = checker::history::EdgeType;
 
 namespace checker::solver {
@@ -26,6 +28,75 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::UnfoldedDependencyGrap
                                            const history::HistoryMetaInfo &history_meta_info,
                                            const std::string &isolation_level) {
   // TODO: constructor for abstract solver 
+  target_isolation_level = isolation_level;
+
+  // 0. reallocate node id
+  n_vertices = known_graph.num_vertices();
+
+  auto node_id = std::unordered_map<int64_t, int>{};
+  auto nodes_cnt = 0;
+  auto remap = [&node_id, &nodes_cnt](int64_t x) -> int {
+    if (node_id.contains(x)) return node_id.at(x);
+    return node_id[x] = nodes_cnt++;
+  };
+
+  // 1. construct am_known_graph
+  for (const auto &[from, to, info] : known_graph.edges()) {
+    int t = -1;
+    switch (info.get().type) {
+      case EdgeType::SO : t = 0; break;
+      case EdgeType::WW : t = 1; break;
+      case EdgeType::WR : t = 2; break;
+      case EdgeType::RW : t = 3; break;
+      case EdgeType::LO : t = 4; break;
+      case EdgeType::PO : t = 5; break;
+      default: assert(false);
+    }
+    assert(t != -1);
+    am_known_graph.emplace_back(AMEdge{t, remap(from), remap(to), info.get().keys});
+  }
+
+  // 2. construct am_constraints
+  const auto &[ww_cons, wr_cons] = constraints;
+  auto &[am_ww_cons, am_wr_cons] = am_constraints;
+  // 2.1 construct ww_constraints
+  for (const auto &[either_, or_, key] : ww_cons) {
+    am_ww_cons.emplace_back(AMWWConstraint{remap(either_), remap(or_), std::vector<int64_t>{key}}); // edge info
+    // assert(either_edges.info.keys == or_edges.info.keys);
+  }
+  // 2.2 construct wr_constraints
+  for (const auto &[key, read_txn_id, write_txn_ids] : wr_cons) {
+    auto new_write_txn_ids = std::vector<int>();
+    std::transform(write_txn_ids.begin(), write_txn_ids.end(),
+                   std::back_inserter(new_write_txn_ids),
+                   remap);
+    am_wr_cons.emplace_back(AMWRConstraint{remap(read_txn_id), new_write_txn_ids, key});
+  }
+
+  // 3. reconstruct txn_id 
+  auto txns = UFS{n_vertices}; 
+  for (const auto &[from, to, info] : known_graph.edges()) {
+    if (info.get().type == EdgeType::PO) {
+      txns.merge(remap(from), remap(to));
+    }
+  }
+  auto txn_recount = 0;
+  for (int i = 0; i < n_vertices; i++) {
+    if (txn_id.contains(txns.get(i))) continue;
+    txn_id[txns.get(i)] = txn_recount++;
+  } 
+
+  // 4. prepare key_of_event and length_of_read_event 
+  length_of_read_event = {};
+  for (const auto &[event_id, length] : history_meta_info.length_of_read) {
+    auto node_id = remap(event_id);
+    length_of_read_event[node_id] = length;
+  }
+  key_of_event = {};
+  for (const auto &[event_id, key] : history_meta_info.key_of_event) {
+    auto node_id = remap(event_id);
+    key_of_event[node_id] = key;
+  }
 }
 
 AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known_graph,
@@ -248,10 +319,14 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::DependencyGraph &known
 auto AcyclicMinisatSolver::solve() -> bool {
   bool ret = true;
   if (target_isolation_level == "ser") {
-    ret = Minisat::am_solve(n_vertices, am_known_graph, am_constraints, n_sessions, n_total_transactions, n_total_events, write_steps, read_steps, read_length);
+    // TODO: solve 
+    ret = Minisat::am_solve(n_vertices, am_known_graph, am_constraints, 
+                            n_sessions, n_total_transactions, n_total_events, write_steps, read_steps, 
+                            length_of_read_event, key_of_event, txn_id);
   } else if (target_isolation_level == "si") {
+    throw std::runtime_error("not implemented!");
     // TODO: heuristic pruning in SI
-    ret = MinisatSI::am_solve(n_vertices, am_known_graph, am_constraints);
+    // ret = MinisatSI::am_solve(n_vertices, am_known_graph, am_constraints);
   }
   return ret;
 }

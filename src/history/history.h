@@ -108,6 +108,8 @@ struct HistoryMetaInfo {
   unordered_map<int64_t, unordered_map<int64_t, int64_t>> read_node; // event_id -> (index -> node_id) for read event
   unordered_map<int64_t, int64_t> event_value; // node_id -> value(write_value or a single read_value)
   unordered_map<int64_t, unordered_map<int64_t, unsigned>> read_length; // txn_id -> (key -> read value length)
+  unordered_map<int64_t, int64_t> key_of_event; // event id -> key
+  unordered_map<int64_t, int> length_of_read; // read event id -> length of read values
 };
 
 auto compute_history_meta_info(const History &history) -> HistoryMetaInfo;

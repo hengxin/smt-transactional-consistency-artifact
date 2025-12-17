@@ -30,10 +30,14 @@ struct AcyclicMinisatSolver : AbstractSolver {
   int n_vertices;
   AMKnownGraph am_known_graph;
   AMConstraints am_constraints;
+  std::unordered_map<int, int> txn_id;
   
   int n_sessions, n_total_transactions, n_total_events;
   std::unordered_map<int, std::unordered_map<int64_t, int>> write_steps, read_steps;
-  std::unordered_map<int, std::unordered_map<int64_t, int>> read_length;
+  std::unordered_map<int, std::unordered_map<int64_t, int>> read_length; // this is now deprecated 
+
+  std::unordered_map<int, int64_t> key_of_event;
+  std::unordered_map<int, int> length_of_read_event;
 
   AcyclicMinisatSolver(const history::DependencyGraph &known_graph,
                        const history::Constraints &constraints,

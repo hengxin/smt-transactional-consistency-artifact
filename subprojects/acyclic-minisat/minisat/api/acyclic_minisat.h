@@ -19,7 +19,9 @@ bool am_solve(int n_vertices,
               const int n_total_events,
               const std::unordered_map<int, std::unordered_map<int64_t, int>> &write_steps,
               const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps,
-              const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_length);
+              const std::unordered_map<int, int> &length_of_read_event,
+              const std::unordered_map<int, int64_t> &key_of_event,
+              const std::unordered_map<int, int> txn_id);
 
 bool am_solve_with_suggestion(int n_vertices, 
                               const KnownGraph &known_graph, 
@@ -29,6 +31,13 @@ bool am_solve_with_suggestion(int n_vertices,
                               const std::unordered_map<int, std::unordered_map<int64_t, int>> &write_steps,
                               const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_steps,
                               const std::unordered_map<int, std::unordered_map<int64_t, int>> &read_length);
+
+bool am_solve_list(int n_vertices, 
+                   const KnownGraph &known_graph, 
+                   const Constraints &constraints, 
+                   const std::unordered_map<int, int> &length_of_read_event, 
+                   const std::unordered_map<int, int64_t> &key_of_event,
+                   const std::unordered_map<int, int> &txn_id);
 
 } // namespace Minisat
 
