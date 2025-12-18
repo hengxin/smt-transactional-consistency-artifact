@@ -50,7 +50,9 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
       auto from_txn_id = polygraph->txn_id.at(from);
       auto to_txn_id = polygraph->txn_id.at(to);
       if (from_txn_id != to_txn_id) {
-        icd_graph.add_known_edge(from_txn_id, to_txn_id /*, reason = {-1, -1} */);
+        if (!polygraph->is_observer[from] || !polygraph->is_observer[to]) {
+          icd_graph.add_known_edge(from_txn_id, to_txn_id /*, reason = {-1, -1} */);
+        }
       } else {
         if (polygraph->po[to][from]) {
           throw std::runtime_error{"Conflict found in Known Graph!"};
@@ -240,6 +242,10 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
         assert(polygraph->po[from][to]);
       }
     } else {
+      if (polygraph->is_observer[from] || polygraph->is_observer[to]) {
+        // discard observer edges
+        return true;
+      }
       if (!icd_graph.add_edge(from_txn_id, to_txn_id, reason)) {
         return false;
       } else {
