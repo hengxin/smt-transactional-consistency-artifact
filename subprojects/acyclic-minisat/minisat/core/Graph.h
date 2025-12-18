@@ -25,12 +25,16 @@ public:
 
   bool prepared_reachability;
   std::vector<std::bitset<MAX_N_VERTICES>> reachability;
+
+  bool is_acyclic;
+  bool prepared_acyclicity;
   
   Graph(int _n_vertices = 0) {
     n_vertices = _n_vertices;
     edges.assign(n_vertices, std::vector<int>());
     prepared_bridge = false;
     prepared_reachability = false;
+    prepared_acyclicity = false;
   }
 
   bool add_edge(int from, int to) { 
@@ -127,6 +131,37 @@ public:
     return reachability.at(from).test(to);
   }
 
+  void prepare_acyclicity() {
+    // check acyclicity by toposort
+    auto deg = std::vector<int>(n_vertices, 0);
+    for (int from = 0; from < n_vertices; from++) {
+      for (int to : edges[from]) {
+        ++deg[to];
+      }
+    }
+    auto q = std::queue<int>{};
+    for (int x = 0; x < n_vertices; x++) {
+      if (!deg[x]) q.push(x);
+    }
+    auto topo_order = std::vector<int>{};
+    while (!q.empty()) {
+      int x = q.front(); q.pop();
+      topo_order.emplace_back(x);
+      for (int y : edges[x]) {
+        --deg[y];
+        if (deg[y] == 0) {
+          q.push(y);
+        }
+      }
+    }
+    is_acyclic = (int(topo_order.size()) == n_vertices);
+    prepared_acyclicity = true;
+  }
+
+  bool is_graph_acyclic() { 
+    if (!prepared_acyclicity) prepare_acyclicity();
+    return is_acyclic; 
+  }
 };
 
 } // namespace Minisat

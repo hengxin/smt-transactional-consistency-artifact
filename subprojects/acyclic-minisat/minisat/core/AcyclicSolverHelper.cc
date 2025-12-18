@@ -14,6 +14,7 @@
 #include "minisat/core/Polygraph.h"
 #include "minisat/core/ICDGraph.h"
 #include "minisat/core/SolverTypes.h"
+#include "minisat/core/Graph.h"
 #include "minisat/mtl/Vec.h"
 #include "minisat/core/OptOption.h"
 #include "minisat/core/Logger.h"
@@ -31,10 +32,30 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
   wr_to.assign(polygraph->n_vertices, {});
   added_edges_of.assign(polygraph->n_vars, {});
   known_induced_edges_of.assign(polygraph->n_vars, {});
+
+  {
+    // check acyclicity of known graph
+    auto known_graph = Graph(polygraph->n_vertices);
+    for (const auto &[from, to, type] : polygraph->known_edges) {
+      known_graph.add_edge(from, to);
+    }
+    if (!known_graph.is_graph_acyclic()) {
+      throw std::runtime_error{"Conflict found in Known Graph!"};
+    }
+  }
   
   for (const auto &[from, to, type] : polygraph->known_edges) {
     #ifndef REDUCE_KNOWN_GRAPH
-      icd_graph.add_known_edge(from, to /*, reason = {-1, -1} */); 
+      // TODO: maintain icd_graph at txn level 
+      auto from_txn_id = polygraph->txn_id.at(from);
+      auto to_txn_id = polygraph->txn_id.at(to);
+      if (from_txn_id != to_txn_id) {
+        icd_graph.add_known_edge(from_txn_id, to_txn_id /*, reason = {-1, -1} */);
+      } else {
+        if (polygraph->po[to][from]) {
+          throw std::runtime_error{"Conflict found in Known Graph!"};
+        }
+      }
     #endif
     if (type == 1) { // WW
       assert(polygraph->has_ww_keys(from, to));
@@ -205,6 +226,29 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
   auto &added_edges = added_edges_of[var];
   assert(added_edges.empty());
 
+  bool po_conflict = false;
+  auto po_conflict_clause = std::vector<int>{};
+
+  auto add_txn_edge = [&](const int from, const int to, const std::pair<int, int> reason) -> bool {
+    int from_txn_id = polygraph->txn_id.at(from), to_txn_id = polygraph->txn_id.at(to);
+    if (from_txn_id == to_txn_id) {
+      if (polygraph->po[to][from]) {
+        po_conflict = true;
+        po_conflict_clause = {reason.first, reason.second};
+        return false;
+      } else {
+        assert(polygraph->po[from][to]);
+      }
+    } else {
+      if (!icd_graph.add_edge(from_txn_id, to_txn_id, reason)) {
+        return false;
+      } else {
+        added_edges.push({from_txn_id, to_txn_id, reason});
+      }
+    }
+    return true;
+  };
+
   bool cycle = false;
   if (polygraph->is_ww_var(var)) {
     Logger::log(fmt::format("- adding {}, type = WW", var));
@@ -214,13 +258,20 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
     const auto &known_induced_edges = known_induced_edges_of[var];
     for (const auto &[from, to, reason] : known_induced_edges) {
       Logger::log(fmt::format(" - ??: {} -> {}, reason = ({}, {}), Known", from, to, reason.first, reason.second));
-      cycle = !icd_graph.add_edge(from, to, reason);
+      // cycle = !icd_graph.add_edge(from, to, reason);
+      // if (cycle) {
+      //   Logger::log(" - conflict!");
+      //   goto conflict; // bad implementation
+      // } 
+      // Logger::log(" - success");
+      // added_edges.push({from, to, reason});
+
+      cycle = !add_txn_edge(from, to, reason);
       if (cycle) {
         Logger::log(" - conflict!");
         goto conflict; // bad implementation
-      } 
+      }
       Logger::log(" - success");
-      added_edges.push({from, to, reason});
     }
     
     // 2. add induced rw edges
@@ -231,13 +282,20 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
         if (to2 == to) continue;
         auto var2 = polygraph->wr_var_of[from][to2][key];
         Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {}), Induced", to2, to, var, var2));
-        cycle = !icd_graph.add_edge(to2, to, {var, var2});
+        // cycle = !icd_graph.add_edge(to2, to, {var, var2});
+        // if (cycle) {
+        //   Logger::log(" - conflict!");
+        //   goto conflict; // bad implementation
+        // } 
+        // Logger::log(" - success");
+        // added_edges.push({to2, to, {var, var2}});
+
+        cycle = !add_txn_edge(to2, to, {var, var2});
         if (cycle) {
           Logger::log(" - conflict!");
           goto conflict; // bad implementation
-        } 
+        }
         Logger::log(" - success");
-        added_edges.push({to2, to, {var, var2}});
       }
     }
 
@@ -255,13 +313,20 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
     const auto &known_induced_edges = known_induced_edges_of[var];
     for (const auto &[from, to, reason] : known_induced_edges) {
       Logger::log(fmt::format(" - ??: {} -> {}, reason = ({}, {}), Known", from, to, reason.first, reason.second));
-      cycle = !icd_graph.add_edge(from, to, reason);
+      // cycle = !icd_graph.add_edge(from, to, reason);
+      // if (cycle) {
+      //   Logger::log(" - conflict!");
+      //   goto conflict; // bad implementation
+      // } 
+      // Logger::log(" - success");
+      // added_edges.push({from, to, reason});
+
+      cycle = !add_txn_edge(from, to, reason);
       if (cycle) {
         Logger::log(" - conflict!");
         goto conflict; // bad implementation
-      } 
+      }
       Logger::log(" - success");
-      added_edges.push({from, to, reason});
     }
 
     // 2. add induced rw edges
@@ -270,13 +335,20 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
       if (to2 == to) continue;
       auto var2 = polygraph->ww_var_of[from][to2];
       Logger::log(fmt::format(" - RW: {} -> {}, reason = ({}, {}), Induced", to, to2, var2, var));
-      cycle = !icd_graph.add_edge(to, to2, {var2, var});
+      // cycle = !icd_graph.add_edge(to, to2, {var2, var});
+      // if (cycle) {
+      //   Logger::log(" - conflict!");
+      //   break;
+      // } 
+      // Logger::log(" - success");
+      // added_edges.push({to, to2, {var2, var}});
+
+      cycle = !add_txn_edge(to, to2, {var2, var});
       if (cycle) {
         Logger::log(" - conflict!");
-        break;
-      } 
+        goto conflict; // bad implementation
+      }
       Logger::log(" - success");
-      added_edges.push({to, to2, {var2, var}});
     }
 
     if (!cycle) {
@@ -300,8 +372,14 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
 
     // generate conflict clause
     std::vector<Lit> cur_conflict_clause;
-    icd_graph.get_minimal_cycle(cur_conflict_clause);
-
+    if (!po_conflict) {
+      icd_graph.get_minimal_cycle(cur_conflict_clause);
+    } else {
+      for (const auto &v : po_conflict_clause) {
+        if (v != -1) cur_conflict_clause.emplace_back(v);
+      }
+    }
+    
     // for (Lit l : cur_conflict_clause) std::cerr << l.x << " ";
     // std::cerr << std::endl;
 
