@@ -100,7 +100,84 @@ bool am_solve_list(int n_vertices,
                    const std::unordered_map<int, int64_t> &key_of_event,
                    const std::unordered_map<int, int> &txn_id) {
   // TODO: am_solve_list
-  return true;
+  Logger::log(fmt::format("[Acyclic Minisat starts a new solving pass]"));
+  AcyclicSolver S;
+  auto show_model = [&S](std::string model_name = "Model") -> void {
+    Logger::log(fmt::format("[{}]", model_name));
+    bool all_undef = true;
+    for (int i = 0; i < S.nVars(); i++) {
+      if (S.value(i) != l_Undef) {
+        Logger::log(fmt::format("- {} = {}", i, (S.value(i) == l_True)));
+        all_undef = false;
+      }
+    }
+    if (all_undef) Logger::log("- all vars remain UNDEF");
+  };
+
+  auto unit_lits = std::vector<Lit>{};
+  // This is a BAD Implementation, for we have to resolve the cycle dependency conflict of adding unit clauses into theory solver and initialization of SAT solver
+  
+  // construct read_length from key_of_event and length_of_read_event
+  auto read_length = std::unordered_map<int, std::unordered_map<int64_t, int>>{}; // node id -> (key -> length)
+  for (const auto &[event_id, length] : length_of_read_event) {
+    auto key = key_of_event.at(event_id);
+    read_length[event_id][key] = length; // an event has at most one key
+  }
+
+  auto start = std::chrono::high_resolution_clock::now();
+  Polygraph *polygraph = construct(n_vertices, known_graph, constraints, S, unit_lits, read_length, txn_id);
+  auto end = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+  std::cout << "Construct Time: " << duration << "(ms)" << std::endl;
+  std::cout << "#Vertices: " << n_vertices << std::endl;
+  std::cout << "#Vars: " << polygraph->n_vars << std::endl;
+
+  AcyclicSolverHelper *solver_helper = nullptr;
+  try {
+    solver_helper = new AcyclicSolverHelper(polygraph);
+  } catch (std::runtime_error &e) {
+    return false; // UNSAT 
+  }
+  S.init(solver_helper);
+
+  // ------------
+  // This part of code actually is a responsibility of Constructor
+  for (const Lit &l : unit_lits) {
+    vec<Lit> lits; lits.push(l);
+    S.addClause_(lits);
+  }
+  // ------------
+
+#ifdef INIT_PAIR_CONFLICT
+  init_pair_conflict(S);
+#endif
+
+  if (!S.simplify()) {
+    Logger::log("[Conflict detected in simplify()!]");
+    Logger::log(fmt::format("[Accept = {}]", false));
+    return false; // UNSAT, decided by unit propagation
+  } 
+  show_model("Model after simplify()");
+  Logger::log("[Search Traits]");
+  bool accept = S.solve();
+  delete polygraph;
+
+#ifdef MONITOR_ENABLED
+  Monitor::get_monitor()->show_statistics();
+#endif
+
+  Logger::log(fmt::format("[Accept = {}]", accept));
+  if (accept) {
+    Logger::log("[Model Founded]");
+    for (int i = 0; i < S.nVars(); i++) {
+      if (S.model[i] != l_Undef) {
+        Logger::log(fmt::format("- {} = {}", i, (S.model[i] == l_True)));
+      } else {
+        Logger::log(fmt::format("- {} remains UNDEF", i));
+      }
+    }
+  }
+  return accept;
 }
 
 bool am_solve(int n_vertices, const KnownGraph &known_graph, const Constraints &constraints,

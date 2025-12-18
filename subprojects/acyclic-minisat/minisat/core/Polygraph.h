@@ -44,6 +44,9 @@ public:
   std::unordered_map<int, std::vector<int>> observer_wr_candidates; // observer -> { cand_1, cand_2, ..., cand_n }
   std::unordered_map<int, int> observer_matched_ww_from; // observer -> matched ww from
 
+  std::unordered_map<int, int> txn_id; // event (node) id -> txn id 
+  std::unordered_map<int, std::unordered_map<int, bool>> po; // event from -> (event to -> true / false)   
+
   Polygraph(int _n_vertices = 0) { n_vertices = _n_vertices, n_vars = 0; }
 
   void add_known_edge(int from, int to, int type, const std::vector<int64_t> &keys) { 
@@ -96,6 +99,7 @@ public:
     int index = wr_cons_index_of[v];
     return &wr_cons[index];
   } 
+
 };
 
 } // namespace Minisat
