@@ -788,8 +788,8 @@ auto compute_history_meta_info(const InstrumentedHistory &ins_history) -> Histor
   // only consider read_length now
   auto history_meta_info = HistoryMetaInfo{}; 
 
-  auto key_of_event = unordered_map<int64_t, int64_t>{};
-  auto length_of_read = unordered_map<int64_t, int>{};
+  auto &key_of_event = history_meta_info.key_of_event;
+  auto &length_of_read = history_meta_info.length_of_read;
 
   for (const auto &txn : ins_history.participant_txns) {
     for (const auto &e : txn.events) {
@@ -798,6 +798,10 @@ auto compute_history_meta_info(const InstrumentedHistory &ins_history) -> Histor
         length_of_read[e.id] = int(e.read_values.size());
       }
     }
+  }
+  for (const auto &txn : ins_history.observer_txns) {
+    key_of_event[txn.event_id] = txn.key;
+    length_of_read[txn.event_id] = int(txn.read_values.size());
   }
 
   /*

@@ -309,7 +309,7 @@ auto operator<<(std::ostream &os, const UnfoldedWWConstraint &constraint)
     -> std::ostream & {
   auto out = std::osyncstream{os};
   auto print_cond = [&](const char *tag, int64_t first_id, int64_t second_id, int64_t key) {
-    out << tag << ' ' << first_id << "->" << second_id << "key = " << key;
+    out << tag << ' ' << first_id << "->" << second_id << " (key = " << key << ")";
   };
 
   print_cond("either", constraint.either_event_id, constraint.or_event_id, constraint.key);

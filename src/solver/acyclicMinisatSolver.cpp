@@ -82,9 +82,17 @@ AcyclicMinisatSolver::AcyclicMinisatSolver(const history::UnfoldedDependencyGrap
   }
   auto txn_recount = 0;
   for (int i = 0; i < n_vertices; i++) {
-    if (txn_id.contains(txns.get(i))) continue;
-    txn_id[txns.get(i)] = txn_recount++;
+    if (txn_id.contains(i)) continue;
+    if (!txn_id.contains(txns.get(i))) {
+      txn_id[txns.get(i)] = txn_recount++;
+    }
+    txn_id[i] = txn_id[txns.get(i)];
   } 
+
+  // std::cerr << "txn id:" << std::endl;
+  // for (const auto &[event_id, txn_id] : txn_id) {
+  //   std::cerr << event_id << " -> " << txn_id << std::endl;
+  // }
 
   // 4. prepare key_of_event and length_of_read_event 
   length_of_read_event = {};

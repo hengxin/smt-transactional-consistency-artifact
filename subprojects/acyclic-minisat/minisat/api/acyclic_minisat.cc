@@ -121,6 +121,7 @@ bool am_solve_list(int n_vertices,
   auto read_length = std::unordered_map<int, std::unordered_map<int64_t, int>>{}; // node id -> (key -> length)
   for (const auto &[event_id, length] : length_of_read_event) {
     auto key = key_of_event.at(event_id);
+    assert(!read_length.contains(event_id) || !read_length.at(event_id).contains(key));
     read_length[event_id][key] = length; // an event has at most one key
   }
 
