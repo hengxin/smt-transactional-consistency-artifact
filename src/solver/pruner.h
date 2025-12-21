@@ -14,6 +14,10 @@ auto fast_prune_constraints(history::DependencyGraph &dependency_graph,
                        history::Constraints &constraints,
                        const history::InstrumentedHistory &ins_history) -> bool;
 
+auto fast_prune_constraints(history::UnfoldedDependencyGraph &dependency_graph,
+                            history::UnfoldedConstraints &constraints,
+                            const history::InstrumentedHistory &ins_history) -> bool;
+
 auto prune_si_constraints(history::DependencyGraph &dependency_graph,
                        history::Constraints &constraints) -> bool;
 

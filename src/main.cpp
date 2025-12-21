@@ -208,41 +208,44 @@ auto main(int argc, char **argv) -> int {
   // TODO: temporarily disable the following procedures.
   auto accept = true;
 
-  // if (args.get("--pruning") != "none") {
-  //   auto pruning_method = args.get("--pruning");
-  //   BOOST_LOG_TRIVIAL(debug) << "pruning method: " << pruning_method;
+  if (args.get("--pruning") != "none") {
+    auto pruning_method = args.get("--pruning");
+    BOOST_LOG_TRIVIAL(debug) << "pruning method: " << pruning_method;
     
-  //   auto pruned = true;
-  //   if (pruning_method == "normal") {
-  //     if (isolation_level == "ser") {
-  //       accept = solver::prune_constraints(dependency_graph, constraints);
-  //     } else if (isolation_level == "si") {
-  //       accept = solver::prune_si_constraints(dependency_graph, constraints); // hard encode, bad implementation!
-  //     }
-  //   } else if (pruning_method == "fast") {
-  //     // must use fast pruning
-  //     if (isolation_level == "ser") {
-  //       accept = solver::fast_prune_constraints(dependency_graph, constraints, ins_history);
-  //     } else if (isolation_level == "si") {
-  //       accept = solver::fast_prune_si_constraints(dependency_graph, constraints); // hard encode, bad implementation!
-  //     }
-  //   } else {
-  //     pruned = false;
-  //     BOOST_LOG_TRIVIAL(info) << "unknown pruning method \"" 
-  //                             << pruning_method
-  //                             << "\", expect in {\"normal\", \"fast\", \"none\"}, skip pruning";
-  //   }
+    auto pruned = true;
+    if (pruning_method == "normal") {
+      if (isolation_level == "ser") {
+        throw std::runtime_error("not implemented!");
+        // accept = solver::prune_constraints(dependency_graph, constraints);
+      } else if (isolation_level == "si") {
+        throw std::runtime_error("not implemented!");
+        // accept = solver::prune_si_constraints(dependency_graph, constraints); // hard encode, bad implementation!
+      }
+    } else if (pruning_method == "fast") {
+      // must use fast pruning
+      if (isolation_level == "ser") {
+        accept = solver::fast_prune_constraints(dependency_graph, constraints, ins_history);
+      } else if (isolation_level == "si") {
+        throw std::runtime_error("not implemented!");
+        // accept = solver::fast_prune_si_constraints(dependency_graph, constraints); // hard encode, bad implementation!
+      }
+    } else {
+      pruned = false;
+      BOOST_LOG_TRIVIAL(info) << "unknown pruning method \"" 
+                              << pruning_method
+                              << "\", expect in {\"normal\", \"fast\", \"none\"}, skip pruning";
+    }
 
-  //   // display_constraints(constraints, "Constraints after Pruning:");
+    // display_constraints(constraints, "Constraints after Pruning:");
 
-  //   if (pruned) {
-  //     auto curr_time = chrono::steady_clock::now();
-  //     BOOST_LOG_TRIVIAL(info)
-  //         << "prune time: "
-  //         << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
-  //     time = curr_time;
-  //   }
-  // }
+    if (pruned) {
+      auto curr_time = chrono::steady_clock::now();
+      BOOST_LOG_TRIVIAL(info)
+          << "prune time: "
+          << chrono::duration_cast<chrono::milliseconds>(curr_time - time);
+      time = curr_time;
+    }
+  }
 
   if (accept) {
     // encode constraints and known graph

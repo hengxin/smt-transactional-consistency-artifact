@@ -691,6 +691,7 @@ auto instrumented_history_of(const History &history) -> InstrumentedHistory {
     participant_txn.events = txn.events; 
     for (auto &e : participant_txn.events) {
       e.id = event_recount++;
+      e.transaction_id = participant_txn.id;
     }
 
     // for (const auto &key : keys) {
