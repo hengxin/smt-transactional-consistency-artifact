@@ -27,8 +27,18 @@ bool init_pair_conflict(AcyclicSolver &solver) {
   }
 
   Graph graph = Graph(polygraph->n_vertices);
+  // Graph txn_graph = Graph(polygraph->n_vertices);
   for (const auto &[from, to, _] : polygraph->known_edges) {
     graph.add_edge(from, to); // Graph helps handle duplicated edges
+    // if (!polygraph->is_observer[from] && !polygraph->is_observer[to]) {
+    //   auto from_txn_id = polygraph->txn_id.at(from);
+    //   auto to_txn_id = polygraph->txn_id.at(to);
+    //   if (from_txn_id == to_txn_id) {
+    //     assert(polygraph->po[from][to]);
+    //   } else {
+    //     txn_graph.add_edge(from_txn_id, to_txn_id);
+    //   }
+    // }
   }
 
   auto edge = [&polygraph](int v) -> std::pair<int, int> {
@@ -43,7 +53,7 @@ bool init_pair_conflict(AcyclicSolver &solver) {
     assert(false);
   };
 
-  auto conflict = [&edge, &graph, &polygraph](int v1, int v2) -> bool {
+  auto conflict = [&edge, &graph, &txn_graph, &polygraph](int v1, int v2) -> bool {
     auto [from1, to1] = edge(v1);
     auto [from2, to2] = edge(v2);
 
