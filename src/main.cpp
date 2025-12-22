@@ -238,6 +238,11 @@ auto main(int argc, char **argv) -> int {
 
     // display_constraints(constraints, "Constraints after Pruning:");
 
+  CHECKER_LOG_COND(trace, logger) {
+    logger << "unfolded dependency graph after pruning:\n"
+           << dependency_graph;
+  }
+
     if (pruned) {
       auto curr_time = chrono::steady_clock::now();
       BOOST_LOG_TRIVIAL(info)

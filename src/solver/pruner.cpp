@@ -74,7 +74,7 @@ auto fast_prune_constraints(history::UnfoldedDependencyGraph &dependency_graph,
   auto key_of_event = unordered_map<int64_t, int64_t>{};
   auto read_length = unordered_map<int64_t, unsigned>{};
   auto txn_id = unordered_map<int64_t, int>{};
-  auto n_txns = 0l;
+  auto n_txns = 0ul;
   auto observers = unordered_set<int64_t>{};
   {
     auto txn_id_recount = 0;
@@ -83,7 +83,7 @@ auto fast_prune_constraints(history::UnfoldedDependencyGraph &dependency_graph,
       if (!txn_id_map.contains(old_txn_id)) {
         txn_id_map[old_txn_id] = txn_id_recount++;
       }
-      return txn_id[old_txn_id];
+      return txn_id_map[old_txn_id];
     };
 
     for (const auto &txn : ins_history.participant_txns) {
@@ -102,11 +102,15 @@ auto fast_prune_constraints(history::UnfoldedDependencyGraph &dependency_graph,
       key_of_event[txn.event_id] = txn.key;
       read_length[txn.event_id] = txn.read_values.size();
     }
-    n_txns = txn_id_recount;
+    n_txns = uint64_t(txn_id_recount);
   }
+
+  auto po = unordered_map<int64_t, unordered_map<int64_t, bool>>{};
+  for (const auto &[from, to, info] : dependency_graph.po.edges()) { po[from][to] = true; }
 
   auto lo_chain_of = unordered_map<int64_t, vector<int64_t>>{}; // key -> vector of observer event ids
   auto wr_from = unordered_map<int64_t, int64_t>{}; // read event id -> write event id
+  auto key_length_from = unordered_map<int64_t, unordered_map<unsigned, int64_t>>{}; // key -> length -> write event id
   {
     auto lo_prev = unordered_map<int64_t, int64_t>{};
     auto lo_succ = unordered_map<int64_t, int64_t>{};
@@ -180,8 +184,23 @@ auto fast_prune_constraints(history::UnfoldedDependencyGraph &dependency_graph,
     }
   };
 
-  auto add_ww_edges_from_lo = [&](int64_t from, int64_t to) -> void {
-    // TODO
+  auto add_ww_edges_from_lo = [&](int64_t from, int64_t to) -> void { // (from, to) is a wr edge
+    assert(observers.contains(to));
+    assert(!wr_from.contains(to));
+    auto key = key_of_event.at(from);
+    assert(key == key_of_event.at(to));
+    auto before_to = true;
+    for (const auto &to2 : lo_chain_of.at(key)) {
+      if (to2 == to) {
+        before_to = false;
+        continue;
+      }
+      if (!wr_from.contains(to2)) continue;
+      auto from2 = wr_from[to2];
+      auto ww_from = from2, ww_to = from;
+      if (!before_to) std::swap(ww_from, ww_to);
+      add_dep_edge(ww_from, ww_to, EdgeInfo{ .type = EdgeType::WW, .keys = {key} });
+    }
   };
 
   auto &[ww_constraints, wr_constraints] = constraints;
@@ -190,7 +209,348 @@ auto fast_prune_constraints(history::UnfoldedDependencyGraph &dependency_graph,
   auto pruned_wr_constraints = unordered_set<UnfoldedWRConstraint *>{};
   auto not_pruned_wr = filter([&](auto &&c) { return !pruned_wr_constraints.contains(&c); });
 
-  // TODO: the main loop of pruning passes 
+  // 1. prune unit wr constaint
+  BOOST_LOG_TRIVIAL(trace) << "0. prune unit wr constraints";
+  for (auto &&c : wr_constraints) {
+    const auto &[key, read, writes] = c;
+    if (writes.size() == 1) { // unit wr constaint
+      add_dep_edge(*writes.begin(), read, EdgeInfo{
+        .type = EdgeType::WR,
+        .keys = {key},
+      });
+      if (observers.contains(read)) {
+        add_ww_edges_from_lo(*writes.begin(), read);
+        assert(!wr_from.contains(read));
+        wr_from[read] = *writes.begin();
+      }
+      { // check WR-Value
+        auto length = read_length.at(read);
+        if (key_length_from.contains(key) && 
+            key_length_from[key].contains(length) && 
+            key_length_from[key][length] != *writes.begin()) {
+          BOOST_LOG_TRIVIAL(debug) << "conflict found of WR Value in pruning unit wr constraints";
+          return false;
+        } 
+        key_length_from[key][length] = *writes.begin();
+      }
+      pruned_wr_constraints.emplace(&c);
+      BOOST_LOG_TRIVIAL(trace) << "pruned unit wr constraint, added cons: " 
+                               << c;
+    }
+  }
+  
+  // 2. prepare edge visitors
+  auto n = dependency_graph.num_vertices();
+  auto wr_to = vector<unordered_map<int64_t, vector<int64_t>>> (n, unordered_map<int64_t, vector<int64_t>>{});
+  for (auto &&[from, to, info] : dependency_graph.wr.edges()) {
+    auto &&keys = info.get().keys;
+    for (const auto key : keys) {
+      wr_to[from][key].emplace_back(to);
+    }
+  }
+  auto ww_to = vector<unordered_map<int64_t, vector<int64_t>>> (n, unordered_map<int64_t, vector<int64_t>>{});
+
+  // 3. prepare known induced rw edges
+  using Edge = std::tuple<int64_t, int64_t, EdgeInfo>;
+  // auto known_rw_edges_of = vector<vector<vector<Edge>>>(n, vector<vector<Edge>>(n, vector<Edge>{})); // (from, to) -> rw edges
+  auto known_rw_edges_of = unordered_map<int64_t, unordered_map<int64_t, vector<Edge>>>{}; // (from, to) -> rw edges
+  for (const auto &[either_, or_, key] : ww_constraints) {
+    auto induce_rw_edges = [&](int64_t from, int64_t to, int64_t key) -> void {
+      auto rw_keys_of = unordered_map<int64_t, unordered_map<int64_t, set<int64_t>>>{}; // (from, to) -> keys
+      auto rw_edges = vector<pair<int64_t, int64_t>>{};
+      for (const auto &to2 : wr_to[from][key]) {
+        if (to == to2) continue;
+        if (rw_keys_of[to2][to].empty()) rw_edges.emplace_back(pair<int, int>{to2, to});
+        rw_keys_of[to2][to].insert(key);
+      }
+      for (const auto &[u, v] : rw_edges) {
+        const auto &keys = rw_keys_of[u][v];
+        known_rw_edges_of[from][to].emplace_back(Edge{
+          u, v,
+          EdgeInfo{
+            .type = EdgeType::RW,
+            .keys = vector<int64_t>(keys.begin(), keys.end()),
+          },
+        });
+      }
+    };
+
+    induce_rw_edges(either_, or_, key);
+    induce_rw_edges(or_, either_, key);
+
+    CHECKER_LOG_COND(trace, logger) {
+      logger << "\n";
+      logger << "known induced rw edges of " << either_ << ", " << or_ << ": ";
+      for (const auto &[from, to, _] : known_rw_edges_of[either_][or_]) {
+        logger << "(" << from << ", " << to << "), ";
+      }
+      logger << "\n";
+      logger << "known induced rw edges of " << or_ << ", " << either_ << ": ";
+      for (const auto &[from, to, _] : known_rw_edges_of[or_][either_]) {
+        logger << "(" << from << ", " << to << "), ";
+      }
+    }
+  }
+
+  wr_to.assign(n, {});
+
+  // 4. pruning passes
+  bool changed = true;
+  while (changed) {
+    BOOST_LOG_TRIVIAL(trace) << "new pruning pass:";
+    changed = false;
+
+    auto known_graph = adjacency_list<>{n_txns};
+    for (auto &&[from, to, _] : dependency_graph.edges()) {
+      auto from_txn_id = txn_id.at(from);
+      auto to_txn_id = txn_id.at(to);
+      if (from_txn_id != to_txn_id && !observers.contains(from) && !observers.contains(to)) {
+        add_edge(from_txn_id, to_txn_id, known_graph);
+      }
+    }
+
+    auto reverse_topo_order =
+        [&]() -> optional<vector<adjacency_list<>::vertex_descriptor>> {
+      auto v = vector<adjacency_list<>::vertex_descriptor>(n_txns);
+
+      try {
+        topological_sort(known_graph, v.begin(), no_named_parameters());
+      } catch (not_a_dag &e) {
+        return nullopt;
+      }
+
+      return {std::move(v)};
+    }();
+
+    if (!reverse_topo_order) {
+      BOOST_LOG_TRIVIAL(debug) << "conflict found in toposort of pruning";
+      return false;
+    }
+
+    auto reachability = [&]() {
+      auto r = vector<dynamic_bitset<>>{
+          n_txns,
+          dynamic_bitset<>{n_txns}};
+      for (auto &&v : reverse_topo_order.value()) {
+        r.at(v).set(v);
+        for (auto &&e : as_range(out_edges(v, known_graph))) {
+          auto v2 = target(e, known_graph);
+          r.at(v) |= r.at(v2);
+        }
+      }
+      return r;
+    }();
+
+    CHECKER_LOG_COND(trace, logger) {
+      logger << "reachability:\n";
+      for (auto i = 0u; i < reachability.size(); i++) {
+        logger << i << ": ";
+        for (auto j = 0u; j < n_txns; j++) {
+          logger << reachability.at(i).test(j);
+        }
+        logger << "\n";
+      }
+    }
+
+    auto cycle = [&](int64_t from, int64_t to) -> bool {
+      // check whether a single edge introduces a cycle
+      if (observers.contains(from) || observers.contains(to)) return false;
+      if (txn_id.at(from) == txn_id.at(to)) {
+        return po[to][from];
+      } else {
+        return reachability.at(txn_id.at(to)).test(txn_id.at(from));
+      }
+    };
+
+    BOOST_LOG_TRIVIAL(trace) << "1. check ww constraints:";
+    for (auto &&c : ww_constraints | not_pruned_ww) {
+      auto check_ww_edges = [&](int64_t from, int64_t to, int64_t key) -> bool {
+        if (cycle(from, to)) return false;
+        // rw edges part 1. known induced rw edges
+        for (const auto &[from2, to2, _] : known_rw_edges_of[from][to]) {
+          if (cycle(from2, to2)) return false;
+        }
+        // rw edges part 2. new induced rw edges
+        for (const auto &to2 : wr_to[from][key]) {
+          if (to == unsigned(to2)) continue;
+          if (cycle(to2, to)) return false;
+        }
+        return true;
+      };
+      auto add_ww_edges = [&](int64_t from, int64_t to, int64_t key) -> void {
+        auto info = EdgeInfo{ .type = EdgeType::WW, .keys = {key} };
+        add_dep_edge(from, to, info); // ww edge
+        // rw edges part 1. known induced rw edges
+        for (const auto &[from2, to2, info2] : known_rw_edges_of[from][to]) {
+          add_dep_edge(from2, to2, info2);
+        }
+        // rw edges part 2. new induced rw edges
+        const auto &keys = info.keys;
+        for (const auto &key : keys) {
+          for (const auto &to2 : wr_to[from][key]) {
+            if (to == unsigned(to2)) continue;
+            add_dep_edge(
+              to2, to,
+              EdgeInfo{
+                .type = EdgeType::RW,
+                .keys = {key},
+              }
+            );
+          }
+        }
+        // add edge into ww_to
+        for (const auto &key : keys) {
+          ww_to[from][key].emplace_back(to);
+        }
+      };
+
+      auto add_or = !check_ww_edges(c.either_event_id, c.or_event_id, c.key);
+      auto add_either = !check_ww_edges(c.or_event_id, c.either_event_id, c.key);
+      if (add_or && add_either) {
+        BOOST_LOG_TRIVIAL(debug) << "conflict found in ww pruning";
+        return false;
+      }
+
+      auto added_edges_name = "or";
+      auto pruned = false;
+      if (add_or) {
+        add_ww_edges(c.or_event_id, c.either_event_id, c.key);
+        changed = pruned = true;
+       } else if (add_either) {
+        add_ww_edges(c.either_event_id, c.or_event_id, c.key);
+        changed = pruned = true;
+        added_edges_name = "either";
+      }
+
+      if (pruned) {
+        pruned_ww_constraints.emplace(&c);
+        BOOST_LOG_TRIVIAL(trace) << "pruned ww constraint, added "
+                                 << added_edges_name << " edges: " << c;
+      }
+    }
+
+    BOOST_LOG_TRIVIAL(trace) << "2. check wr constraints:";
+    for (auto &&c : wr_constraints | not_pruned_wr) {
+      auto check_wr_edges = [&](int64_t from, int64_t to, int64_t key) -> bool {
+        if (cycle(from, to)) return false;
+        // rw edges
+        for (const auto &to2 : ww_to[from][key]) {
+          if (to == unsigned(to2)) continue;
+          if (cycle(to, to2)) return false;
+        }
+        // lo -> ww
+        if (observers.contains(to)) {
+          assert(!wr_from.contains(to));
+          auto key = key_of_event.at(from);
+          assert(key == key_of_event.at(to));
+          auto before_to = true;
+          for (const auto &to2 : lo_chain_of.at(key)) {
+            if (to2 == to) {
+              before_to = false;
+              continue;
+            }
+            if (!wr_from.contains(to2)) continue;
+            auto from2 = wr_from[to2];
+            auto ww_from = from2, ww_to = from;
+            if (!before_to) std::swap(ww_from, ww_to);
+            if (cycle(ww_from, ww_to)) return false;
+          }
+        }
+        return true;
+      };
+      auto add_wr_edges = [&](int64_t from, int64_t to, int64_t key) -> void {
+        // wr edge
+        add_dep_edge(from, to, EdgeInfo{
+          .type = EdgeType::WR,
+          .keys = {key},
+        }); 
+        // rw edges
+        for (const auto &to2 : ww_to[from][key]) {
+          if (to == unsigned(to2)) continue;
+          add_dep_edge(
+            to, to2,
+            EdgeInfo{
+              .type = EdgeType::RW,
+              .keys = {key},
+            }
+          );
+        }
+        // lo -> ww
+        if (observers.contains(to)) {
+          // WW which is derived by LO -> WW 
+          add_ww_edges_from_lo(from, to);
+        }
+        // add (from, to, key) into wr_to
+        wr_to[from][key].emplace_back(to);
+        // update wr_from
+        assert(!wr_from.contains(to));
+        wr_from[to] = from;
+       };
+
+      auto &[key, read_event_id, write_event_ids] = c;
+
+      // check WR Value first
+      {
+        auto length = read_length.at(read_event_id);
+        if (key_length_from.contains(key) && key_length_from[key].contains(length)) {
+          auto from_event_id = key_length_from[key][length];
+          if (!write_event_ids.contains(from_event_id)) {
+            BOOST_LOG_TRIVIAL(debug) << "conflict found in WR Value";
+            return false;
+          }
+          add_wr_edges(from_event_id, read_event_id, key);
+          pruned_wr_constraints.emplace(&c);
+          BOOST_LOG_TRIVIAL(trace) << "pruned wr constraint, added cons: " 
+                                  << c;
+          continue;
+        }
+      }
+
+      // then the normal pruning process
+      auto erased_wids = vector<int64_t>{};
+      for (auto write_event_id : write_event_ids) {
+        if (!check_wr_edges(write_event_id, read_event_id, key)) {
+          erased_wids.emplace_back(write_event_id);
+        }
+      }
+
+      for (auto id : erased_wids) write_event_ids.erase(id);
+      if (write_event_ids.empty()) {
+        BOOST_LOG_TRIVIAL(debug) << "conflict found in wr pruning:";
+        CHECKER_LOG_COND(debug, logger) {
+          logger << "key = " << key << "\n";
+          logger << "read_node_id = " << read_event_id << "\n";
+          logger << "write_node_id = {";
+          for (auto id : erased_wids) {
+            logger << id << ", ";
+          }
+          logger << "}\n";
+        }
+        return false;
+      }
+
+      auto pruned = false;
+      if (write_event_ids.size() == 1) {
+        pruned = changed = true;
+
+        add_wr_edges(*write_event_ids.begin(), read_event_id, key);
+
+        {
+          // update key_length_from
+          auto length = read_length.at(read_event_id);
+          assert(!key_length_from.contains(key) || !key_length_from.at(key).contains(length));
+          key_length_from[key][length] = *write_event_ids.begin();
+        }
+      }
+
+      if (pruned) {
+        pruned_wr_constraints.emplace(&c);
+        BOOST_LOG_TRIVIAL(trace) << "pruned wr constraint, added cons: " 
+                                 << c;
+      }
+    }
+  }
+
 
   ww_constraints = ww_constraints | not_pruned_ww | to<vector<UnfoldedWWConstraint>>;
   wr_constraints = wr_constraints | not_pruned_wr | to<vector<UnfoldedWRConstraint>>;

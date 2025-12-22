@@ -50,7 +50,7 @@ AcyclicSolverHelper::AcyclicSolverHelper(Polygraph *_polygraph) {
       auto from_txn_id = polygraph->txn_id.at(from);
       auto to_txn_id = polygraph->txn_id.at(to);
       if (from_txn_id != to_txn_id) {
-        if (!polygraph->is_observer[from] || !polygraph->is_observer[to]) {
+        if (!polygraph->is_observer[from] && !polygraph->is_observer[to]) {
           icd_graph.add_known_edge(from_txn_id, to_txn_id /*, reason = {-1, -1} */);
         }
       } else {
