@@ -22,10 +22,10 @@ for history in os.listdir(history_dir):
   for specified_history in os.listdir(specific_path):
     if specified_history.endswith(".bincode"):
       continue
-    # cmd = [dbcop, "convert", "-d", os.path.join(specific_path, specified_history), "--from", "bincode"]
-    # subprocess.run(cmd)  
-    cmd_str = f"lein run test --case-workload {os.path.join(specific_path, specified_history)}/history.json --no-ssh --node localhost"
-    print(cmd_str)
+    cmd = [dbcop, "convert", "-d", os.path.join(specific_path, specified_history), "--from", "bincode"]
+    subprocess.run(cmd)  
+    # cmd_str = f"lein run test --case-workload {os.path.join(specific_path, specified_history)}/history.json --no-ssh --node localhost"
+    # print(cmd_str)
   
 
 
