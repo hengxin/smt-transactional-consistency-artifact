@@ -11,7 +11,8 @@ dbcop = '/home/rikka/dbcop-plus/target/release/dbcop'
 
 # under history/${specific-logs}/${history_name}/hist-00000/history.bincode
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
-specific_path = 'general-list-append/list-rw'
+# specific_path = 'general-list-append/list-rw'
+specific_path = 'general-list-append/list-rw-various'
 history_dir = os.path.join(root_path, 'history', 'ser', specific_path)
 # history_dir = os.path.join(root_path, 'history', 'si', specific_path)
 
