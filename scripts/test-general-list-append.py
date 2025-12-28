@@ -9,13 +9,14 @@ def var_name(p):
     if m:
       return m.group(1)
 
-
+TO = 10 * 60 # 600s
 history_type = 'elle-list-append'
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'general')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'single-write-uv')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'single-write-uv2')
-history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'list-rw-no-single-write')
+# history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'list-rw-no-single-write')
+history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'list-rw-various')
 transform_script_path = os.path.join(root_path, 'scripts', 'edn2txt', 'edn2txt.py')
 # checker = 'elle'
 checker = 'nuser'
@@ -74,11 +75,55 @@ else:
 
 # list-rw
 params = {
-  'dup-r': ['100_100_8_5000_0.5_r_0_1.5_100',
-            '100_100_8_5000_0.5_r_0.25_1.5_100',
-            '100_100_8_5000_0.5_r_0.5_1.5_100', 
-            '100_100_8_5000_0.5_r_0.75_1.5_100', 
-            '100_100_8_5000_0.5_r_1_1.5_100'],
+  # 'dup-r': ['100_100_8_5000_0.5_r_0_1.5_100',
+  #           '100_100_8_5000_0.5_r_0.25_1.5_100',
+  #           '100_100_8_5000_0.5_r_0.5_1.5_100', 
+  #           '100_100_8_5000_0.5_r_0.75_1.5_100', 
+  #           '100_100_8_5000_0.5_r_1_1.5_100'],
+  
+  "sess" : ["5_100_20_5000_0.5_r_0.5_0.5_100",
+            "10_100_20_5000_0.5_r_0.5_0.5_100",
+            "15_100_20_5000_0.5_r_0.5_0.5_100",
+            "20_100_20_5000_0.5_r_0.5_0.5_100",
+            "25_100_20_5000_0.5_r_0.5_0.5_100",
+            "30_100_20_5000_0.5_r_0.5_0.5_100", ],
+  
+  "txn" : ["20_10_20_5000_0.5_r_0.5_0.5_100",
+           "20_20_20_5000_0.5_r_0.5_0.5_100",
+           "20_30_20_5000_0.5_r_0.5_0.5_100",
+           "20_40_20_5000_0.5_r_0.5_0.5_100",
+           "20_50_20_5000_0.5_r_0.5_0.5_100",
+           "20_100_20_5000_0.5_r_0.5_0.5_100",
+           "20_150_20_5000_0.5_r_0.5_0.5_100",
+           "20_200_20_5000_0.5_r_0.5_0.5_100",
+           "20_250_20_5000_0.5_r_0.5_0.5_100",],
+  
+  "ops" : ["20_100_5_5000_0.5_r_0.5_0.5_100",
+           "20_100_10_5000_0.5_r_0.5_0.5_100",
+           "20_100_15_5000_0.5_r_0.5_0.5_100",
+           "20_100_20_5000_0.5_r_0.5_0.5_100",
+           "20_100_25_5000_0.5_r_0.5_0.5_100",
+           "20_100_30_5000_0.5_r_0.5_0.5_100",],
+  
+  
+  "keys" : ["20_100_20_2000_0.5_r_0.5_0.5_100",
+            "20_100_20_4000_0.5_r_0.5_0.5_100",
+            "20_100_20_6000_0.5_r_0.5_0.5_100",
+            "20_100_20_8000_0.5_r_0.5_0.5_100",
+            "20_100_20_10000_0.5_r_0.5_0.5_100",],
+  
+  "read-r" : ["20_100_20_5000_0.05_r_0.5_0.5_100",
+              "20_100_20_5000_0.25_r_0.5_0.5_100",
+              "20_100_20_5000_0.5_r_0.5_0.5_100",
+              "20_100_20_5000_0.75_r_0.5_0.5_100",
+              "20_100_20_5000_0.95_r_0.5_0.5_100",],
+  
+  "dup-r" : ["20_100_20_5000_0.5_r_0_0.5_100",
+             "20_100_20_5000_0.5_r_0.2_0.5_100",
+             "20_100_20_5000_0.5_r_0.4_0.5_100",
+             "20_100_20_5000_0.5_r_0.6_0.5_100",
+             "20_100_20_5000_0.5_r_0.8_0.5_100",
+             "20_100_20_5000_0.5_r_1.0_0.5_100",],
 }
 
 def run_single(history_dir, bincode):
@@ -102,7 +147,7 @@ def run_single(history_dir, bincode):
       with open(output_tmp_file_path, 'w+') as hist_file:
         subprocess.run(['python3', transform_script_path, bincode_path], stdout=hist_file)
       start_time = time.perf_counter()
-      logs = subprocess.run([checker_path, output_tmp_file_path, '--solver', solver, '--history-type', history_type, '--pruning', 'fast'], capture_output=True, text=True).stdout.split(os.linesep)
+      logs = subprocess.run([checker_path, output_tmp_file_path, '--solver', solver, '--history-type', history_type, '--pruning', 'fast'], capture_output=True, text=True, timeout=TO).stdout.split(os.linesep)
       end_time = time.perf_counter()
       for log in logs:
         if log == '':
@@ -125,7 +170,7 @@ def run_single(history_dir, bincode):
       start_time = time.perf_counter()
       bincode_path = os.path.join(bincode_path, 'history.bincode')
       cmd = [checker_path, bincode_path, '--solver', solver, '--pruning', 'fast']
-      logs = subprocess.run(cmd, capture_output=True, text=True).stdout.split(os.linesep)
+      logs = subprocess.run(cmd, capture_output=True, text=True, timeout=TO).stdout.split(os.linesep)
       end_time = time.perf_counter()
       for log in logs:
         if log == '':
