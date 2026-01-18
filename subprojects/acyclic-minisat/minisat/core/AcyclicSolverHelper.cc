@@ -382,7 +382,7 @@ bool AcyclicSolverHelper::add_edges_of_var(int var) {
       icd_graph.get_minimal_cycle(cur_conflict_clause);
     } else {
       for (const auto &v : po_conflict_clause) {
-        if (v != -1) cur_conflict_clause.emplace_back(v);
+        if (v != -1) cur_conflict_clause.emplace_back(mkLit(v));
       }
     }
     

@@ -314,6 +314,21 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 
         for (int j = (p == lit_Undef) ? 0 : 1; j < c.size(); j++){
             Lit q = c[j];
+            if (!seen.has(var(q))) {
+                std::cerr << "seen is broken.\n";
+                for (int j = 0; j < c.size(); j++) {
+                    std::cerr << var(c[j]) << " ";
+                }
+                std::cerr << std::endl;
+            }
+
+            if (!vardata.has(var(q))) {
+                std::cerr << "level(vardata) is broken.\n";
+                for (int j = 0; j < c.size(); j++) {
+                    std::cerr << var(c[j]) << " ";
+                }
+                std::cerr << std::endl;
+            }
 
             if (!seen[var(q)] && level(var(q)) > 0){
                 varBumpActivity(var(q));
@@ -324,6 +339,14 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
                     out_learnt.push(q);
             }
         }
+
+        // while (true) {
+        //     assert(index >= 0);                 // 防止 trail 越界
+        //     Lit t = trail[index--];
+        //     Var v = var(t);
+        //     assert(seen.has(v));                // 如果这里炸，说明 seen 没覆盖变量
+        //     if (seen[v]) { p = t; break; }
+        // }
         
         // Select next clause to look at:
         while (!seen[var(trail[index--])]);

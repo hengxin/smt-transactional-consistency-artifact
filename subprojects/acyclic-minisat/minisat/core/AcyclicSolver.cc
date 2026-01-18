@@ -114,7 +114,7 @@ CRef AcyclicSolver::propagate() {
         auto &conflict_clause = solver_helper->conflict_clauses.back();
 
         // for (Lit l : conflict_clause) std::cerr << var(l) << "\n";
-        // std::cerr << "\n";
+        // std::cerr << std::endl;
 
         vec<Lit> clause;
         for (Lit l : conflict_clause) clause.push(~l);
