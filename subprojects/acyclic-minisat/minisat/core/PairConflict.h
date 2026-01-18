@@ -53,7 +53,7 @@ bool init_pair_conflict(AcyclicSolver &solver) {
     assert(false);
   };
 
-  auto conflict = [&edge, &graph, &txn_graph, &polygraph](int v1, int v2) -> bool {
+  auto conflict = [&edge, &graph, &polygraph](int v1, int v2) -> bool {
     auto [from1, to1] = edge(v1);
     auto [from2, to2] = edge(v2);
 

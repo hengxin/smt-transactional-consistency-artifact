@@ -16,7 +16,7 @@ struct UFS {
   }
 
   int get(int x) {
-    return ufs[x] == x ? x : get(ufs[x]);
+    return ufs[x] == x ? x : (ufs[x] = get(ufs[x]));
   }
 
   void merge(int x, int y) {
