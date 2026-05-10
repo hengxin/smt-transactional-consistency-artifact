@@ -2,6 +2,8 @@ import os
 import subprocess
 import inspect, re
 import time
+import signal
+import tempfile
 
 def var_name(p):
   for line in inspect.getframeinfo(inspect.currentframe().f_back)[3]:
@@ -10,6 +12,7 @@ def var_name(p):
       return m.group(1)
 
 TO = 10 * 60 # 600s
+TIME_BIN = '/usr/bin/time'
 history_type = 'elle-list-append'
 root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 # history_path = os.path.join(root_path, 'history', 'ser', 'general-list-append', 'general')
@@ -126,29 +129,61 @@ params = {
              "20_100_20_5000_0.5_r_1.0_0.5_100",],
 }
 
+def read_max_rss_kb(time_output_path):
+  with open(time_output_path) as time_output:
+    for line in time_output:
+      if line.startswith('max_rss_kb='):
+        value = line.split('=', 1)[1].strip()
+        if value:
+          return int(value)
+  return None
+
+def run_command_with_memory(cmd, timeout=None):
+  with tempfile.NamedTemporaryFile(delete=False) as time_output:
+    time_output_path = time_output.name
+  try:
+    timed_cmd = [TIME_BIN, '-f', 'max_rss_kb=%M', '-o', time_output_path] + cmd
+    start_time = time.perf_counter()
+    process = subprocess.Popen(timed_cmd,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE,
+                               text=True,
+                               start_new_session=True)
+    try:
+      stdout, _ = process.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+      try:
+        os.killpg(process.pid, signal.SIGKILL)
+      except ProcessLookupError:
+        pass
+      process.communicate()
+      raise
+    end_time = time.perf_counter()
+    return stdout.split(os.linesep), (end_time - start_time) * 1000, read_max_rss_kb(time_output_path)
+  finally:
+    os.remove(time_output_path)
+
 def run_single(history_dir, bincode):
   print('--- checking {}/{} ---'.format(history_dir, bincode))
   bincode_path = os.path.join(history_path, history_dir, bincode)
   runtime = 0
+  max_rss_kb = None
   if checker == 'elle':
-    start_time = time.perf_counter()
-    logs = subprocess.run(['java', '-jar', checker_path, '--model', 'list-append', '-f', 'edn', bincode_path, '-c', 'serializable'], capture_output=True, text=True).stdout.split(os.linesep)
-    end_time = time.perf_counter()
+    cmd = ['java', '-jar', checker_path, '--model', 'list-append', '-f', 'edn', bincode_path, '-c', 'serializable']
+    logs, runtime, max_rss_kb = run_command_with_memory(cmd)
     for log in logs:
       if log == '':
         continue
       # print(log)
       assert log.split(' ')[-1] == 'true'
-    runtime = (end_time - start_time) * 1000
   else:
     if mode == 'list':
       output_tmp_file_name = 'hist.txt'
       output_tmp_file_path = os.path.join(history_path, history_dir, output_tmp_file_name)
       with open(output_tmp_file_path, 'w+') as hist_file:
         subprocess.run(['python3', transform_script_path, bincode_path], stdout=hist_file)
-      start_time = time.perf_counter()
-      logs = subprocess.run([checker_path, output_tmp_file_path, '--solver', solver, '--history-type', history_type, '--pruning', 'fast'], capture_output=True, text=True, timeout=TO).stdout.split(os.linesep)
-      end_time = time.perf_counter()
+      cmd = [checker_path, output_tmp_file_path, '--solver', solver, '--history-type', history_type, '--pruning', 'fast']
+      logs, runtime, max_rss_kb = run_command_with_memory(cmd, timeout=TO)
       for log in logs:
         if log == '':
           continue
@@ -156,7 +191,7 @@ def run_single(history_dir, bincode):
           if log.find(':') == -1:
             continue
           if log.strip().endswith('ms'):
-            runtime += int(log.split(':')[-1].strip()[:-2]) # xxx'ms'
+            continue
         elif log[0] == 'a': # accept
           if log.split(':')[-1].strip() != 'true':
             print(f'checking result of {history_dir}/{bincode} is false')
@@ -164,14 +199,11 @@ def run_single(history_dir, bincode):
         # print(log)
       # print(runtime)
       # print((end_time - start_time) * 1000)
-      runtime = (end_time - start_time) * 1000
       os.remove(output_tmp_file_path)
     elif mode == "rw":
-      start_time = time.perf_counter()
       bincode_path = os.path.join(bincode_path, 'history.bincode')
       cmd = [checker_path, bincode_path, '--solver', solver, '--pruning', 'fast']
-      logs = subprocess.run(cmd, capture_output=True, text=True, timeout=TO).stdout.split(os.linesep)
-      end_time = time.perf_counter()
+      logs, runtime, max_rss_kb = run_command_with_memory(cmd, timeout=TO)
       for log in logs:
         if log == '':
           continue
@@ -179,7 +211,7 @@ def run_single(history_dir, bincode):
           if log.find(':') == -1:
             continue
           if log.strip().endswith('ms'):
-            runtime += int(log.split(':')[-1].strip()[:-2]) # xxx'ms'
+            continue
         elif log[0] == 'a': # accept
           if log.split(':')[-1].strip() != 'true':
             print(f'checking result of {history_dir}/{bincode} is false')
@@ -187,24 +219,37 @@ def run_single(history_dir, bincode):
         # print(log)
       # print(runtime)
       # print((end_time - start_time) * 1000)
-      runtime = (end_time - start_time) * 1000
-  return runtime
+  # print('max_rss_kb = {}'.format(max_rss_kb))
+  return runtime, max_rss_kb
+
+def average(values):
+  values = [value for value in values if value is not None]
+  if len(values) == 0:
+    return None
+  return sum(values) / len(values)
 
 
 def run(history_dir):
   if checker == 'elle' or (checker == 'nuser' and mode == 'list'):
-    statistics = [run_single(history_dir, bincode) 
+    statistics = [run_single(history_dir, bincode)
                 for bincode in os.listdir(os.path.join(history_path, history_dir)) 
                 if os.path.isfile(os.path.join(history_path, history_dir, bincode))]
   else: # checker == 'nuser' and mode == 'rw'
-    statistics = [run_single(history_dir, bincode) 
+    statistics = [run_single(history_dir, bincode)
                 for bincode in os.listdir(os.path.join(history_path, history_dir)) 
                 if os.path.isdir(os.path.join(history_path, history_dir, bincode))]
-  return sum(statistics) / len(statistics)
+  runtimes = [runtime for runtime, _ in statistics]
+  max_rss_values = [max_rss_kb for _, max_rss_kb in statistics]
+  return average(runtimes), average(max_rss_values)
 
 all_statistics = {}
+all_memory_statistics = {}
 for fig_id in params:
   print('name: {} '.format(fig_id))
   statistics = [run(h) for h in params[fig_id]]
-  all_statistics['{}'.format(fig_id)] = statistics
+  all_statistics['{}'.format(fig_id)] = [runtime for runtime, _ in statistics]
+  all_memory_statistics['{}'.format(fig_id)] = [max_rss_kb for _, max_rss_kb in statistics]
+print('runtime_ms_statistics:')
 print(all_statistics)
+print('max_rss_kb_statistics:')
+print(all_memory_statistics)
